@@ -1,9 +1,10 @@
 #include "GitSourceControlWorkerGetDiffWithOriginStatusBranch.h"
 
-#include "GitSourceControl/Public/GitSourceControlCommand.h"
-#include "GitSourceControl/Public/GitSourceControlModule.h"
-#include "GitSourceControl/Public/GitSourceControlState.h"
-#include "GitSourceControl/Public/GitSourceControlUtils.h"
+#include "GitHubToolsGitUtils.h"
+#include "GitSourceControlCommand.h"
+#include "GitSourceControlModule.h"
+#include "GitSourceControlState.h"
+#include "GitSourceControlUtils.h"
 #include "SourceControlOperations/GitOperationGetDiffWithOriginStatusBranch.h"
 
 #define LOCTEXT_NAMESPACE "GitHubToolsSourceControlOperations"
@@ -32,7 +33,7 @@ bool FGitWorkerGetDiffWithOriginStatusBranch::Execute( FGitSourceControlCommand 
     const auto status_branches = provider.GetStatusBranchNames();
     TMap< FString, FGitSourceControlState > updated_states;
 
-    if ( !GitSourceControlUtils::GetDiffNameStatusWithBranch(
+    if ( !GitHubToolsGitUtils::GetDiffNameStatusWithBranch(
              InCommand.PathToGitBinary,
              InCommand.PathToRepositoryRoot,
              updated_states,

@@ -1,0 +1,134 @@
+#include "GitHubToolsGitUtils.h"
+
+#include "AssetDefinition.h"
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "AssetToolsModule.h"
+#include "GitSourceControlModule.h"
+#include "GitSourceControlUtils.h"
+
+namespace GitHubToolsGitUtils
+{
+    bool GetDiffNameStatusWithBranch( const FString & path_to_git_binary, const FString & repository_root, TMap< FString, FGitSourceControlState > & updated_states, TArray< FString > & error_messages, const FString & branch_name )
+    {
+        TArray< FString > results;
+        if ( !GitSourceControlUtils::RunCommand( TEXT( "diff" ),
+                 path_to_git_binary,
+                 repository_root,
+                 { FString::Printf( TEXT( "%s..." ), *branch_name ),
+                     TEXT( "--name-status" ) },
+                 FGitSourceControlModule::GetEmptyStringArray(),
+                 results,
+                 error_messages ) )
+        {
+            return false;
+        }
+
+        TArray< FString > files;
+        TMap< FString, FString > results_map;
+
+        for ( const auto & result : results )
+        {
+            TArray< FString > split;
+            result.ParseIntoArray( split, TEXT( "\t" ) );
+
+            const FString & relative_filename = split[ 1 ];
+            const FString & file = FPaths::ConvertRelativePathToFull( repository_root, relative_filename );
+            results_map.Add( file, result );
+
+            files.Emplace( file );
+        }
+
+        GitSourceControlUtils::ParseStatusResults( path_to_git_binary, repository_root, false, files, results_map, updated_states );
+
+        // ParseStatusResults keeps TreeState to ETreeState::UnSet, which prevents the diff tool to work
+        for ( auto & [ file_name, state ] : updated_states )
+        {
+            state.State.TreeState = ETreeState::Unmodified;
+        }
+
+        return true;
+    }
+
+    TOptional< FAssetData > GetAssetDataFromState( const TSharedRef< FGitSourceControlState > & state )
+    {
+        if ( FString package_name;
+             FPackageName::TryConvertFilenameToLongPackageName( state->GetFilename(), package_name ) )
+        {
+            TArray< FAssetData > assets;
+
+            FModuleManager::LoadModuleChecked< FAssetRegistryModule >( TEXT( "AssetRegistry" ) ).Get().GetAssetsByPackageName( *package_name, assets );
+            if ( assets.Num() == 1 )
+            {
+                return assets[ 0 ];
+            }
+        }
+
+        return TOptional< FAssetData >();
+    }
+
+    void DiffAssetAgainstOriginStatusBranch( const TSharedRef< FGitSourceControlState > & state )
+    {
+        if ( !state->IsSourceControlled() )
+        {
+            return;
+        }
+
+        auto optional_asset_data = GetAssetDataFromState( state );
+        if ( !optional_asset_data.IsSet() )
+        {
+            return;
+        }
+
+        const auto & git_source_control = FModuleManager::GetModuleChecked< FGitSourceControlModule >( "GitSourceControl" );
+        const auto & status_branch_names = FGitSourceControlModule::Get().GetProvider().GetStatusBranchNames();
+        const auto & branch_name = status_branch_names[ 0 ];
+        const auto & path_to_git_binary = git_source_control.AccessSettings().GetBinaryPath();
+        const auto & path_to_repository_root = git_source_control.GetProvider().GetPathToRepositoryRoot();
+
+        auto asset_data = optional_asset_data.GetValue();
+
+        const auto package_path = asset_data.PackageName.ToString();
+        const auto package_name = asset_data.AssetName.ToString();
+        auto * current_object = asset_data.GetAsset();
+
+        // Get the file name of package
+        FString relative_file_name;
+        if ( !FPackageName::DoesPackageExist( package_path, &relative_file_name ) )
+        {
+            return;
+        }
+
+        TArray< FString > errors;
+        const auto & revision = GitSourceControlUtils::GetOriginRevisionOnBranch( path_to_git_binary, path_to_repository_root, relative_file_name, errors, branch_name );
+
+        check( revision.IsValid() );
+
+        FString temp_file_name;
+        if ( !revision->Get( temp_file_name ) )
+        {
+            return;
+        }
+
+        auto * temp_package = LoadPackage( nullptr, *temp_file_name, LOAD_ForDiff | LOAD_DisableCompileOnLoad );
+        if ( temp_package == nullptr )
+        {
+            return;
+        }
+
+        auto * old_object = FindObject< UObject >( temp_package, *package_name );
+        if ( old_object == nullptr )
+        {
+            return;
+        }
+
+        FRevisionInfo old_revision;
+        old_revision.Changelist = revision->GetCheckInIdentifier();
+        old_revision.Date = revision->GetDate();
+        old_revision.Revision = revision->GetRevision();
+
+        FRevisionInfo new_revision;
+        new_revision.Revision = TEXT( "" );
+
+        FModuleManager::GetModuleChecked< FAssetToolsModule >( "AssetTools" ).Get().DiffAssets( old_object, current_object, old_revision, new_revision );
+    }
+}

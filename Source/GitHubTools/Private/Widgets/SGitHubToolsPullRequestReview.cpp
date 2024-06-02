@@ -2,6 +2,7 @@
 
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetToolsModule.h"
+#include "GitHubToolsGitUtils.h"
 #include "GitHubToolsReviewFileItem.h"
 #include "GitHubToolsSettings.h"
 #include "GitSourceControlModule.h"
@@ -100,33 +101,15 @@ void SGitHubToolsPullRequestReview::Construct( const FArguments & arguments )
                     .Visibility( this, &SGitHubToolsPullRequestReview::IsWarningPanelVisible )
                     .Padding( 5 )
                         [ SNew( SErrorText )
-                                .ErrorText( NSLOCTEXT( "GitHubTools.ReviewWindow", "EmptyToken", "You must define the GitHub Token to be able to see and add comments on assets" ) )
-    ] ];
+                                .ErrorText( NSLOCTEXT( "GitHubTools.ReviewWindow", "EmptyToken", "You must define the GitHub Token to be able to see and add comments on assets" ) ) ] ];
     RequestSort();
 }
 
 void SGitHubToolsPullRequestReview::OnDiffAgainstRemoteStatusBranchSelected( TSharedPtr< FGitSourceControlReviewFileItem > selected_item )
 {
-    const auto & asset_registry_module = FModuleManager::LoadModuleChecked< FAssetRegistryModule >( TEXT( "AssetRegistry" ) );
-
-    const auto get_asset_data = [ & ]() -> TOptional< FAssetData > {
-        FString PackageName;
-        if ( FPackageName::TryConvertFilenameToLongPackageName( selected_item->GetFileName().ToString(), PackageName ) )
-        {
-            TArray< FAssetData > Assets;
-            asset_registry_module.Get().GetAssetsByPackageName( *PackageName, Assets );
-            if ( Assets.Num() == 1 )
-            {
-                return Assets[ 0 ];
-            }
-        }
-
-        return TOptional< FAssetData >();
-    };
-
     if ( selected_item->FileState->State.FileState == EFileState::Added )
     {
-        const auto asset_data = get_asset_data();
+        const auto asset_data = GitHubToolsGitUtils::GetAssetDataFromState( selected_item->FileState );
         if ( asset_data.IsSet() )
         {
             const auto & asset_tools_module = FModuleManager::GetModuleChecked< FAssetToolsModule >( "AssetTools" );
@@ -138,13 +121,8 @@ void SGitHubToolsPullRequestReview::OnDiffAgainstRemoteStatusBranchSelected( TSh
 
     if ( selected_item->FileState->State.FileState == EFileState::Modified )
     {
-        const auto asset_data = get_asset_data();
-        if ( asset_data.IsSet() )
-        {
-            const auto & git_module = FGitSourceControlModule::Get();
-            git_module.DiffAssetAgainstOriginStatusBranch( asset_data.GetValue() );
-            selected_item->SetCheckBoxState( ECheckBoxState::Checked );
-        }
+        GitHubToolsGitUtils::DiffAssetAgainstOriginStatusBranch( selected_item->FileState );
+        selected_item->SetCheckBoxState( ECheckBoxState::Checked );
     }
 }
 

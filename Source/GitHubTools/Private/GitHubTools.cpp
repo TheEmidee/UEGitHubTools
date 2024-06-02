@@ -1,8 +1,8 @@
 #include "GitHubTools.h"
 
 #include "GitHubToolsStyle.h"
-#include "GitSourceControl/Public/GitSourceControlModule.h"
-#include "GitSourceControl/Public/GitSourceControlProvider.h"
+#include "GitSourceControlModule.h"
+#include "GitSourceControlProvider.h"
 #include "SourceControlWorkers/GitSourceControlWorkerGetDiffWithOriginStatusBranch.h"
 
 #include <Misc/MessageDialog.h>
