@@ -11,6 +11,6 @@ class UGitHubToolsSettings final : public UDeveloperSettings
     GENERATED_BODY()
 
 public:
-    UPROPERTY( Config )
+    UPROPERTY( Config, EditDefaultsOnly )
     FString Token;
 };

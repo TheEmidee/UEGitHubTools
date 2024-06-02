@@ -46,14 +46,14 @@ void FGitHubToolsMenu::OnGetDiffWithOriginStatusBranchOperationComplete( const T
     {
         const auto & operation = static_cast< FGitOperationGetDiffWithOriginStatusBranch & >( source_control_operation.Get() );
 
-        if ( operation.GetFiles().IsEmpty() )
+        /*if ( operation.GetFiles().IsEmpty() )
         {
             FNotificationInfo info( LOCTEXT( "GitHubToolslMenu_NoDiffForPullRequest", "No files are different from this branch with the status branch" ) );
             info.ExpireDuration = 8.0f;
             FSlateNotificationManager::Get().AddNotification( info );
 
             return;
-        }
+        }*/
 
         ReviewWindowPtr = SNew( SWindow )
                               .Title( LOCTEXT( "SourceControlLoginTitle", "Review Window" ) )

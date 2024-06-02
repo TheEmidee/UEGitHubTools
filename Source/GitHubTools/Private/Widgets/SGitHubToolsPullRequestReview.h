@@ -36,6 +36,8 @@ public:
 
 private:
     bool IsAddCommentButtonEnabled() const;
+    EVisibility IsWarningPanelVisible() const;
+
     //	/** Called when the settings of the dialog are to be ignored*/
     FReply CancelClicked();
     FReply OnAddCommentButtonClicked( TSharedPtr< FGitSourceControlReviewFileItem > item );

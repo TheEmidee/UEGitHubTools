@@ -82,13 +82,6 @@ void SGitHubToolsPullRequestReview::Construct( const FArguments & arguments )
                 .BorderImage( FAppStyle::GetBrush( "ToolPanel.GroupBorder" ) )
                     [ SAssignNew( contents, SVerticalBox ) ] ];
 
-    // Build contents of dialog
-    contents->AddSlot()
-        .AutoHeight()
-        .Padding( 5 )
-            [ SNew( STextBlock )
-                    .Text( NSLOCTEXT( "SourceControl.SubmitPanel", "ChangeListDesc", "Changelist Description" ) ) ];
-
     contents->AddSlot()
         .Padding( FMargin( 5, 0 ) )
             [ SNew( SBorder )
@@ -96,10 +89,19 @@ void SGitHubToolsPullRequestReview::Construct( const FArguments & arguments )
                             .ItemHeight( 20 )
                             .ListItemsSource( &ListViewItems )
                             .OnGenerateRow( this, &SGitHubToolsPullRequestReview::OnGenerateRowForList )
-                            //.OnContextMenuOpening(this, &SGitHubToolsPullRequestReviewWidget::OnCreateContextMenu)
                             .OnMouseButtonDoubleClick( this, &SGitHubToolsPullRequestReview::OnDiffAgainstRemoteStatusBranchSelected )
                             .HeaderRow( header_row_widget )
                             .SelectionMode( ESelectionMode::Multi ) ] ];
+
+    contents->AddSlot()
+        .AutoHeight()
+        .Padding( FMargin( 5, 5, 5, 0 ) )
+            [ SNew( SBorder )
+                    .Visibility( this, &SGitHubToolsPullRequestReview::IsWarningPanelVisible )
+                    .Padding( 5 )
+                        [ SNew( SErrorText )
+                                .ErrorText( NSLOCTEXT( "GitHubTools.ReviewWindow", "EmptyToken", "You must define the GitHub Token to be able to see and add comments on assets" ) )
+    ] ];
     RequestSort();
 }
 
@@ -219,6 +221,18 @@ bool SGitHubToolsPullRequestReview::IsAddCommentButtonEnabled() const
     }
 
     return false;
+}
+
+EVisibility SGitHubToolsPullRequestReview::IsWarningPanelVisible() const
+{
+    if ( auto * settings = GetDefault< UGitHubToolsSettings >() )
+    {
+        return settings->Token.IsEmpty()
+                   ? EVisibility::Visible
+                   : EVisibility::Collapsed;
+    }
+
+    return EVisibility::Visible;
 }
 
 FReply SGitHubToolsPullRequestReview::CancelClicked()
