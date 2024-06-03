@@ -12,5 +12,11 @@ class UGitHubToolsSettings final : public UDeveloperSettings
 
 public:
     UPROPERTY( Config, EditDefaultsOnly )
+    FString RepositoryOwner;
+
+    UPROPERTY( Config, EditDefaultsOnly )
+    FString RepositoryName;
+
+    UPROPERTY( Config, EditDefaultsOnly )
     FString Token;
 };

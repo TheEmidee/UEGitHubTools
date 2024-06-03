@@ -229,7 +229,7 @@ FReply SGitHubToolsPullRequestReview::OnFileCommentsButtonClicked( TSharedPtr< F
                             .ParentWindow( window ) );
 
     const TSharedPtr< SWindow > root_window = FGlobalTabmanager::Get()->GetRootWindow();
-    FSlateApplication::Get().AddModalWindow( window.ToSharedRef(), root_window );
+    FSlateApplication::Get().AddWindow( window.ToSharedRef() );
 
     return FReply::Handled();
 }

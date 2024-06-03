@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "GitSourceControlModule.h"
 #include "GitSourceControlState.h"
 #include "SourceControlAssetDataCache.h"
 

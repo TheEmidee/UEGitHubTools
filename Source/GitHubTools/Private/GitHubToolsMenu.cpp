@@ -1,11 +1,12 @@
 #include "GitHubToolsMenu.h"
 
 #include "Framework/Notifications/NotificationManager.h"
+#include "GitHubToolsHttpRequest.h"
 #include "GitHubToolsLog.h"
 #include "GitSourceControl/Public/GitSourceControlModule.h"
 #include "SourceControlOperations/GitOperationGetDiffWithOriginStatusBranch.h"
-#include "Widgets/SGitHubToolsPullRequestReview.h"
 #include "Widgets/Notifications/SNotificationList.h"
+#include "Widgets/SGitHubToolsPullRequestReview.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools"
 
@@ -28,6 +29,8 @@ void FGitHubToolsMenu::Register()
 
         AddMenuExtension( section );
     }
+
+    HttpRequestManager = MakeUnique< FGitHubToolsHttpRequestManager >();
 }
 
 void FGitHubToolsMenu::Unregister()
@@ -85,7 +88,7 @@ void FGitHubToolsMenu::OnGetDiffWithOriginStatusBranchOperationComplete( const T
     }
     else
     {
-        DisplayFailureNotification( source_control_operation->GetName() );
+        DisplayFailureNotification( LOCTEXT( "GitHubToolslMenu_Failure", "Impossible to get the list of updated files" ) );
     }
 }
 
@@ -99,20 +102,47 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
         return;
     }
 
-    const auto operation = ISourceControlOperation::Create< FGitOperationGetDiffWithOriginStatusBranch >();
+    DisplayInProgressNotification( LOCTEXT( "SourceControlMenu_InProgress", "Fetching the pull request number" ) );
 
-    if ( const auto result = FGitSourceControlModule::Get().GetProvider().Execute(
-             operation,
-             EConcurrency::Asynchronous,
-             FSourceControlOperationComplete::CreateRaw( this, &FGitHubToolsMenu::OnGetDiffWithOriginStatusBranchOperationComplete ) );
-         result == ECommandResult::Succeeded )
+    HttpRequestManager->SendRequest< FGitHubToolsHttpRequestData_GetPullRequestNumber, FGitHubToolsHttpResponseData_GetPullRequestNumber >()
+        .Next( [ & ]( const FGitHubToolsHttpResponseData_GetPullRequestNumber & response_data ) {
+            if ( response_data.GetPullRequestNumber().Get( INDEX_NONE ) == INDEX_NONE )
+            {
+                DisplayFailureNotification( LOCTEXT( "GitHubToolslMenu_Failure", "Impossible to find a pull request for the local branch" ) );
+                return;
+            }
+
+            
+        } );
+
+    /*if ( pull_request_number == INDEX_NONE )
     {
-        DisplayInProgressNotification( operation->GetInProgressString() );
-    }
-    else
-    {
-        DisplayFailureNotification( operation->GetName() );
-    }
+        DisplayFailureNotification( LOCTEXT( "GitHubToolslMenu_Failure", "Impossible to find a pull request for the local branch" ) );
+        return;
+    }*/
+
+    /*FGithubToolsRequest_GetPullRequestNumber request( FGithubToolsRequest_GetPullRequestNumberDelegate::CreateLambda( [ & ]( bool success, int pr_number ) {
+        if ( !success )
+        {
+            DisplayFailureNotification( LOCTEXT( "GitHubToolslMenu_Failure", "Impossible to get the PR number" ) );
+            return;
+        }
+
+        const auto operation = ISourceControlOperation::Create< FGitOperationGetDiffWithOriginStatusBranch >();
+
+        if ( const auto result = FGitSourceControlModule::Get().GetProvider().Execute(
+                 operation,
+                 EConcurrency::Asynchronous,
+                 FSourceControlOperationComplete::CreateRaw( this, &FGitHubToolsMenu::OnGetDiffWithOriginStatusBranchOperationComplete ) );
+             result == ECommandResult::Succeeded )
+        {
+            DisplayInProgressNotification( operation->GetInProgressString() );
+        }
+        else
+        {
+            DisplayFailureNotification( LOCTEXT( "GitHubToolslMenu_Failure", "Impossible to get the list of updated files" ) );
+        }
+    } ) );*/
 }
 
 bool FGitHubToolsMenu::HasGitRemoteUrl() const
@@ -132,7 +162,7 @@ void FGitHubToolsMenu::AddMenuExtension( FToolMenuSection & section )
             FCanExecuteAction::CreateRaw( this, &FGitHubToolsMenu::HasGitRemoteUrl ) ) );
 }
 
-void FGitHubToolsMenu::OnReviewWindowDialogClosed( const TSharedRef<SWindow> & window )
+void FGitHubToolsMenu::OnReviewWindowDialogClosed( const TSharedRef< SWindow > & window )
 {
     ReviewWindowPtr = nullptr;
 }
@@ -165,6 +195,8 @@ void FGitHubToolsMenu::RemoveInProgressNotification()
 
 void FGitHubToolsMenu::DisplaySucessNotification( FName operation_name )
 {
+    RemoveInProgressNotification();
+
     const auto notification_text = FText::Format( LOCTEXT( "GitHubToolslMenu_Success", "{0} operation was successful!" ), FText::FromName( operation_name ) );
     FNotificationInfo info( notification_text );
     info.bUseSuccessFailIcons = true;
@@ -175,14 +207,15 @@ void FGitHubToolsMenu::DisplaySucessNotification( FName operation_name )
     UE_LOG( LogGitHubTools, Log, TEXT( "%s" ), *notification_text.ToString() );
 }
 
-void FGitHubToolsMenu::DisplayFailureNotification( FName operation_name )
+void FGitHubToolsMenu::DisplayFailureNotification( const FText & error_message )
 {
-    const auto notification_text = FText::Format( LOCTEXT( "GitHubToolslMenu_Failure", "Error: {0} operation failed!" ), FText::FromName( operation_name ) );
-    FNotificationInfo info( notification_text );
+    RemoveInProgressNotification();
+
+    FNotificationInfo info( error_message );
     info.ExpireDuration = 8.0f;
     FSlateNotificationManager::Get().AddNotification( info );
 
-    UE_LOG( LogGitHubTools, Error, TEXT( "%s" ), *notification_text.ToString() );
+    UE_LOG( LogGitHubTools, Error, TEXT( "%s" ), *error_message.ToString() );
 }
 
 #undef LOCTEXT_NAMESPACE

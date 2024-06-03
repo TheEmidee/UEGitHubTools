@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GitSourceControlModule.h"
 #include "GitSourceControlState.h"
 #include "SourceControlOperationBase.h"
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GitHubToolsHttpRequest.h"
+
 #include <CoreMinimal.h>
 #include <ISourceControlProvider.h>
 
@@ -19,7 +21,8 @@ private:
     static void DisplayInProgressNotification( const FText & text );
     static void RemoveInProgressNotification();
     static void DisplaySucessNotification( FName operation_name );
-    static void DisplayFailureNotification( FName operation_name );
+    static void DisplayFailureNotification( const FText & error_message );
 
     TSharedPtr< SWindow > ReviewWindowPtr;
+    TUniquePtr< FGitHubToolsHttpRequestManager > HttpRequestManager;
 };

@@ -2,6 +2,7 @@
 
 #include "GitHubToolsReviewFileItem.h"
 #include "SGitHubToolsFileComments.h"
+#include "Interfaces/IHttpRequest.h"
 
 #include <CoreMinimal.h>
 #include <Widgets/Input/SMultiLineEditableTextBox.h>
@@ -29,6 +30,7 @@ private:
     FReply SubmitClicked();
     FReply CancelClicked();
     TSharedRef< ITableRow > GenerateItemRow( TSharedPtr< FText > item, const TSharedRef< STableViewBase > & owner_table );
+    void OnRequestCompleted( FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully );
 
     TWeakPtr< SWindow > ParentFrame;
     TSharedPtr< FGitSourceControlReviewFileItem > Item;
