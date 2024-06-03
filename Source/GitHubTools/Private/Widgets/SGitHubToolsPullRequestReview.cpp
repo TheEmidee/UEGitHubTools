@@ -7,7 +7,7 @@
 #include "GitHubToolsSettings.h"
 #include "GitSourceControlModule.h"
 #include "RevisionControlStyle/RevisionControlStyle.h"
-#include "SGitHubToolsAddCommentToFile.h"
+#include "SGitHubToolsFileComments.h"
 
 #if SOURCE_CONTROL_WITH_SLATE
 
@@ -92,7 +92,7 @@ void SGitHubToolsPullRequestReview::Construct( const FArguments & arguments )
                             .OnGenerateRow( this, &SGitHubToolsPullRequestReview::OnGenerateRowForList )
                             .OnMouseButtonDoubleClick( this, &SGitHubToolsPullRequestReview::OnDiffAgainstRemoteStatusBranchSelected )
                             .HeaderRow( header_row_widget )
-                            .SelectionMode( ESelectionMode::Multi ) ] ];
+                            .SelectionMode( ESelectionMode::None ) ] ];
 
     contents->AddSlot()
         .AutoHeight()
@@ -167,10 +167,10 @@ TSharedRef< SWidget > SGitHubToolsPullRequestReview::GenerateWidgetForItemAndCol
         item_content_widget = SNew( SHorizontalBox ) + SHorizontalBox::Slot()
                                                            .Padding( row_padding )
                                                                [ SNew( SButton )
-                                                                       .Text( LOCTEXT( "SourceCOntrol_ManyAssetType", "Add Comment" ) )
+                                                                       .Text( LOCTEXT( "SourceCOntrol_ManyAssetType", "Comments" ) )
                                                                        .HAlign( HAlign_Center )
-                                                                       .IsEnabled( this, &SGitHubToolsPullRequestReview::IsAddCommentButtonEnabled )
-                                                                       .OnClicked( this, &SGitHubToolsPullRequestReview::OnAddCommentButtonClicked, item ) ];
+                                                                       .IsEnabled( this, &SGitHubToolsPullRequestReview::IsFileCommentsButtonEnabled )
+                                                                       .OnClicked( this, &SGitHubToolsPullRequestReview::OnFileCommentsButtonClicked, item ) ];
     }
     else if ( column_id == SGitSourceControlReviewFilesWidgetDefs::ColumnID_AssetLabel )
     {
@@ -191,7 +191,7 @@ TSharedRef< SWidget > SGitHubToolsPullRequestReview::GenerateWidgetForItemAndCol
     return item_content_widget.ToSharedRef();
 }
 
-bool SGitHubToolsPullRequestReview::IsAddCommentButtonEnabled() const
+bool SGitHubToolsPullRequestReview::IsFileCommentsButtonEnabled() const
 {
     if ( auto * settings = GetDefault< UGitHubToolsSettings >() )
     {
@@ -218,13 +218,13 @@ FReply SGitHubToolsPullRequestReview::CancelClicked()
     return FReply::Handled();
 }
 
-FReply SGitHubToolsPullRequestReview::OnAddCommentButtonClicked( TSharedPtr< FGitSourceControlReviewFileItem > item )
+FReply SGitHubToolsPullRequestReview::OnFileCommentsButtonClicked( TSharedPtr< FGitSourceControlReviewFileItem > item )
 {
     const TSharedPtr< SWindow > window = SNew( SWindow )
                                              .Title( LOCTEXT( "SourceCOntrol_ManyAssetType", "Add Comment To Asset On GitHub" ) )
                                              .ClientSize( FVector2D( 400, 200 ) );
 
-    window->SetContent( SNew( SGitHubToolsAddCommentToFile )
+    window->SetContent( SNew( SGitHubToolsFileComments )
                             .Item( item )
                             .ParentWindow( window ) );
 

@@ -35,12 +35,12 @@ public:
     TSharedRef< SWidget > GenerateWidgetForItemAndColumn( TSharedPtr< FGitSourceControlReviewFileItem > item, const FName column_id );
 
 private:
-    bool IsAddCommentButtonEnabled() const;
+    bool IsFileCommentsButtonEnabled() const;
     EVisibility IsWarningPanelVisible() const;
 
     //	/** Called when the settings of the dialog are to be ignored*/
     FReply CancelClicked();
-    FReply OnAddCommentButtonClicked( TSharedPtr< FGitSourceControlReviewFileItem > item );
+    FReply OnFileCommentsButtonClicked( TSharedPtr< FGitSourceControlReviewFileItem > item );
 
     /** Called by SListView to get a widget corresponding to the supplied item */
     TSharedRef< ITableRow > OnGenerateRowForList( TSharedPtr< FGitSourceControlReviewFileItem > SubmitItemData, const TSharedRef< STableViewBase > & owner_table );
