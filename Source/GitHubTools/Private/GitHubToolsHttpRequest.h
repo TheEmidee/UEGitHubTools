@@ -125,8 +125,6 @@ bool TGitHubToolsHttpRequest< TRequest, TResponse >::ProcessRequest()
     request->SetContentAsString( Request.GetBody() );
     request->OnProcessRequestComplete().BindRaw( this, &::TGitHubToolsHttpRequest< TRequest, TResponse >::OnProcessRequestComplete );
 
-    //request->SetDelegateThreadPolicy( EHttpRequestDelegateThreadPolicy::CompleteOnHttpThread );
-
     return request->ProcessRequest();
 }
 

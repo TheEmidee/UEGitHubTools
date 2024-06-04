@@ -12,7 +12,6 @@ public:
     void Unregister();
 
 private:
-    void OnGetDiffWithOriginStatusBranchOperationComplete( const TSharedRef< ISourceControlOperation > & source_control_operation, ECommandResult::Type result );
     void ReviewToolButtonMenuEntryClicked();
     bool HasGitRemoteUrl() const;
     void AddMenuExtension( FToolMenuSection & section );

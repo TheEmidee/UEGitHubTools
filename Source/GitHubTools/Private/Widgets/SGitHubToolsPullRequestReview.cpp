@@ -1,13 +1,11 @@
 #include "SGitHubToolsPullRequestReview.h"
 
-#include "AssetRegistry/AssetRegistryModule.h"
-#include "AssetToolsModule.h"
 #include "GitHubToolsGitUtils.h"
-#include "GitHubToolsReviewFileItem.h"
 #include "GitHubToolsSettings.h"
-#include "GitSourceControlModule.h"
-#include "RevisionControlStyle/RevisionControlStyle.h"
 #include "SGitHubToolsFileComments.h"
+
+#include <AssetToolsModule.h>
+#include <RevisionControlStyle/RevisionControlStyle.h>
 
 #if SOURCE_CONTROL_WITH_SLATE
 
@@ -37,11 +35,6 @@ void SGitHubToolsPullRequestReview::Construct( const FArguments & arguments )
     SortMode = EColumnSortMode::Ascending;
 
     ListViewItems = arguments._Files.Get();
-
-    /*for ( const auto & item : arguments._Items.Get() )
-    {
-        ListViewItems.Add( MakeShareable( new FGithubToolsPullRequestFileInfos( item ) ) );
-    }*/
 
     const TSharedRef< SHeaderRow > header_row_widget = SNew( SHeaderRow );
 
@@ -130,7 +123,6 @@ void SGitHubToolsPullRequestReview::OnDiffAgainstRemoteStatusBranchSelected( FGi
 
 FReply SGitHubToolsPullRequestReview::OnKeyDown( const FGeometry & my_geometry, const FKeyEvent & key_event )
 {
-    // Pressing escape returns as if the user clicked cancel
     if ( key_event.GetKey() == EKeys::Escape )
     {
         return CancelClicked();
@@ -266,7 +258,6 @@ void SGitHubToolsPullRequestReview::OnColumnSortModeChanged( const EColumnSortPr
 
 void SGitHubToolsPullRequestReview::RequestSort()
 {
-    // Sort the list of root items
     SortTree();
 
     ListView->RequestListRefresh();
@@ -331,14 +322,12 @@ void SGitSourceControlReviewFilesListRow::Construct( const FArguments & argument
 
 TSharedRef< SWidget > SGitSourceControlReviewFilesListRow::GenerateWidgetForColumn( const FName & column_name )
 {
-    // Create the widget for this item
     if ( const TSharedPtr< SGitHubToolsPullRequestReview > source_control_submit_widget = SourceControlSubmitWidgetPtr.Pin();
          source_control_submit_widget.IsValid() )
     {
         return source_control_submit_widget->GenerateWidgetForItemAndColumn( FileInfos, column_name );
     }
 
-    // Packages dialog no longer valid; return a valid, null widget.
     return SNullWidget::NullWidget;
 }
 

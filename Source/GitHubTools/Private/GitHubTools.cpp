@@ -1,22 +1,11 @@
 #include "GitHubTools.h"
 
 #include "GitHubToolsStyle.h"
-#include "GitSourceControlModule.h"
-#include "GitSourceControlProvider.h"
-#include "SourceControlWorkers/GitSourceControlWorkerGetDiffWithOriginStatusBranch.h"
 
 #include <Misc/MessageDialog.h>
 #include <ToolMenus.h>
 
-static const FName GitHubToolsTabName( "GitHubTools" );
-
 #define LOCTEXT_NAMESPACE "FGitHubToolsModule"
-
-template < typename Type >
-TSharedRef< IGitSourceControlWorker, ESPMode::ThreadSafe > CreateWorker()
-{
-    return MakeShareable( new Type() );
-}
 
 void FGitHubToolsModule::StartupModule()
 {
@@ -24,8 +13,6 @@ void FGitHubToolsModule::StartupModule()
     FGitHubToolsStyle::ReloadTextures();
 
     GitSourceControlMenu.Register();
-
-    FGitSourceControlModule::Get().GetProvider().RegisterWorker( "GetDiffWithOriginStatusBranch", FGetGitSourceControlWorker::CreateStatic( &CreateWorker< FGitWorkerGetDiffWithOriginStatusBranch > ) );
 }
 
 void FGitHubToolsModule::ShutdownModule()
