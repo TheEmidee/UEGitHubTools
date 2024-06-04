@@ -18,11 +18,6 @@ private:
     void OnReviewWindowDialogClosed( const TSharedRef< SWindow > & window );
     void ShowPullRequestReviewWindow( const TArray< FGithubToolsPullRequestFileInfosPtr > & files );
 
-    static void DisplayInProgressNotification( const FText & text );
-    static void RemoveInProgressNotification();
-    static void DisplaySucessNotification( FName operation_name );
-    static void DisplayFailureNotification( const FText & error_message );
-
     TSharedPtr< SWindow > ReviewWindowPtr;
     TUniquePtr< FGitHubToolsHttpRequestManager > HttpRequestManager;
 };

@@ -1,5 +1,6 @@
 #include "SGitHubToolsPullRequestReview.h"
 
+#include "GitHubTools.h"
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
 #include "SGitHubToolsFileComments.h"

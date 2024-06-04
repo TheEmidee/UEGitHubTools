@@ -1,5 +1,6 @@
 #include "GitHubToolsMenu.h"
 
+#include "GitHubTools.h"
 #include "GitHubToolsHttpRequest.h"
 #include "GitHubToolsLog.h"
 #include "Widgets/SGitHubToolsPullRequestReview.h"
@@ -14,8 +15,6 @@ namespace
     const FName
         MenuTabName( TEXT( "GitHubToolsMenu" ) ),
         ReviewToolName( TEXT( "Review Tool" ) );
-
-    TWeakPtr< SNotificationItem > OperationInProgressNotification;
 }
 
 void FGitHubToolsMenu::Register()
@@ -42,7 +41,7 @@ void FGitHubToolsMenu::Unregister()
 
 void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
 {
-    if ( OperationInProgressNotification.IsValid() )
+    if ( FGitHubToolsModule::IsOperationInProgress() )
     {
         FMessageLog source_control_log( "SourceControl" );
         source_control_log.Warning( LOCTEXT( "SourceControlMenu_InProgress", "Revision control operation already in progress" ) );
@@ -50,14 +49,14 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
         return;
     }
 
-    DisplayInProgressNotification( LOCTEXT( "SourceControlMenu_InProgress", "Fetching the pull request number" ) );
+    FGitHubToolsModule::DisplayInProgressNotification( LOCTEXT( "SourceControlMenu_InProgress", "Fetching the pull request number" ) );
 
     HttpRequestManager->SendRequest< FGitHubToolsHttpRequestData_GetPullRequestNumber, FGitHubToolsHttpResponseData_GetPullRequestNumber >()
         .Next( [ & ]( const FGitHubToolsHttpResponseData_GetPullRequestNumber & response_data ) {
             const auto pr_number = response_data.GetPullRequestNumber().Get( INDEX_NONE );
             if ( pr_number == INDEX_NONE )
             {
-                DisplayFailureNotification( LOCTEXT( "GitHubToolslMenu_Failure", "Impossible to find a pull request for the local branch" ) );
+                FGitHubToolsModule::DisplayFailureNotification( LOCTEXT( "GitHubToolslMenu_Failure", "Impossible to find a pull request for the local branch" ) );
                 return;
             }
 
@@ -66,11 +65,11 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
                     const auto optional_files = get_files_data.GetPullRequestFiles();
                     if ( !optional_files.IsSet() || optional_files.GetValue().IsEmpty() )
                     {
-                        DisplayFailureNotification( LOCTEXT( "GitHubToolslMenu_Failure", "Impossible to get the files from the pull request" ) );
+                        FGitHubToolsModule::DisplayFailureNotification( LOCTEXT( "GitHubToolslMenu_Failure", "Impossible to get the files from the pull request" ) );
                         return;
                     }
 
-                    RemoveInProgressNotification();
+                    FGitHubToolsModule::RemoveInProgressNotification();
 
                     ShowPullRequestReviewWindow( optional_files.GetValue() );
                 } );
@@ -127,57 +126,6 @@ void FGitHubToolsMenu::ShowPullRequestReviewWindow( const TArray< FGithubToolsPu
     {
         FSlateApplication::Get().AddWindow( ReviewWindowPtr.ToSharedRef() );
     }
-}
-
-void FGitHubToolsMenu::DisplayInProgressNotification( const FText & text )
-{
-    if ( !OperationInProgressNotification.IsValid() )
-    {
-        FNotificationInfo Info( text );
-        Info.bFireAndForget = false;
-        Info.ExpireDuration = 0.0f;
-        Info.FadeOutDuration = 1.0f;
-
-        OperationInProgressNotification = FSlateNotificationManager::Get().AddNotification( Info );
-        if ( OperationInProgressNotification.IsValid() )
-        {
-            OperationInProgressNotification.Pin()->SetCompletionState( SNotificationItem::CS_Pending );
-        }
-    }
-}
-
-void FGitHubToolsMenu::RemoveInProgressNotification()
-{
-    if ( OperationInProgressNotification.IsValid() )
-    {
-        OperationInProgressNotification.Pin()->ExpireAndFadeout();
-        OperationInProgressNotification.Reset();
-    }
-}
-
-void FGitHubToolsMenu::DisplaySucessNotification( FName operation_name )
-{
-    RemoveInProgressNotification();
-
-    const auto notification_text = FText::Format( LOCTEXT( "GitHubToolslMenu_Success", "{0} operation was successful!" ), FText::FromName( operation_name ) );
-    FNotificationInfo info( notification_text );
-    info.bUseSuccessFailIcons = true;
-    info.Image = FAppStyle::GetBrush( TEXT( "NotificationList.SuccessImage" ) );
-
-    FSlateNotificationManager::Get().AddNotification( info );
-
-    UE_LOG( LogGitHubTools, Log, TEXT( "%s" ), *notification_text.ToString() );
-}
-
-void FGitHubToolsMenu::DisplayFailureNotification( const FText & error_message )
-{
-    RemoveInProgressNotification();
-
-    FNotificationInfo info( error_message );
-    info.ExpireDuration = 8.0f;
-    FSlateNotificationManager::Get().AddNotification( info );
-
-    UE_LOG( LogGitHubTools, Error, TEXT( "%s" ), *error_message.ToString() );
 }
 
 #undef LOCTEXT_NAMESPACE
