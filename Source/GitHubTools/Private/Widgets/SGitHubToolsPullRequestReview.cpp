@@ -215,7 +215,11 @@ FReply SGitHubToolsPullRequestReview::CancelClicked()
 
 FReply SGitHubToolsPullRequestReview::OnFileCommentsButtonClicked( FGithubToolsPullRequestFileInfosPtr item )
 {
-    const TSharedPtr< SWindow > window = SNew( SWindow )
+    FGitHubToolsModule::DisplayInProgressNotification( LOCTEXT( "SourceControlMenu_InProgress", "Fetching the file comments" ) );
+
+    //FGitHubToolsModule::Get().GetRequestManager().SendRequest< FGitHubToolsHttpRequestData_GetPullRequestNumber, FGitHubToolsHttpResponseData_GetPullRequestNumber >(
+
+    /*const TSharedPtr< SWindow > window = SNew( SWindow )
                                              .Title( LOCTEXT( "SourceCOntrol_ManyAssetType", "Add Comment To Asset On GitHub" ) )
                                              .ClientSize( FVector2D( 400, 200 ) );
 
@@ -224,7 +228,7 @@ FReply SGitHubToolsPullRequestReview::OnFileCommentsButtonClicked( FGithubToolsP
                             .ParentWindow( window ) );
 
     const TSharedPtr< SWindow > root_window = FGlobalTabmanager::Get()->GetRootWindow();
-    FSlateApplication::Get().AddWindow( window.ToSharedRef() );
+    FSlateApplication::Get().AddWindow( window.ToSharedRef() );*/
 
     return FReply::Handled();
 }

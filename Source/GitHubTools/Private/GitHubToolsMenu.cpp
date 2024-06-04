@@ -2,11 +2,7 @@
 
 #include "GitHubTools.h"
 #include "GitHubToolsHttpRequest.h"
-#include "GitHubToolsLog.h"
 #include "Widgets/SGitHubToolsPullRequestReview.h"
-
-#include <Framework/Notifications/NotificationManager.h>
-#include <Widgets/Notifications/SNotificationList.h>
 
 #define LOCTEXT_NAMESPACE "GitHubTools"
 
@@ -27,8 +23,6 @@ void FGitHubToolsMenu::Register()
 
         AddMenuExtension( section );
     }
-
-    HttpRequestManager = MakeUnique< FGitHubToolsHttpRequestManager >();
 }
 
 void FGitHubToolsMenu::Unregister()
@@ -51,29 +45,27 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
 
     FGitHubToolsModule::DisplayInProgressNotification( LOCTEXT( "SourceControlMenu_InProgress", "Fetching the pull request number" ) );
 
-    HttpRequestManager->SendRequest< FGitHubToolsHttpRequestData_GetPullRequestNumber, FGitHubToolsHttpResponseData_GetPullRequestNumber >()
-        .Next( [ & ]( const FGitHubToolsHttpResponseData_GetPullRequestNumber & response_data ) {
-            const auto pr_number = response_data.GetPullRequestNumber().Get( INDEX_NONE );
-            if ( pr_number == INDEX_NONE )
+    FGitHubToolsModule::Get().GetRequestManager().SendRequest< FGitHubToolsHttpRequestData_GetPullRequestNumber, FGitHubToolsHttpResponseData_GetPullRequestNumber >().Next( [ & ]( const FGitHubToolsHttpResponseData_GetPullRequestNumber & response_data ) {
+        const auto pr_number = response_data.GetPullRequestNumber().Get( INDEX_NONE );
+        if ( pr_number == INDEX_NONE )
+        {
+            FGitHubToolsModule::DisplayFailureNotification( LOCTEXT( "GitHubToolslMenu_Failure", "Impossible to find a pull request for the local branch" ) );
+            return;
+        }
+
+        FGitHubToolsModule::Get().GetRequestManager().SendRequest< FGitHubToolsHttpRequestData_GetPullRequestFiles, FGitHubToolsHttpResponseData_GetPullRequestFiles >( pr_number ).Next( [ & ]( const FGitHubToolsHttpResponseData_GetPullRequestFiles & get_files_data ) {
+            const auto optional_files = get_files_data.GetPullRequestFiles();
+            if ( !optional_files.IsSet() || optional_files.GetValue().IsEmpty() )
             {
-                FGitHubToolsModule::DisplayFailureNotification( LOCTEXT( "GitHubToolslMenu_Failure", "Impossible to find a pull request for the local branch" ) );
+                FGitHubToolsModule::DisplayFailureNotification( LOCTEXT( "GitHubToolslMenu_Failure", "Impossible to get the files from the pull request" ) );
                 return;
             }
 
-            HttpRequestManager->SendRequest< FGitHubToolsHttpRequestData_GetPullRequestFiles, FGitHubToolsHttpResponseData_GetPullRequestFiles >( pr_number )
-                .Next( [ & ]( const FGitHubToolsHttpResponseData_GetPullRequestFiles & get_files_data ) {
-                    const auto optional_files = get_files_data.GetPullRequestFiles();
-                    if ( !optional_files.IsSet() || optional_files.GetValue().IsEmpty() )
-                    {
-                        FGitHubToolsModule::DisplayFailureNotification( LOCTEXT( "GitHubToolslMenu_Failure", "Impossible to get the files from the pull request" ) );
-                        return;
-                    }
+            FGitHubToolsModule::RemoveInProgressNotification();
 
-                    FGitHubToolsModule::RemoveInProgressNotification();
-
-                    ShowPullRequestReviewWindow( optional_files.GetValue() );
-                } );
+            ShowPullRequestReviewWindow( optional_files.GetValue() );
         } );
+    } );
 }
 
 bool FGitHubToolsMenu::HasGitRemoteUrl() const

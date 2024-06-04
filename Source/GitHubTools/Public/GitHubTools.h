@@ -14,6 +14,10 @@ public:
     void StartupModule() override;
     void ShutdownModule() override;
 
+    FGitHubToolsHttpRequestManager & GetRequestManager() const;
+
+    static FGitHubToolsModule & Get();
+
     static bool IsOperationInProgress();
     static void DisplayInProgressNotification( const FText & text );
     static void RemoveInProgressNotification();
@@ -22,4 +26,5 @@ public:
 
 private:
     FGitHubToolsMenu GitSourceControlMenu;
+    TUniquePtr< FGitHubToolsHttpRequestManager > HttpRequestManager;
 };

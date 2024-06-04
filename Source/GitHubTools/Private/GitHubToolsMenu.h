@@ -19,5 +19,4 @@ private:
     void ShowPullRequestReviewWindow( const TArray< FGithubToolsPullRequestFileInfosPtr > & files );
 
     TSharedPtr< SWindow > ReviewWindowPtr;
-    TUniquePtr< FGitHubToolsHttpRequestManager > HttpRequestManager;
 };

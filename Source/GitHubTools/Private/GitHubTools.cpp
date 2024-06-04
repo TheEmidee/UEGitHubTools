@@ -1,8 +1,8 @@
 #include "GitHubTools.h"
 
+#include "Framework/Notifications/NotificationManager.h"
 #include "GitHubToolsLog.h"
 #include "GitHubToolsStyle.h"
-#include "Framework/Notifications/NotificationManager.h"
 #include "Widgets/Notifications/SNotificationList.h"
 
 #include <Misc/MessageDialog.h>
@@ -20,11 +20,13 @@ void FGitHubToolsModule::StartupModule()
     FGitHubToolsStyle::Initialize();
     FGitHubToolsStyle::ReloadTextures();
 
+    HttpRequestManager = MakeUnique< FGitHubToolsHttpRequestManager >();
     GitSourceControlMenu.Register();
 }
 
 void FGitHubToolsModule::ShutdownModule()
 {
+    HttpRequestManager.Reset();
     GitSourceControlMenu.Unregister();
 
     UToolMenus::UnRegisterStartupCallback( this );
@@ -32,6 +34,16 @@ void FGitHubToolsModule::ShutdownModule()
     UToolMenus::UnregisterOwner( this );
 
     FGitHubToolsStyle::Shutdown();
+}
+
+FGitHubToolsHttpRequestManager & FGitHubToolsModule::GetRequestManager() const
+{
+    return *HttpRequestManager.Get();
+}
+
+FGitHubToolsModule & FGitHubToolsModule::Get()
+{
+    return FModuleManager::Get().LoadModuleChecked< FGitHubToolsModule >( "GitHubTools" );
 }
 
 bool FGitHubToolsModule::IsOperationInProgress()
