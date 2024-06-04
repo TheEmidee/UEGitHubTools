@@ -45,51 +45,51 @@ void FGitHubToolsMenu::OnGetDiffWithOriginStatusBranchOperationComplete( const T
 {
     RemoveInProgressNotification();
 
-    if ( result == ECommandResult::Succeeded )
-    {
-        const auto & operation = static_cast< FGitOperationGetDiffWithOriginStatusBranch & >( source_control_operation.Get() );
+    //if ( result == ECommandResult::Succeeded )
+    //{
+    //    const auto & operation = static_cast< FGitOperationGetDiffWithOriginStatusBranch & >( source_control_operation.Get() );
 
-        /*if ( operation.GetFiles().IsEmpty() )
-        {
-            FNotificationInfo info( LOCTEXT( "GitHubToolslMenu_NoDiffForPullRequest", "No files are different from this branch with the status branch" ) );
-            info.ExpireDuration = 8.0f;
-            FSlateNotificationManager::Get().AddNotification( info );
+    //    /*if ( operation.GetFiles().IsEmpty() )
+    //    {
+    //        FNotificationInfo info( LOCTEXT( "GitHubToolslMenu_NoDiffForPullRequest", "No files are different from this branch with the status branch" ) );
+    //        info.ExpireDuration = 8.0f;
+    //        FSlateNotificationManager::Get().AddNotification( info );
 
-            return;
-        }*/
+    //        return;
+    //    }*/
 
-        ReviewWindowPtr = SNew( SWindow )
-                              .Title( LOCTEXT( "SourceControlLoginTitle", "Review Window" ) )
-                              .ClientSize( FVector2D( 600, 400 ) )
-                              .HasCloseButton( true )
-                              .SupportsMaximize( true )
-                              .SupportsMinimize( true )
-                              .SizingRule( ESizingRule::UserSized );
+    //    ReviewWindowPtr = SNew( SWindow )
+    //                          .Title( LOCTEXT( "SourceControlLoginTitle", "Review Window" ) )
+    //                          .ClientSize( FVector2D( 600, 400 ) )
+    //                          .HasCloseButton( true )
+    //                          .SupportsMaximize( true )
+    //                          .SupportsMinimize( true )
+    //                          .SizingRule( ESizingRule::UserSized );
 
-        // Set the closed callback
-        ReviewWindowPtr->SetOnWindowClosed( FOnWindowClosed::CreateRaw( this, &FGitHubToolsMenu::OnReviewWindowDialogClosed ) );
+    //    // Set the closed callback
+    //    ReviewWindowPtr->SetOnWindowClosed( FOnWindowClosed::CreateRaw( this, &FGitHubToolsMenu::OnReviewWindowDialogClosed ) );
 
-        const TSharedRef< SGitHubToolsPullRequestReview > SourceControlWidget =
-            SNew( SGitHubToolsPullRequestReview )
-                .ParentWindow( ReviewWindowPtr )
-                .Items( operation.GetFiles() );
+    //    const TSharedRef< SGitHubToolsPullRequestReview > SourceControlWidget =
+    //        SNew( SGitHubToolsPullRequestReview )
+    //            .ParentWindow( ReviewWindowPtr )
+    //            .Files( operation.GetFiles() );
 
-        ReviewWindowPtr->SetContent( SourceControlWidget );
+    //    ReviewWindowPtr->SetContent( SourceControlWidget );
 
-        const TSharedPtr< SWindow > RootWindow = FGlobalTabmanager::Get()->GetRootWindow();
-        if ( RootWindow.IsValid() )
-        {
-            FSlateApplication::Get().AddWindowAsNativeChild( ReviewWindowPtr.ToSharedRef(), RootWindow.ToSharedRef() );
-        }
-        else
-        {
-            FSlateApplication::Get().AddWindow( ReviewWindowPtr.ToSharedRef() );
-        }
-    }
-    else
-    {
-        DisplayFailureNotification( LOCTEXT( "GitHubToolslMenu_Failure", "Impossible to get the list of updated files" ) );
-    }
+    //    const TSharedPtr< SWindow > RootWindow = FGlobalTabmanager::Get()->GetRootWindow();
+    //    if ( RootWindow.IsValid() )
+    //    {
+    //        FSlateApplication::Get().AddWindowAsNativeChild( ReviewWindowPtr.ToSharedRef(), RootWindow.ToSharedRef() );
+    //    }
+    //    else
+    //    {
+    //        FSlateApplication::Get().AddWindow( ReviewWindowPtr.ToSharedRef() );
+    //    }
+    //}
+    //else
+    //{
+    //    DisplayFailureNotification( LOCTEXT( "GitHubToolslMenu_Failure", "Impossible to get the list of updated files" ) );
+    //}
 }
 
 void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
@@ -106,13 +106,26 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
 
     HttpRequestManager->SendRequest< FGitHubToolsHttpRequestData_GetPullRequestNumber, FGitHubToolsHttpResponseData_GetPullRequestNumber >()
         .Next( [ & ]( const FGitHubToolsHttpResponseData_GetPullRequestNumber & response_data ) {
-            if ( response_data.GetPullRequestNumber().Get( INDEX_NONE ) == INDEX_NONE )
+            const auto pr_number = response_data.GetPullRequestNumber().Get( INDEX_NONE );
+            if ( pr_number == INDEX_NONE )
             {
                 DisplayFailureNotification( LOCTEXT( "GitHubToolslMenu_Failure", "Impossible to find a pull request for the local branch" ) );
                 return;
             }
 
-            
+            HttpRequestManager->SendRequest< FGitHubToolsHttpRequestData_GetPullRequestFiles, FGitHubToolsHttpResponseData_GetPullRequestFiles >( pr_number )
+                .Next( [ & ]( const FGitHubToolsHttpResponseData_GetPullRequestFiles & get_files_data ) {
+                    const auto optional_files = get_files_data.GetPullRequestFiles();
+                    if ( !optional_files.IsSet() || optional_files.GetValue().IsEmpty() )
+                    {
+                        DisplayFailureNotification( LOCTEXT( "GitHubToolslMenu_Failure", "Impossible to get the files from the pull request" ) );
+                        return;
+                    }
+
+                    RemoveInProgressNotification();
+
+                    ShowPullRequestReviewWindow( optional_files.GetValue() );
+                } );
         } );
 
     /*if ( pull_request_number == INDEX_NONE )
@@ -165,6 +178,38 @@ void FGitHubToolsMenu::AddMenuExtension( FToolMenuSection & section )
 void FGitHubToolsMenu::OnReviewWindowDialogClosed( const TSharedRef< SWindow > & window )
 {
     ReviewWindowPtr = nullptr;
+}
+
+void FGitHubToolsMenu::ShowPullRequestReviewWindow( const TArray< FGithubToolsPullRequestFileInfosPtr > & files )
+{
+    ReviewWindowPtr = SNew( SWindow )
+                          .Title( LOCTEXT( "SourceControlLoginTitle", "Review Window" ) )
+                          .ClientSize( FVector2D( 600, 400 ) )
+                          .HasCloseButton( true )
+                          .SupportsMaximize( true )
+                          .SupportsMinimize( true )
+                          .SizingRule( ESizingRule::UserSized );
+
+    // Set the closed callback
+    ReviewWindowPtr->SetOnWindowClosed( FOnWindowClosed::CreateRaw( this, &FGitHubToolsMenu::OnReviewWindowDialogClosed ) );
+
+    const TSharedRef< SGitHubToolsPullRequestReview > SourceControlWidget =
+        SNew( SGitHubToolsPullRequestReview )
+            .ParentWindow( ReviewWindowPtr )
+            .Files( files );
+    //.Items( operation.GetFiles() );
+
+    ReviewWindowPtr->SetContent( SourceControlWidget );
+
+    const TSharedPtr< SWindow > RootWindow = FGlobalTabmanager::Get()->GetRootWindow();
+    if ( RootWindow.IsValid() )
+    {
+        FSlateApplication::Get().AddWindowAsNativeChild( ReviewWindowPtr.ToSharedRef(), RootWindow.ToSharedRef() );
+    }
+    else
+    {
+        FSlateApplication::Get().AddWindow( ReviewWindowPtr.ToSharedRef() );
+    }
 }
 
 void FGitHubToolsMenu::DisplayInProgressNotification( const FText & text )

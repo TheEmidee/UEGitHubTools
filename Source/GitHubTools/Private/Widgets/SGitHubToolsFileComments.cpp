@@ -43,7 +43,7 @@ void SGitHubToolsFileComments::Construct( const FArguments & arguments )
         .AutoHeight()
         .Padding( 5.0f )
             [ SNew( STextBlock )
-                    .Text( Item.Get()->GetAssetName() ) ];
+                    .Text( Item.Get()->AssetName ) ];
 
     TSharedPtr< SHorizontalBox > horizontal_box;
 

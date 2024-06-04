@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GitHubToolsSettings.h"
+#include "GitHubToolsTypes.h"
 #include "HttpModule.h"
 
 #include <CoreMinimal.h>
@@ -124,7 +125,7 @@ bool TGitHubToolsHttpRequest< TRequest, TResponse >::ProcessRequest()
     request->SetContentAsString( Request.GetBody() );
     request->OnProcessRequestComplete().BindRaw( this, &::TGitHubToolsHttpRequest< TRequest, TResponse >::OnProcessRequestComplete );
 
-    request->SetDelegateThreadPolicy( EHttpRequestDelegateThreadPolicy::CompleteOnHttpThread );
+    //request->SetDelegateThreadPolicy( EHttpRequestDelegateThreadPolicy::CompleteOnHttpThread );
 
     return request->ProcessRequest();
 }
@@ -164,15 +165,8 @@ private:
 class FGitHubToolsHttpRequestData_GetPullRequestNumber : public FGitHubToolsHttpRequestData
 {
 public:
-    EGitHubToolsRequestType GetVerb() const override
-    {
-        return EGitHubToolsRequestType::GET;
-    }
-
-    FString GetEndPoint() const override
-    {
-        return TEXT( "pulls" );
-    }
+    EGitHubToolsRequestType GetVerb() const override;
+    FString GetEndPoint() const override;
 };
 
 class FGitHubToolsHttpResponseData_GetPullRequestNumber final : public FGitHubToolsHttpResponseData
@@ -189,11 +183,27 @@ private:
     TOptional< int > PullRequestNumber;
 };
 
-/*class FGithubToolsRequest_GetPullRequestFiles
+class FGitHubToolsHttpRequestData_GetPullRequestFiles : public FGitHubToolsHttpRequestData
 {
 public:
-    TFuture< TArray< FString > > GetPullRequestFiles( int pull_request_number );
+    explicit FGitHubToolsHttpRequestData_GetPullRequestFiles( int pull_request_number );
+    EGitHubToolsRequestType GetVerb() const override;
+    FString GetEndPoint() const override;
 
 private:
-    TPromise< TArray< FString > > Promise;
-};*/
+    int PullRequestNumber;
+};
+
+class FGitHubToolsHttpResponseData_GetPullRequestFiles final : public FGitHubToolsHttpResponseData
+{
+public:
+    FORCEINLINE TOptional< TArray< FGithubToolsPullRequestFileInfosPtr > > GetPullRequestFiles() const
+    {
+        return Files;
+    }
+
+    void ParseResponse( FHttpResponsePtr response_ptr ) override;
+
+private:
+    TOptional< TArray< FGithubToolsPullRequestFileInfosPtr > > Files;
+};

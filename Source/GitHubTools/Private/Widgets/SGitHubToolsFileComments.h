@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GitHubToolsReviewFileItem.h"
+#include "GitHubToolsTypes.h"
 #include "SGitHubToolsFileComments.h"
 #include "Interfaces/IHttpRequest.h"
 
@@ -16,7 +16,7 @@ public:
     {}
 
     SLATE_ATTRIBUTE( TSharedPtr< SWindow >, ParentWindow )
-    SLATE_ATTRIBUTE( TSharedPtr< FGitSourceControlReviewFileItem >, Item )
+    SLATE_ATTRIBUTE( FGithubToolsPullRequestFileInfosPtr, Item )
 
     SLATE_END_ARGS()
 
@@ -33,7 +33,7 @@ private:
     void OnRequestCompleted( FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully );
 
     TWeakPtr< SWindow > ParentFrame;
-    TSharedPtr< FGitSourceControlReviewFileItem > Item;
+    FGithubToolsPullRequestFileInfosPtr Item;
     TSharedPtr< SMultiLineEditableTextBox > ChangeListDescriptionTextCtrl;
     TSharedPtr< SVerticalBox > AllCommentsVerticalBox;
     TSharedPtr< SListView< TSharedPtr<  FText > > > CommentsListView;

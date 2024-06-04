@@ -17,6 +17,7 @@ private:
     bool HasGitRemoteUrl() const;
     void AddMenuExtension( FToolMenuSection & section );
     void OnReviewWindowDialogClosed( const TSharedRef< SWindow > & window );
+    void ShowPullRequestReviewWindow( const TArray< FGithubToolsPullRequestFileInfosPtr > & files );
 
     static void DisplayInProgressNotification( const FText & text );
     static void RemoveInProgressNotification();

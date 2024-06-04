@@ -47,7 +47,7 @@ public class GitHubTools : ModuleRules
                 "HTTP",
                 "SourceControl",
                 "DeveloperSettings",
-                "JSON"
+                "Json"
             }
             );
 

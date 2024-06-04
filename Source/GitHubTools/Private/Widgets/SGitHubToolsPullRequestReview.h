@@ -3,6 +3,7 @@
 #pragma once
 
 #include "GitHubToolsReviewFileItem.h"
+#include "GitHubToolsTypes.h"
 #include "GitSourceControlState.h"
 
 #include <CoreMinimal.h>
@@ -11,12 +12,12 @@ class SGitHubToolsPullRequestReview final : public SCompoundWidget
 {
 public:
     SLATE_BEGIN_ARGS( SGitHubToolsPullRequestReview ) :
-        _ParentWindow(),
-        _Items()
+        _ParentWindow()
+    //_Items()
     {}
 
     SLATE_ATTRIBUTE( TSharedPtr< SWindow >, ParentWindow )
-    SLATE_ATTRIBUTE( TArray< TSharedRef< FGitSourceControlState > >, Items )
+    SLATE_ATTRIBUTE( TArray< FGithubToolsPullRequestFileInfosPtr >, Files )
 
     SLATE_END_ARGS()
 
@@ -32,7 +33,7 @@ public:
     // ESubmitResults::Type GetResult() { return DialogResult; }
 
     /** Returns a widget representing the item and column supplied */
-    TSharedRef< SWidget > GenerateWidgetForItemAndColumn( TSharedPtr< FGitSourceControlReviewFileItem > item, const FName column_id );
+    TSharedRef< SWidget > GenerateWidgetForItemAndColumn( FGithubToolsPullRequestFileInfosPtr item, const FName column_id );
 
 private:
     bool IsFileCommentsButtonEnabled() const;
@@ -40,10 +41,10 @@ private:
 
     //	/** Called when the settings of the dialog are to be ignored*/
     FReply CancelClicked();
-    FReply OnFileCommentsButtonClicked( TSharedPtr< FGitSourceControlReviewFileItem > item );
+    FReply OnFileCommentsButtonClicked( FGithubToolsPullRequestFileInfosPtr item );
 
     /** Called by SListView to get a widget corresponding to the supplied item */
-    TSharedRef< ITableRow > OnGenerateRowForList( TSharedPtr< FGitSourceControlReviewFileItem > SubmitItemData, const TSharedRef< STableViewBase > & owner_table );
+    TSharedRef< ITableRow > OnGenerateRowForList( FGithubToolsPullRequestFileInfosPtr SubmitItemData, const TSharedRef< STableViewBase > & owner_table );
 
     /**
      * Returns the current column sort mode (ascending or descending) if the ColumnId parameter matches the current
@@ -74,13 +75,13 @@ private:
      */
     void SortTree();
 
-    void OnDiffAgainstRemoteStatusBranchSelected( TSharedPtr< FGitSourceControlReviewFileItem > selected_item );
+    void OnDiffAgainstRemoteStatusBranchSelected( FGithubToolsPullRequestFileInfosPtr selected_item );
 
     /** ListBox for selecting which object to consolidate */
-    TSharedPtr< SListView< TSharedPtr< FGitSourceControlReviewFileItem > > > ListView;
+    TSharedPtr< SListView< FGithubToolsPullRequestFileInfosPtr > > ListView;
 
     /** Collection of objects (Widgets) to display in the List View. */
-    TArray< TSharedPtr< FGitSourceControlReviewFileItem > > ListViewItems;
+    TArray< FGithubToolsPullRequestFileInfosPtr > ListViewItems;
 
     /** Pointer to the parent modal window */
     TWeakPtr< SWindow > ParentFrame;
@@ -92,7 +93,7 @@ private:
     EColumnSortMode::Type SortMode = EColumnSortMode::Ascending;
 };
 
-class SGitSourceControlReviewFilesListRow : public SMultiColumnTableRow< TSharedPtr< FGitSourceControlReviewFileItem > >
+class SGitSourceControlReviewFilesListRow : public SMultiColumnTableRow< FGithubToolsPullRequestFileInfosPtr >
 {
 public:
     SLATE_BEGIN_ARGS( SGitSourceControlReviewFilesListRow )
@@ -102,7 +103,7 @@ public:
     SLATE_ARGUMENT( TSharedPtr< SGitHubToolsPullRequestReview >, SourceControlSubmitWidget )
 
     /** The list item for this row */
-    SLATE_ARGUMENT( TSharedPtr< FGitSourceControlReviewFileItem >, Item )
+    SLATE_ARGUMENT( FGithubToolsPullRequestFileInfosPtr, FileInfos )
 
     SLATE_END_ARGS()
 
@@ -117,7 +118,7 @@ private:
     TWeakPtr< SGitHubToolsPullRequestReview > SourceControlSubmitWidgetPtr;
 
     /** The item associated with this row of data */
-    TSharedPtr< FGitSourceControlReviewFileItem > Item;
+    FGithubToolsPullRequestFileInfosPtr FileInfos;
 };
 
 #undef LOCTEXT_NAMESPACE

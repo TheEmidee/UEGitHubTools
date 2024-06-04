@@ -49,13 +49,17 @@ namespace GitHubToolsGitUtils
         return true;
     }
 
-    TOptional< FAssetData > GetAssetDataFromState( const TSharedRef< FGitSourceControlState > & state )
+    TOptional< FAssetData > GetAssetDataFromFileInfos( const FGithubToolsPullRequestFileInfos & file_infos )
     {
+        const auto & git_source_control = FModuleManager::GetModuleChecked< FGitSourceControlModule >( "GitSourceControl" );
+        const auto & path_to_repository_root = git_source_control.GetProvider().GetPathToRepositoryRoot();
+
+        const auto absolute_path = FPaths::ConvertRelativePathToFull( path_to_repository_root, file_infos.FileName );
+
         if ( FString package_name;
-             FPackageName::TryConvertFilenameToLongPackageName( state->GetFilename(), package_name ) )
+             FPackageName::TryConvertFilenameToLongPackageName( absolute_path, package_name ) )
         {
             TArray< FAssetData > assets;
-
             FModuleManager::LoadModuleChecked< FAssetRegistryModule >( TEXT( "AssetRegistry" ) ).Get().GetAssetsByPackageName( *package_name, assets );
             if ( assets.Num() == 1 )
             {
@@ -66,24 +70,19 @@ namespace GitHubToolsGitUtils
         return TOptional< FAssetData >();
     }
 
-    void DiffAssetAgainstOriginStatusBranch( const TSharedRef< FGitSourceControlState > & state )
+    void DiffFileAgainstOriginStatusBranch( const FGithubToolsPullRequestFileInfos & file_infos )
     {
-        if ( !state->IsSourceControlled() )
-        {
-            return;
-        }
-
-        auto optional_asset_data = GetAssetDataFromState( state );
+        auto optional_asset_data = GetAssetDataFromFileInfos( file_infos );
         if ( !optional_asset_data.IsSet() )
         {
             return;
         }
 
         const auto & git_source_control = FModuleManager::GetModuleChecked< FGitSourceControlModule >( "GitSourceControl" );
+        const auto & path_to_repository_root = git_source_control.GetProvider().GetPathToRepositoryRoot();
         const auto & status_branch_names = FGitSourceControlModule::Get().GetProvider().GetStatusBranchNames();
         const auto & branch_name = status_branch_names[ 0 ];
         const auto & path_to_git_binary = git_source_control.AccessSettings().GetBinaryPath();
-        const auto & path_to_repository_root = git_source_control.GetProvider().GetPathToRepositoryRoot();
 
         auto asset_data = optional_asset_data.GetValue();
 
