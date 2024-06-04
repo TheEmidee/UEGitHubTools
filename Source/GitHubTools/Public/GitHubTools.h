@@ -1,6 +1,8 @@
 #pragma once
 
+#include "GitHubToolsHttpRequest.h"
 #include "GitHubToolsMenu.h"
+#include "GitHubToolsNotificationManager.h"
 
 #include <CoreMinimal.h>
 #include <Modules/ModuleManager.h>
@@ -15,16 +17,11 @@ public:
     void ShutdownModule() override;
 
     FGitHubToolsHttpRequestManager & GetRequestManager() const;
+    FGitHubToolsNotificationManager & GetNotificationManager();
 
     static FGitHubToolsModule & Get();
-
-    static bool IsOperationInProgress();
-    static void DisplayInProgressNotification( const FText & text );
-    static void RemoveInProgressNotification();
-    static void DisplaySucessNotification( FName operation_name );
-    static void DisplayFailureNotification( const FText & error_message );
-
 private:
     FGitHubToolsMenu GitSourceControlMenu;
     TUniquePtr< FGitHubToolsHttpRequestManager > HttpRequestManager;
+    FGitHubToolsNotificationManager NotificationManager;
 };

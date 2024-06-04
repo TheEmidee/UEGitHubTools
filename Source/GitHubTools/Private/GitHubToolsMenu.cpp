@@ -35,21 +35,16 @@ void FGitHubToolsMenu::Unregister()
 
 void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
 {
-    if ( FGitHubToolsModule::IsOperationInProgress() )
+    if ( FGitHubToolsModule::Get().GetNotificationManager().IsOperationInProgress() )
     {
-        FMessageLog source_control_log( "SourceControl" );
-        source_control_log.Warning( LOCTEXT( "SourceControlMenu_InProgress", "Revision control operation already in progress" ) );
-        source_control_log.Notify();
+        FGitHubToolsModule::Get().GetNotificationManager().DisplayFailureNotification( LOCTEXT( "SourceControlMenu_InProgress", "Revision control operation already in progress" ) );
         return;
     }
-
-    FGitHubToolsModule::DisplayInProgressNotification( LOCTEXT( "SourceControlMenu_InProgress", "Fetching the pull request number" ) );
 
     FGitHubToolsModule::Get().GetRequestManager().SendRequest< FGitHubToolsHttpRequestData_GetPullRequestNumber, FGitHubToolsHttpResponseData_GetPullRequestNumber >().Next( [ & ]( const FGitHubToolsHttpResponseData_GetPullRequestNumber & response_data ) {
         const auto pr_number = response_data.GetPullRequestNumber().Get( INDEX_NONE );
         if ( pr_number == INDEX_NONE )
         {
-            FGitHubToolsModule::DisplayFailureNotification( LOCTEXT( "GitHubToolslMenu_Failure", "Impossible to find a pull request for the local branch" ) );
             return;
         }
 
@@ -57,11 +52,8 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
             const auto optional_files = get_files_data.GetPullRequestFiles();
             if ( !optional_files.IsSet() || optional_files.GetValue().IsEmpty() )
             {
-                FGitHubToolsModule::DisplayFailureNotification( LOCTEXT( "GitHubToolslMenu_Failure", "Impossible to get the files from the pull request" ) );
                 return;
             }
-
-            FGitHubToolsModule::RemoveInProgressNotification();
 
             ShowPullRequestReviewWindow( optional_files.GetValue() );
         } );

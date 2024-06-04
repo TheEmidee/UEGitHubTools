@@ -215,7 +215,7 @@ FReply SGitHubToolsPullRequestReview::CancelClicked()
 
 FReply SGitHubToolsPullRequestReview::OnFileCommentsButtonClicked( FGithubToolsPullRequestFileInfosPtr item )
 {
-    FGitHubToolsModule::DisplayInProgressNotification( LOCTEXT( "SourceControlMenu_InProgress", "Fetching the file comments" ) );
+    //FGitHubToolsModule::DisplayInProgressNotification( LOCTEXT( "SourceControlMenu_InProgress", "Fetching the file comments" ) );
 
     //FGitHubToolsModule::Get().GetRequestManager().SendRequest< FGitHubToolsHttpRequestData_GetPullRequestNumber, FGitHubToolsHttpResponseData_GetPullRequestNumber >(
 

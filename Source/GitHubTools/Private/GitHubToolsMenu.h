@@ -1,9 +1,8 @@
 #pragma once
 
-#include "GitHubToolsHttpRequest.h"
+#include "GitHubToolsTypes.h"
 
 #include <CoreMinimal.h>
-#include <ISourceControlProvider.h>
 
 class FGitHubToolsMenu
 {

@@ -1,7 +1,43 @@
 #include "GitHubToolsHttpRequest.h"
 
+#include "GitHubTools.h"
 #include "GitSourceControlModule.h"
 #include "Interfaces/IHttpResponse.h"
+
+#define LOCTEXT_NAMESPACE "GitHubTools.Requests"
+
+template < typename TRequest, typename TResponse >
+void TGitHubToolsHttpRequest< TRequest, TResponse >::OnProcessRequestComplete( FHttpRequestPtr request_ptr, FHttpResponsePtr response_ptr, bool success )
+{
+    TResponse response;
+    if ( success )
+    {
+        response.ParseResponse( response_ptr );
+        FGitHubToolsModule::Get().GetNotificationManager().RemoveInProgressNotification();
+    }
+    else
+    {
+        FGitHubToolsModule::Get().GetNotificationManager().DisplayFailureNotification( Request.GetFailureText() );
+    }
+
+    Promise.SetValue( MoveTemp( response ) );
+}
+
+template < typename TRequest, typename TResponse, typename... TArgTypes >
+TFuture< TResponse > FGitHubToolsHttpRequestManager::SendRequest( TArgTypes &&... args )
+{
+    static_assert( TIsDerivedFrom< TRequest, FGitHubToolsHttpRequestData >::IsDerived, "Sent RequestType need to derive from FGitHubToolsHttpRequest." );
+
+    typedef TGitHubToolsHttpRequest< TRequest, TResponse > HttpRequestType;
+    auto request = MakeShared< HttpRequestType >( Forward< TArgTypes >( args )... );
+
+    Request = request;
+
+    FGitHubToolsModule::Get().GetNotificationManager().DisplayInProgressNotification( request->GetRequestData().GetNotificationText() );
+
+    request->ProcessRequest();
+    return request->GetFuture();
+}
 
 EGitHubToolsRequestType FGitHubToolsHttpRequestData_GetPullRequestNumber::GetVerb() const
 {
@@ -11,6 +47,16 @@ EGitHubToolsRequestType FGitHubToolsHttpRequestData_GetPullRequestNumber::GetVer
 FString FGitHubToolsHttpRequestData_GetPullRequestNumber::GetEndPoint() const
 {
     return TEXT( "pulls" );
+}
+
+FText FGitHubToolsHttpRequestData_GetPullRequestNumber::GetNotificationText() const
+{
+    return LOCTEXT( "GetPullRequestNumber_Notification", "Fetching the pull request number" );
+}
+
+FText FGitHubToolsHttpRequestData_GetPullRequestNumber::GetFailureText() const
+{
+    return LOCTEXT( "GetPullRequestNumber+Failure", "Error while fetching the pull request number" );
 }
 
 void FGitHubToolsHttpResponseData_GetPullRequestNumber::ParseResponse( FHttpResponsePtr response_ptr )
@@ -57,6 +103,16 @@ FString FGitHubToolsHttpRequestData_GetPullRequestFiles::GetEndPoint() const
     return FString::Printf( TEXT( "pulls/%i/files" ), PullRequestNumber );
 }
 
+FText FGitHubToolsHttpRequestData_GetPullRequestFiles::GetNotificationText() const
+{
+    return LOCTEXT( "GetPullRequestNumber_GetPullRequestFiles", "Fetching the files updated in the pull request" );
+}
+
+FText FGitHubToolsHttpRequestData_GetPullRequestFiles::GetFailureText() const
+{
+    return LOCTEXT( "GetPullRequestNumber_GetPullRequestFiles", "Error while fetching the files updated in the pull request" );
+}
+
 void FGitHubToolsHttpResponseData_GetPullRequestFiles::ParseResponse( FHttpResponsePtr response_ptr )
 {
     const auto json_response = response_ptr->GetContentAsString();
@@ -79,3 +135,5 @@ void FGitHubToolsHttpResponseData_GetPullRequestFiles::ParseResponse( FHttpRespo
 
     Files = filenames;
 }
+
+#undef LOCTEXT_NAMESPACE

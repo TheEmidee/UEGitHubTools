@@ -24,6 +24,9 @@ public:
     {
         return TEXT( "" );
     }
+
+    virtual FText GetNotificationText() const = 0;
+    virtual FText GetFailureText() const = 0;
 };
 
 class FGitHubToolsHttpResponseData
@@ -36,6 +39,8 @@ public:
 
 class IGitHubToolsHttpRequest
 {
+public:
+    virtual ~IGitHubToolsHttpRequest() = default;
 };
 
 template < typename TRequest, typename TResponse >
@@ -53,6 +58,11 @@ public:
     virtual ~TGitHubToolsHttpRequest() = default;
 
     bool ProcessRequest();
+
+    FORCEINLINE const TRequest & GetRequestData()
+    {
+        return Request;
+    }
 
     FORCEINLINE TFuture< TResponse > GetFuture()
     {
@@ -128,33 +138,11 @@ bool TGitHubToolsHttpRequest< TRequest, TResponse >::ProcessRequest()
     return request->ProcessRequest();
 }
 
-template < typename TRequest, typename TResponse >
-void TGitHubToolsHttpRequest< TRequest, TResponse >::OnProcessRequestComplete( FHttpRequestPtr request_ptr, FHttpResponsePtr response_ptr, bool success )
-{
-    TResponse response;
-    if ( success )
-    {
-        response.ParseResponse( response_ptr );
-    }
-    Promise.SetValue( MoveTemp( response ) );
-}
-
 class FGitHubToolsHttpRequestManager : public TSharedFromThis< FGitHubToolsHttpRequestManager >
 {
 public:
     template < typename TRequest, typename TResponse, typename... TArgTypes >
-    TFuture< TResponse > SendRequest( TArgTypes &&... args )
-    {
-        static_assert( TIsDerivedFrom< TRequest, FGitHubToolsHttpRequestData >::IsDerived, "Sent RequestType need to derive from FGitHubToolsHttpRequest." );
-
-        typedef TGitHubToolsHttpRequest< TRequest, TResponse > HttpRequestType;
-        auto request = MakeShared< HttpRequestType >( Forward< TArgTypes >( args )... );
-
-        Request = request;
-
-        request->ProcessRequest();
-        return request->GetFuture();
-    }
+    TFuture< TResponse > SendRequest( TArgTypes &&... args );
 
 private:
     TSharedPtr< IGitHubToolsHttpRequest > Request;
@@ -165,6 +153,8 @@ class FGitHubToolsHttpRequestData_GetPullRequestNumber : public FGitHubToolsHttp
 public:
     EGitHubToolsRequestType GetVerb() const override;
     FString GetEndPoint() const override;
+    FText GetNotificationText() const override;
+    FText GetFailureText() const override;
 };
 
 class FGitHubToolsHttpResponseData_GetPullRequestNumber final : public FGitHubToolsHttpResponseData
@@ -187,6 +177,8 @@ public:
     explicit FGitHubToolsHttpRequestData_GetPullRequestFiles( int pull_request_number );
     EGitHubToolsRequestType GetVerb() const override;
     FString GetEndPoint() const override;
+    FText GetNotificationText() const override;
+    FText GetFailureText() const override;
 
 private:
     int PullRequestNumber;
