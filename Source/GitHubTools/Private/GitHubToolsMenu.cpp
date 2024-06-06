@@ -1,7 +1,9 @@
 #include "GitHubToolsMenu.h"
 
 #include "GitHubTools.h"
-#include "GitHubToolsHttpRequest.h"
+#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestComments.h"
+#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestFiles.h"
+#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestNumber.h"
 #include "Widgets/SGitHubToolsPullRequestReview.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools"
@@ -55,7 +57,15 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
                 return;
             }
 
-            ShowPullRequestReviewWindow( optional_files.GetValue() );
+            FGitHubToolsModule::Get().GetRequestManager().SendRequest< FGitHubToolsHttpRequestData_GetPullRequestComments, FGitHubToolsHttpResponseData_GetPullRequestComments >( pr_number ).Next( [ & ]( const FGitHubToolsHttpResponseData_GetPullRequestComments & get_comments_data ) {
+                const auto optional_comments = get_comments_data.GetPullRequestFiles();
+                if ( !optional_comments.IsSet() || optional_comments.GetValue().IsEmpty() )
+                {
+                    return;
+                }
+
+                ShowPullRequestReviewWindow( optional_files.GetValue() );
+            } );
         } );
     } );
 }

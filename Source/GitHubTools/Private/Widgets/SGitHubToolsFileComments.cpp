@@ -1,8 +1,7 @@
 #include "SGitHubToolsFileComments.h"
 
-#include "GitHubToolsHttpRequest.h"
+#include "GitHubToolsHttpRequestManager.h"
 
-#include <HttpModule.h>
 #include <Interfaces/IHttpResponse.h>
 #include <Widgets/Input/SMultiLineEditableTextBox.h>
 #include <Widgets/Layout/SUniformGridPanel.h>

@@ -26,3 +26,15 @@ struct FGithubToolsPullRequestFileInfos
 };
 
 typedef TSharedPtr< FGithubToolsPullRequestFileInfos > FGithubToolsPullRequestFileInfosPtr;
+
+struct FGithubToolsPullRequestComment
+{
+    FGithubToolsPullRequestComment() = default;
+    FGithubToolsPullRequestComment( const FString & file_name, const FString & author, const FString & date );
+
+    FText AssetName;
+    FText Author;
+    FText Date;
+};
+
+typedef TSharedPtr< FGithubToolsPullRequestComment > FGithubToolsPullRequestCommentPtr;

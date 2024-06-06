@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GitHubToolsHttpRequest.h"
+#include "GitHubToolsHttpRequestManager.h"
 #include "GitHubToolsMenu.h"
 #include "GitHubToolsNotificationManager.h"
 
@@ -20,6 +20,7 @@ public:
     FGitHubToolsNotificationManager & GetNotificationManager();
 
     static FGitHubToolsModule & Get();
+
 private:
     FGitHubToolsMenu GitSourceControlMenu;
     TUniquePtr< FGitHubToolsHttpRequestManager > HttpRequestManager;

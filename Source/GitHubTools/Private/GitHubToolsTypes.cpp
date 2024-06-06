@@ -75,4 +75,11 @@ FGithubToolsPullRequestFileInfos::FGithubToolsPullRequestFileInfos( const FStrin
 {
 }
 
+FGithubToolsPullRequestComment::FGithubToolsPullRequestComment( const FString & file_name, const FString & author, const FString & date ) :
+    AssetName( FText::FromString( FPaths::GetCleanFilename( file_name ) ) ),
+    Author( FText::FromString( FPaths::GetCleanFilename( author ) ) ),
+    Date( FText::FromString( FPaths::GetCleanFilename( date ) ) )
+{
+}
+
 #undef LOCTEXT_NAMESPACE
