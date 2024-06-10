@@ -18,7 +18,7 @@ private:
 class FGitHubToolsHttpResponseData_GetPullRequestComments final : public FGitHubToolsHttpResponseData
 {
 public:
-    FORCEINLINE TOptional< TArray< FGithubToolsPullRequestCommentPtr > > GetPullRequestFiles() const
+    FORCEINLINE TOptional< TArray< FGithubToolsPullRequestCommentPtr > > GetPullRequestComments() const
     {
         return Comments;
     }

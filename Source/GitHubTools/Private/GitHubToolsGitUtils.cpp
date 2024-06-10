@@ -3,8 +3,14 @@
 #include "AssetDefinition.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetToolsModule.h"
+#include "GitHubTools.h"
 #include "GitSourceControlModule.h"
 #include "GitSourceControlUtils.h"
+#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestComments.h"
+#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestFiles.h"
+#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestNumber.h"
+#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestReviewComment.h"
+#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestReviews.h"
 
 namespace GitHubToolsGitUtils
 {
@@ -129,5 +135,86 @@ namespace GitHubToolsGitUtils
         new_revision.Revision = TEXT( "" );
 
         FModuleManager::GetModuleChecked< FAssetToolsModule >( "AssetTools" ).Get().DiffAssets( old_object, current_object, old_revision, new_revision );
+    }
+
+    TFuture< FGithubToolsPullRequestInfosPtr > GetPullRequestInfos()
+    {
+        //FGithubToolsPullRequestInfosPtr pr_infos = MakeShared< FGithubToolsPullRequestInfos >();
+
+        auto result =
+            FGitHubToolsModule::Get()
+                .GetRequestManager()
+                .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestNumber, FGitHubToolsHttpResponseData_GetPullRequestNumber >()
+                .Then( [ & ]( TFuture< FGitHubToolsHttpResponseData_GetPullRequestNumber > result ) {
+                    const auto pr_number = 573; // response_data.GetPullRequestNumber().Get( INDEX_NONE );
+                    /*if ( pr_number == INDEX_NONE )
+                    {
+                        return;
+                    }*/
+
+                    return FGitHubToolsModule::Get()
+                        .GetRequestManager()
+                        .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestFiles, FGitHubToolsHttpResponseData_GetPullRequestFiles >( result.Get() );
+                } )
+                .Then( []( TFuture< FGitHubToolsHttpResponseData_GetPullRequestFiles > result ) {
+                    return FGitHubToolsModule::Get()
+                        .GetRequestManager()
+                        .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestComments, FGitHubToolsHttpResponseData_GetPullRequestComments >( 573 );
+                } )
+                .Then( []( TFuture < FGitHubToolsHttpResponseData_GetPullRequestComments  > result ) {
+                    return MakeFulfilledPromise< FGithubToolsPullRequestInfosPtr >().GetFuture();
+                } );
+
+        return result;
+
+        //        auto pr_infos = MakeShared< FGithubToolsPullRequestInfos >();
+
+        //
+
+        //                pr_infos->FileInfos = optional_files.GetValue();
+
+        //                FGitHubToolsModule::Get()
+        //                    .GetRequestManager()
+        //                    .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestComments, FGitHubToolsHttpResponseData_GetPullRequestComments >( pr_number )
+        //                    .Next( [ &, pr_infos, pr_number ]( const FGitHubToolsHttpResponseData_GetPullRequestComments & get_comments_data ) {
+        //                        const auto optional_comments = get_comments_data.GetPullRequestComments();
+        //                        if ( optional_comments.IsSet() )
+        //                        {
+        //                            pr_infos->Comments = optional_comments.GetValue();
+        //                        }
+
+        //                        FGitHubToolsModule::Get()
+        //                            .GetRequestManager()
+        //                            .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestReviews, FGitHubToolsHttpResponseData_GetPullRequestReviews >( pr_number )
+        //                            .Then( [ &, pr_infos, pr_number ]( TFuture< FGitHubToolsHttpResponseData_GetPullRequestReviews > get_reviews_data ) {
+
+        //                                const auto optional_reviews = get_reviews_data.Get().GetPullRequestReviews();
+        //                                if ( !optional_reviews.GetValue().IsEmpty() )
+        //                                {
+
+        //                                    pr_infos->Reviews = optional_reviews.GetValue();
+
+        //                                    for ( auto review : pr_infos->Reviews )
+        //                                    {
+        //                                        const auto comments_data = FGitHubToolsModule::Get()
+        //                                                                       .GetRequestManager()
+        //                                                                       .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestReviewComments, FGitHubToolsHttpResponseData_GetPullRequestReviewComments >( pr_number, review->Id )
+        //                                                                       .Get();
+
+        //                                        const auto optional_review_comments = comments_data.GetPullRequestReviewComments();
+        //                                        if ( optional_review_comments.IsSet() )
+        //                                        {
+        //                                            review->Comments = optional_review_comments.GetValue();
+        //                                        }
+        //                                    }
+        //                                }
+
+        //                                callback( pr_infos );
+        //                            } );
+        //                    } );
+        //            } );
+        //    } );
+
+        ////return MakeFulfilledPromise< FGithubToolsPullRequestInfosPtr >( pr_infos ).GetFuture();
     }
 }

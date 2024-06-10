@@ -1,7 +1,5 @@
 #pragma once
 
-#include "GitHubToolsTypes.h"
-
 #include <CoreMinimal.h>
 #include <Interfaces/IHttpRequest.h>
 

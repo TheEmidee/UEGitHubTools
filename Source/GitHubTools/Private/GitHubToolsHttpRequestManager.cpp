@@ -63,6 +63,7 @@ bool TGitHubToolsHttpRequest< TRequest, TResponse >::ProcessRequest()
     request->SetURL( *string_builder );
     request->SetContentAsString( Request.GetBody() );
     request->OnProcessRequestComplete().BindRaw( this, &::TGitHubToolsHttpRequest< TRequest, TResponse >::OnProcessRequestComplete );
+    request->SetDelegateThreadPolicy( EHttpRequestDelegateThreadPolicy::CompleteOnHttpThread );
 
     return request->ProcessRequest();
 }
@@ -74,11 +75,11 @@ void TGitHubToolsHttpRequest< TRequest, TResponse >::OnProcessRequestComplete( F
     if ( success )
     {
         response.ParseResponse( response_ptr );
-        FGitHubToolsModule::Get().GetNotificationManager().RemoveInProgressNotification();
+        //FGitHubToolsModule::Get().GetNotificationManager().RemoveInProgressNotification();
     }
     else
     {
-        FGitHubToolsModule::Get().GetNotificationManager().DisplayFailureNotification( Request.GetFailureText() );
+        //FGitHubToolsModule::Get().GetNotificationManager().DisplayFailureNotification( Request.GetFailureText() );
     }
 
     Promise.SetValue( MoveTemp( response ) );
@@ -94,7 +95,7 @@ TFuture< TResponse > FGitHubToolsHttpRequestManager::SendRequest( TArgTypes &&..
 
     Request = request;
 
-    FGitHubToolsModule::Get().GetNotificationManager().DisplayInProgressNotification( request->GetRequestData().GetNotificationText() );
+    //FGitHubToolsModule::Get().GetNotificationManager().DisplayInProgressNotification( request->GetRequestData().GetNotificationText() );
 
     request->ProcessRequest();
     return request->GetFuture();

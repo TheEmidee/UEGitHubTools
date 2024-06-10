@@ -1,6 +1,7 @@
 #include "GitHubToolsMenu.h"
 
 #include "GitHubTools.h"
+#include "GitHubToolsGitUtils.h"
 #include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestComments.h"
 #include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestFiles.h"
 #include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestNumber.h"
@@ -43,31 +44,8 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
         return;
     }
 
-    FGitHubToolsModule::Get().GetRequestManager().SendRequest< FGitHubToolsHttpRequestData_GetPullRequestNumber, FGitHubToolsHttpResponseData_GetPullRequestNumber >().Next( [ & ]( const FGitHubToolsHttpResponseData_GetPullRequestNumber & response_data ) {
-        const auto pr_number = response_data.GetPullRequestNumber().Get( INDEX_NONE );
-        if ( pr_number == INDEX_NONE )
-        {
-            return;
-        }
-
-        FGitHubToolsModule::Get().GetRequestManager().SendRequest< FGitHubToolsHttpRequestData_GetPullRequestFiles, FGitHubToolsHttpResponseData_GetPullRequestFiles >( pr_number ).Next( [ & ]( const FGitHubToolsHttpResponseData_GetPullRequestFiles & get_files_data ) {
-            const auto optional_files = get_files_data.GetPullRequestFiles();
-            if ( !optional_files.IsSet() || optional_files.GetValue().IsEmpty() )
-            {
-                return;
-            }
-
-            FGitHubToolsModule::Get().GetRequestManager().SendRequest< FGitHubToolsHttpRequestData_GetPullRequestComments, FGitHubToolsHttpResponseData_GetPullRequestComments >( pr_number ).Next( [ & ]( const FGitHubToolsHttpResponseData_GetPullRequestComments & get_comments_data ) {
-                const auto optional_comments = get_comments_data.GetPullRequestFiles();
-                if ( !optional_comments.IsSet() || optional_comments.GetValue().IsEmpty() )
-                {
-                    return;
-                }
-
-                ShowPullRequestReviewWindow( optional_files.GetValue() );
-            } );
-        } );
-    } );
+    //GitHubToolsGitUtils::GetPullRequestInfos( []( FGithubToolsPullRequestInfosPtr pr_infos ) {
+    //    } );
 }
 
 bool FGitHubToolsMenu::HasGitRemoteUrl() const
@@ -92,7 +70,7 @@ void FGitHubToolsMenu::OnReviewWindowDialogClosed( const TSharedRef< SWindow > &
     ReviewWindowPtr = nullptr;
 }
 
-void FGitHubToolsMenu::ShowPullRequestReviewWindow( const TArray< FGithubToolsPullRequestFileInfosPtr > & files )
+void FGitHubToolsMenu::ShowPullRequestReviewWindow( const FGithubToolsPullRequestInfosPtr & pr_infos )
 {
     ReviewWindowPtr = SNew( SWindow )
                           .Title( LOCTEXT( "SourceControlLoginTitle", "Review Window" ) )
@@ -104,12 +82,12 @@ void FGitHubToolsMenu::ShowPullRequestReviewWindow( const TArray< FGithubToolsPu
 
     ReviewWindowPtr->SetOnWindowClosed( FOnWindowClosed::CreateRaw( this, &FGitHubToolsMenu::OnReviewWindowDialogClosed ) );
 
-    const TSharedRef< SGitHubToolsPullRequestReview > SourceControlWidget =
+    /*const TSharedRef< SGitHubToolsPullRequestReview > SourceControlWidget =
         SNew( SGitHubToolsPullRequestReview )
             .ParentWindow( ReviewWindowPtr )
             .Files( files );
 
-    ReviewWindowPtr->SetContent( SourceControlWidget );
+    ReviewWindowPtr->SetContent( SourceControlWidget );*/
 
     const TSharedPtr< SWindow > RootWindow = FGlobalTabmanager::Get()->GetRootWindow();
     if ( RootWindow.IsValid() )

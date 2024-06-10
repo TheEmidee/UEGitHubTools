@@ -62,6 +62,20 @@ namespace
                 return LOCTEXT( "FileRenamed", "Unknown file state" );
         }
     }
+
+    EGitHubToolsReviewState GetReviewState( const FString & state )
+    {
+        if ( state == TEXT( "CHANGES_REQUESTED" ) )
+        {
+            return EGitHubToolsReviewState::ChangesRequested;
+        }
+        if ( state == TEXT( "COMMENTED" ) )
+        {
+            return EGitHubToolsReviewState::Comment;
+        }
+
+        return EGitHubToolsReviewState::Unknown;
+    }
 }
 
 FGithubToolsPullRequestFileInfos::FGithubToolsPullRequestFileInfos( const FString & file_name, const FString & status ) :
@@ -72,6 +86,13 @@ FGithubToolsPullRequestFileInfos::FGithubToolsPullRequestFileInfos( const FStrin
     Icon( GetSlateIconFromFileState( FileState ) ),
     IconName( Icon.GetStyleName() ),
     ToolTip( GetToolTipFromFileState( FileState ) )
+{
+}
+
+FGithubToolsPullRequestReviewInfos::FGithubToolsPullRequestReviewInfos( const int id, const FString & user_name, const FString & state ) :
+    Id( id ),
+    UserName( FText::FromString( user_name ) ),
+    State( GetReviewState( state ) )
 {
 }
 
