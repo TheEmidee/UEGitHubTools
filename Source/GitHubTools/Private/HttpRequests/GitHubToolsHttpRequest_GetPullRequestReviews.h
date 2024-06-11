@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GitHubToolsHttpRequestManager.h"
+#include "GitHubToolsTypes.h"
 
 class FGitHubToolsHttpRequestData_GetPullRequestReviews : public FGitHubToolsHttpRequestData
 {

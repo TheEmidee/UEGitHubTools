@@ -14,11 +14,24 @@ class FGitHubToolsHttpRequestData
 public:
     virtual ~FGitHubToolsHttpRequestData() = default;
 
-    virtual EGitHubToolsRequestType GetVerb() const = 0;
-    virtual FString GetEndPoint() const = 0;
+    virtual EGitHubToolsRequestType GetVerb() const
+    {
+        return EGitHubToolsRequestType::GET;
+    };
+
+    virtual FString GetEndPoint() const
+    {
+        return TEXT( "" );
+    }
+
     virtual FString GetBody() const
     {
         return TEXT( "" );
+    }
+
+    virtual bool UsesGraphQL() const
+    {
+        return false;
     }
 
     virtual FText GetNotificationText() const = 0;

@@ -3,6 +3,7 @@
 #include "GitHubTools.h"
 #include "GitHubToolsGitUtils.h"
 #include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestComments.h"
+#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestInfos.h"
 #include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestFiles.h"
 #include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestNumber.h"
 #include "Widgets/SGitHubToolsPullRequestReview.h"
@@ -44,8 +45,19 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
         return;
     }
 
-    //GitHubToolsGitUtils::GetPullRequestInfos( []( FGithubToolsPullRequestInfosPtr pr_infos ) {
-    //    } );
+    FGitHubToolsModule::Get()
+        .GetRequestManager()
+        .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestInfos, FGitHubToolsHttpResponseData_GetPullRequestInfos >( 573 )
+        .Then( [ & ]( TFuture< FGitHubToolsHttpResponseData_GetPullRequestInfos > result ) {
+            
+            //const auto pr_number = 573; // response_data.GetPullRequestNumber().Get( INDEX_NONE );
+                                        /*if ( pr_number == INDEX_NONE )
+                    {
+                        return;
+                    }*/
+
+            //GitHubToolsGitUtils::GetPullRequestInfos( []( FGithubToolsPullRequestInfosPtr pr_infos ) {
+        } );
 }
 
 bool FGitHubToolsMenu::HasGitRemoteUrl() const
