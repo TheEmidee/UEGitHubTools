@@ -20,13 +20,13 @@ private:
 class FGitHubToolsHttpResponseData_GetPullRequestInfos final : public FGitHubToolsHttpResponseData
 {
 public:
-    /*FORCEINLINE TOptional< TArray< FGithubToolsPullRequestReviewInfosPtr > > GetPullRequestReviews() const
+    FORCEINLINE TOptional< FGithubToolsPullRequestInfosPtr > GetPullRequestInfos() const
     {
-        return Reviews;
-    }*/
+        return PRInfos;
+    }
 
     void ParseResponse( FHttpResponsePtr response_ptr ) override;
 
 private:
-    //TOptional< TArray< FGithubToolsPullRequestReviewInfosPtr > > Reviews;
+    TOptional< FGithubToolsPullRequestInfosPtr > PRInfos;
 };

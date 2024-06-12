@@ -2,10 +2,8 @@
 
 #include "GitHubTools.h"
 #include "GitHubToolsGitUtils.h"
-#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestComments.h"
+#include "GitSourceControlModule.h"
 #include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestInfos.h"
-#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestFiles.h"
-#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestNumber.h"
 #include "Widgets/SGitHubToolsPullRequestReview.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools"
@@ -48,15 +46,15 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
     FGitHubToolsModule::Get()
         .GetRequestManager()
         .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestInfos, FGitHubToolsHttpResponseData_GetPullRequestInfos >( 573 )
-        .Then( [ & ]( TFuture< FGitHubToolsHttpResponseData_GetPullRequestInfos > result ) {
-            
-            //const auto pr_number = 573; // response_data.GetPullRequestNumber().Get( INDEX_NONE );
-                                        /*if ( pr_number == INDEX_NONE )
-                    {
-                        return;
-                    }*/
+        .Then( [ & ]( const TFuture< FGitHubToolsHttpResponseData_GetPullRequestInfos > & result ) {
+            const auto pr_infos = result.Get().GetPullRequestInfos();
 
-            //GitHubToolsGitUtils::GetPullRequestInfos( []( FGithubToolsPullRequestInfosPtr pr_infos ) {
+            if ( !pr_infos.IsSet() )
+            {
+                FGitHubToolsModule::Get().GetNotificationManager().DisplayFailureNotification( LOCTEXT( "GetPullRequestInfos_Error", "Error while fetching the pull request informations" ) );
+                return;
+            }
+            ShowPullRequestReviewWindow( pr_infos.GetValue() );
         } );
 }
 
@@ -86,7 +84,7 @@ void FGitHubToolsMenu::ShowPullRequestReviewWindow( const FGithubToolsPullReques
 {
     ReviewWindowPtr = SNew( SWindow )
                           .Title( LOCTEXT( "SourceControlLoginTitle", "Review Window" ) )
-                          .ClientSize( FVector2D( 600, 400 ) )
+                          .ClientSize( FVector2D( 1280, 1024 ) )
                           .HasCloseButton( true )
                           .SupportsMaximize( true )
                           .SupportsMinimize( true )
@@ -94,12 +92,12 @@ void FGitHubToolsMenu::ShowPullRequestReviewWindow( const FGithubToolsPullReques
 
     ReviewWindowPtr->SetOnWindowClosed( FOnWindowClosed::CreateRaw( this, &FGitHubToolsMenu::OnReviewWindowDialogClosed ) );
 
-    /*const TSharedRef< SGitHubToolsPullRequestReview > SourceControlWidget =
+    const TSharedRef< SGitHubToolsPullRequestReview > pull_request_review_widget =
         SNew( SGitHubToolsPullRequestReview )
             .ParentWindow( ReviewWindowPtr )
-            .Files( files );
+            .Infos( pr_infos );
 
-    ReviewWindowPtr->SetContent( SourceControlWidget );*/
+    ReviewWindowPtr->SetContent( pull_request_review_widget );
 
     const TSharedPtr< SWindow > RootWindow = FGlobalTabmanager::Get()->GetRootWindow();
     if ( RootWindow.IsValid() )

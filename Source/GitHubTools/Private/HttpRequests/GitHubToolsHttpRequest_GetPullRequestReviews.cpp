@@ -48,7 +48,7 @@ void FGitHubToolsHttpResponseData_GetPullRequestReviews::ParseResponse( FHttpRes
         const auto review_infos_object = review_infos->AsObject();
         const auto user_infos_object = review_infos_object->GetObjectField( TEXT( "user" ) );
 
-        reviews.Emplace( MakeShared< FGithubToolsPullRequestReviewInfos >( review_infos_object->GetIntegerField( TEXT( "id" ) ), user_infos_object->GetStringField( TEXT( "login" ) ), review_infos_object->GetStringField( TEXT( "state" ) ) ) );
+        //reviews.Emplace( MakeShared< FGithubToolsPullRequestReviewInfos >( review_infos_object->GetIntegerField( TEXT( "id" ) ), user_infos_object->GetStringField( TEXT( "login" ) ), review_infos_object->GetStringField( TEXT( "state" ) ) ) );
     }
 
     Reviews = reviews;

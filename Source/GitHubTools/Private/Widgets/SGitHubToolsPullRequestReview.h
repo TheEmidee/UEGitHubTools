@@ -1,12 +1,10 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #pragma once
 
-#include "GitHubToolsReviewFileItem.h"
 #include "GitHubToolsTypes.h"
-#include "GitSourceControlState.h"
 
 #include <CoreMinimal.h>
+
+class SGitSourceControlReviewFilesListRow;
 
 class SGitHubToolsPullRequestReview final : public SCompoundWidget
 {
@@ -17,33 +15,35 @@ public:
     {}
 
     SLATE_ATTRIBUTE( TSharedPtr< SWindow >, ParentWindow )
-    SLATE_ATTRIBUTE( TArray< FGithubToolsPullRequestFileInfosPtr >, Files )
+    SLATE_ATTRIBUTE( FGithubToolsPullRequestInfosPtr, Infos )
 
     SLATE_END_ARGS()
 
-    virtual ~SGitHubToolsPullRequestReview();
+    virtual ~SGitHubToolsPullRequestReview() override;
 
     void Construct( const FArguments & arguments );
-
-    virtual FReply OnKeyDown( const FGeometry & my_geometry, const FKeyEvent & key_event ) override;
-    TSharedRef< SWidget > GenerateWidgetForItemAndColumn( FGithubToolsPullRequestFileInfosPtr item, const FName column_id );
+    FReply OnKeyDown( const FGeometry & my_geometry, const FKeyEvent & key_event ) override;
 
 private:
     bool IsFileCommentsButtonEnabled() const;
     EVisibility IsWarningPanelVisible() const;
-
     FReply CancelClicked();
     FReply OnFileCommentsButtonClicked( FGithubToolsPullRequestFileInfosPtr item );
-
     TSharedRef< ITableRow > OnGenerateRowForList( FGithubToolsPullRequestFileInfosPtr SubmitItemData, const TSharedRef< STableViewBase > & owner_table );
+    EVisibility GetItemRowVisibility( FGithubToolsPullRequestFileInfosPtr file_infos ) const;
     EColumnSortMode::Type GetColumnSortMode( const FName column_id ) const;
     void OnColumnSortModeChanged( const EColumnSortPriority::Type sort_priority, const FName & column_id, const EColumnSortMode::Type sort_mode );
     void RequestSort();
     void SortTree();
     void OnDiffAgainstRemoteStatusBranchSelected( FGithubToolsPullRequestFileInfosPtr selected_item );
+    FReply OpenInGitHubClicked();
+    void OnShowOnlyUAssetsCheckStateChanged( ECheckBoxState new_state );
+    void OnHideOFPACheckStateChanged( ECheckBoxState new_state );
 
+    FGithubToolsPullRequestInfosPtr PRInfos;
     TSharedPtr< SListView< FGithubToolsPullRequestFileInfosPtr > > ListView;
-    TArray< FGithubToolsPullRequestFileInfosPtr > ListViewItems;
+    TSharedPtr< SCheckBox > OnlyShowAssetsCheckBox;
+    TSharedPtr< SCheckBox > HideOFPACheckBox;
     TWeakPtr< SWindow > ParentFrame;
     FName SortByColumn;
     EColumnSortMode::Type SortMode = EColumnSortMode::Ascending;

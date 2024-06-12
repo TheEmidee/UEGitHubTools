@@ -9,19 +9,19 @@ namespace
 {
     EGitHubToolsFileState GetFileStateFromStatus( const FString & status )
     {
-        if ( status == TEXT( "added" ) )
+        if ( status == TEXT( "ADDED" ) )
         {
             return EGitHubToolsFileState::Added;
         }
-        if ( status == TEXT( "modified" ) )
+        if ( status == TEXT( "MODIFIED" ) )
         {
             return EGitHubToolsFileState::Modified;
         }
-        if ( status == TEXT( "removed" ) )
+        if ( status == TEXT( "REMOVED" ) )
         {
             return EGitHubToolsFileState::Removed;
         }
-        if ( status == TEXT( "renamed" ) )
+        if ( status == TEXT( "RENAMED" ) )
         {
             return EGitHubToolsFileState::Renamed;
         }
@@ -89,17 +89,25 @@ FGithubToolsPullRequestFileInfos::FGithubToolsPullRequestFileInfos( const FStrin
 {
 }
 
-FGithubToolsPullRequestReviewInfos::FGithubToolsPullRequestReviewInfos( const int id, const FString & user_name, const FString & state ) :
+FGithubToolsPullRequestReviewInfos::FGithubToolsPullRequestReviewInfos( const FString & id, const FString & user_name, const FString & state, const FString & submitted_at ) :
     Id( id ),
     UserName( FText::FromString( user_name ) ),
+    SubmittedAt( FText::FromString( submitted_at ) ),
     State( GetReviewState( state ) )
 {
 }
 
-FGithubToolsPullRequestComment::FGithubToolsPullRequestComment( const FString & file_name, const FString & author, const FString & date ) :
+FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( int number, const FString & title ) :
+    Number( number ),
+    Title( FText::FromString( title ) )
+{
+}
+
+FGithubToolsPullRequestComment::FGithubToolsPullRequestComment( const FString & file_name, const FString & author, const FString & date, const FString & comment ) :
     AssetName( FText::FromString( FPaths::GetCleanFilename( file_name ) ) ),
     Author( FText::FromString( FPaths::GetCleanFilename( author ) ) ),
-    Date( FText::FromString( FPaths::GetCleanFilename( date ) ) )
+    Date( FText::FromString( FPaths::GetCleanFilename( date ) ) ),
+    Comment( FText::FromString( FPaths::GetCleanFilename( comment ) ) )
 {
 }
 

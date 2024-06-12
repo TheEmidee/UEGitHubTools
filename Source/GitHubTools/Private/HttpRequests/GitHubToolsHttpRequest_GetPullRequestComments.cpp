@@ -1,5 +1,7 @@
 #include "GitHubToolsHttpRequest_GetPullRequestComments.h"
 
+#include "GitHubToolsTypes.h"
+
 #include <Interfaces/IHttpResponse.h>
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
@@ -46,9 +48,10 @@ void FGitHubToolsHttpResponseData_GetPullRequestComments::ParseResponse( FHttpRe
     for ( const auto comment_infos : comments_infos )
     {
         const auto comment_infos_object = comment_infos->AsObject();
+
         const auto user_infos_object = comment_infos_object->GetObjectField( TEXT( "user" ) );
 
-        comments.Emplace( MakeShared< FGithubToolsPullRequestComment >( comment_infos_object->GetStringField( TEXT( "path" ) ), user_infos_object->GetStringField( TEXT( "login" ) ), comment_infos_object->GetStringField( TEXT( "updated_at" ) ) ) );
+        //comments.Emplace( MakeShared< FGithubToolsPullRequestComment >( comment_infos_object->GetStringField( TEXT( "path" ) ), user_infos_object->GetStringField( TEXT( "login" ) ), comment_infos_object->GetStringField( TEXT( "updated_at" ) ) ) );
     }
 
     Comments = comments;

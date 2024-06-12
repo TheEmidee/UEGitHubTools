@@ -1,5 +1,7 @@
 #include "GitHubToolsHttpRequest_GetPullRequestReviewComment.h"
 
+#include "GitHubToolsTypes.h"
+
 #include <Interfaces/IHttpResponse.h>
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
@@ -49,7 +51,7 @@ void FGitHubToolsHttpResponseData_GetPullRequestReviewComments::ParseResponse( F
         const auto comment_object = comment_infos->AsObject();
         const auto user_infos_object = comment_object->GetObjectField( TEXT( "user" ) );
 
-        comments.Emplace( MakeShared< FGithubToolsPullRequestComment >( comment_object->GetStringField( TEXT( "path" ) ), user_infos_object->GetStringField( TEXT( "login" ) ), comment_object->GetStringField( TEXT( "updated_at" ) ) ) );
+        //comments.Emplace( MakeShared< FGithubToolsPullRequestComment >( comment_object->GetStringField( TEXT( "path" ) ), user_infos_object->GetStringField( TEXT( "login" ) ), comment_object->GetStringField( TEXT( "updated_at" ) ) ) );
     }
 
     ReviewComments = comments;
