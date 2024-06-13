@@ -40,7 +40,7 @@ void FGitHubToolsHttpResponseData_GetPullRequestReviews::ParseResponse( FHttpRes
         return;
     }
 
-    TArray< FGithubToolsPullRequestReviewInfosPtr > reviews;
+    TArray< FGithubToolsPullRequestReviewThreadInfosPtr > reviews;
     reviews.Reserve( reviews_infos.Num() );
 
     for ( const auto review_infos : reviews_infos )

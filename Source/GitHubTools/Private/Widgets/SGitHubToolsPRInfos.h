@@ -4,12 +4,13 @@
 
 #include <CoreMinimal.h>
 
+class SGitHubToolsPRReviewList;
 class SGitSourceControlReviewFilesListRow;
 
-class SGitHubToolsPullRequestReview final : public SCompoundWidget
+class SGitHubToolsPRInfos final : public SCompoundWidget
 {
 public:
-    SLATE_BEGIN_ARGS( SGitHubToolsPullRequestReview ) :
+    SLATE_BEGIN_ARGS( SGitHubToolsPRInfos ) :
         _ParentWindow()
     //_Items()
     {}
@@ -19,7 +20,7 @@ public:
 
     SLATE_END_ARGS()
 
-    virtual ~SGitHubToolsPullRequestReview() override;
+    virtual ~SGitHubToolsPRInfos() override;
 
     void Construct( const FArguments & arguments );
     FReply OnKeyDown( const FGeometry & my_geometry, const FKeyEvent & key_event ) override;
@@ -35,6 +36,7 @@ private:
     void OnColumnSortModeChanged( const EColumnSortPriority::Type sort_priority, const FName & column_id, const EColumnSortMode::Type sort_mode );
     void RequestSort();
     void SortTree();
+    void OnSelectedFileChanged( FGithubToolsPullRequestFileInfosPtr selected_item );
     void OnDiffAgainstRemoteStatusBranchSelected( FGithubToolsPullRequestFileInfosPtr selected_item );
     FReply OpenInGitHubClicked();
     void OnShowOnlyUAssetsCheckStateChanged( ECheckBoxState new_state );
@@ -44,27 +46,26 @@ private:
     TSharedPtr< SListView< FGithubToolsPullRequestFileInfosPtr > > ListView;
     TSharedPtr< SCheckBox > OnlyShowAssetsCheckBox;
     TSharedPtr< SCheckBox > HideOFPACheckBox;
+    TSharedPtr< SGitHubToolsPRReviewList > ReviewList;
     TWeakPtr< SWindow > ParentFrame;
     FName SortByColumn;
     EColumnSortMode::Type SortMode = EColumnSortMode::Ascending;
 };
 
-class SGitSourceControlReviewFilesListRow : public SMultiColumnTableRow< FGithubToolsPullRequestFileInfosPtr >
+class SGitHubToolsFileInfosRow : public SMultiColumnTableRow< FGithubToolsPullRequestFileInfosPtr >
 {
 public:
-    SLATE_BEGIN_ARGS( SGitSourceControlReviewFilesListRow )
+    SLATE_BEGIN_ARGS( SGitHubToolsFileInfosRow )
     {}
 
-    SLATE_ARGUMENT( TSharedPtr< SGitHubToolsPullRequestReview >, SourceControlSubmitWidget )
     SLATE_ARGUMENT( FGithubToolsPullRequestFileInfosPtr, FileInfos )
 
     SLATE_END_ARGS()
 
     void Construct( const FArguments & arguments, const TSharedRef< STableViewBase > & owner_table_view );
-    virtual TSharedRef< SWidget > GenerateWidgetForColumn( const FName & column_name ) override;
+    TSharedRef< SWidget > GenerateWidgetForColumn( const FName & column_name );
 
 private:
-    TWeakPtr< SGitHubToolsPullRequestReview > SourceControlSubmitWidgetPtr;
     FGithubToolsPullRequestFileInfosPtr FileInfos;
 };
 

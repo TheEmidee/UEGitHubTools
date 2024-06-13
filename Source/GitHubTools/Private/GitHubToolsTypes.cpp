@@ -89,25 +89,9 @@ FGithubToolsPullRequestFileInfos::FGithubToolsPullRequestFileInfos( const FStrin
 {
 }
 
-FGithubToolsPullRequestReviewInfos::FGithubToolsPullRequestReviewInfos( const FString & id, const FString & user_name, const FString & state, const FString & submitted_at ) :
-    Id( id ),
-    UserName( FText::FromString( user_name ) ),
-    SubmittedAt( FText::FromString( submitted_at ) ),
-    State( GetReviewState( state ) )
-{
-}
-
 FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( int number, const FString & title ) :
     Number( number ),
     Title( FText::FromString( title ) )
-{
-}
-
-FGithubToolsPullRequestComment::FGithubToolsPullRequestComment( const FString & file_name, const FString & author, const FString & date, const FString & comment ) :
-    AssetName( FText::FromString( FPaths::GetCleanFilename( file_name ) ) ),
-    Author( FText::FromString( FPaths::GetCleanFilename( author ) ) ),
-    Date( FText::FromString( FPaths::GetCleanFilename( date ) ) ),
-    Comment( FText::FromString( FPaths::GetCleanFilename( comment ) ) )
 {
 }
 

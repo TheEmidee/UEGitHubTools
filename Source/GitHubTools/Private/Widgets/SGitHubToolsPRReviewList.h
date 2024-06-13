@@ -1,41 +1,41 @@
 #pragma once
 
 #include "GitHubToolsTypes.h"
-#include "SGitHubToolsFileComments.h"
 #include "Interfaces/IHttpRequest.h"
 
 #include <CoreMinimal.h>
 #include <Widgets/Input/SMultiLineEditableTextBox.h>
 
-class SGitHubToolsFileComments : public SCompoundWidget
+class SGitHubToolsPRReviewList: public SCompoundWidget
 {
 public:
-    SLATE_BEGIN_ARGS( SGitHubToolsFileComments ) :
+    SLATE_BEGIN_ARGS( SGitHubToolsPRReviewList ) :
         _ParentWindow(),
-        _Item()
+        _PRInfos()
     {}
 
     SLATE_ATTRIBUTE( TSharedPtr< SWindow >, ParentWindow )
-    SLATE_ATTRIBUTE( FGithubToolsPullRequestFileInfosPtr, Item )
+    SLATE_ATTRIBUTE( FGithubToolsPullRequestInfosPtr, PRInfos )
 
     SLATE_END_ARGS()
 
-    virtual ~SGitHubToolsFileComments() override;
+    virtual ~SGitHubToolsPRReviewList() override;
 
     /** Constructs the widget */
     void Construct( const FArguments & arguments );
+    void ShowFileReviews( FGithubToolsPullRequestFileInfosPtr file_infos );
 
 private:
     bool IsSubmitEnabled() const;
     FReply SubmitClicked();
     FReply CancelClicked();
-    TSharedRef< ITableRow > GenerateItemRow( TSharedPtr< FText > item, const TSharedRef< STableViewBase > & owner_table );
+    TSharedRef< ITableRow > GenerateItemRow( FGithubToolsPullRequestReviewThreadInfosPtr item, const TSharedRef< STableViewBase > & owner_table );
     void OnRequestCompleted( FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully );
 
     TWeakPtr< SWindow > ParentFrame;
-    FGithubToolsPullRequestFileInfosPtr Item;
+    FGithubToolsPullRequestInfosPtr PRInfos;
     TSharedPtr< SMultiLineEditableTextBox > ChangeListDescriptionTextCtrl;
     TSharedPtr< SVerticalBox > AllCommentsVerticalBox;
-    TSharedPtr< SListView< TSharedPtr<  FText > > > CommentsListView;
-    TArray< TSharedPtr< FText > > Comments;
+    TSharedPtr< SListView< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > > > ReviewThreadsListView;
+    TArray< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > > ReviewThreads;
 };

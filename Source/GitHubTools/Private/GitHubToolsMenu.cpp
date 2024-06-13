@@ -4,7 +4,7 @@
 #include "GitHubToolsGitUtils.h"
 #include "GitSourceControlModule.h"
 #include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestInfos.h"
-#include "Widgets/SGitHubToolsPullRequestReview.h"
+#include "Widgets/SGitHubToolsPRInfos.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools"
 
@@ -92,8 +92,8 @@ void FGitHubToolsMenu::ShowPullRequestReviewWindow( const FGithubToolsPullReques
 
     ReviewWindowPtr->SetOnWindowClosed( FOnWindowClosed::CreateRaw( this, &FGitHubToolsMenu::OnReviewWindowDialogClosed ) );
 
-    const TSharedRef< SGitHubToolsPullRequestReview > pull_request_review_widget =
-        SNew( SGitHubToolsPullRequestReview )
+    const TSharedRef< SGitHubToolsPRInfos > pull_request_review_widget =
+        SNew( SGitHubToolsPRInfos )
             .ParentWindow( ReviewWindowPtr )
             .Infos( pr_infos );
 

@@ -14,9 +14,8 @@ enum class EGitHubToolsFileState : uint8
 struct FGithubToolsPullRequestComment
 {
     FGithubToolsPullRequestComment() = default;
-    FGithubToolsPullRequestComment( const FString & file_name, const FString & author, const FString & date, const FString & comment );
 
-    FText AssetName;
+    FString Id;
     FText Author;
     FText Date;
     FText Comment;
@@ -47,19 +46,18 @@ enum class EGitHubToolsReviewState : uint8
     Unknown
 };
 
-struct FGithubToolsPullRequestReviewInfos
+struct FGithubToolsPullRequestReviewThreadInfos
 {
-    FGithubToolsPullRequestReviewInfos() = default;
-    FGithubToolsPullRequestReviewInfos( const FString & id, const FString & user_name, const FString & state, const FString & submitted_at );
+    FGithubToolsPullRequestReviewThreadInfos() = default;
 
     FString Id;
-    FText UserName;
-    FText SubmittedAt;
-    EGitHubToolsReviewState State;
+    bool bIsResolved;
+    FText ResolvedByUserName;
+    FString FileName;
     TArray< FGithubToolsPullRequestCommentPtr > Comments;
 };
 
-typedef TSharedPtr< FGithubToolsPullRequestReviewInfos > FGithubToolsPullRequestReviewInfosPtr;
+typedef TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > FGithubToolsPullRequestReviewThreadInfosPtr;
 
 struct FGithubToolsPullRequestInfos
 {
@@ -68,8 +66,7 @@ struct FGithubToolsPullRequestInfos
     int Number;
     FText Title;
     TArray< FGithubToolsPullRequestFileInfosPtr > FileInfos;
-    TArray< FGithubToolsPullRequestCommentPtr > Comments;
-    TArray< FGithubToolsPullRequestReviewInfosPtr > Reviews;
+    TArray< FGithubToolsPullRequestReviewThreadInfosPtr > Reviews;
 };
 
 typedef TSharedPtr< FGithubToolsPullRequestInfos > FGithubToolsPullRequestInfosPtr;

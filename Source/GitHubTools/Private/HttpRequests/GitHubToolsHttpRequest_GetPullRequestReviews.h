@@ -19,7 +19,7 @@ private:
 class FGitHubToolsHttpResponseData_GetPullRequestReviews final : public FGitHubToolsHttpResponseData
 {
 public:
-    FORCEINLINE TOptional< TArray< FGithubToolsPullRequestReviewInfosPtr > > GetPullRequestReviews() const
+    FORCEINLINE TOptional< TArray< FGithubToolsPullRequestReviewThreadInfosPtr > > GetPullRequestReviews() const
     {
         return Reviews;
     }
@@ -27,5 +27,5 @@ public:
     void ParseResponse( FHttpResponsePtr response_ptr ) override;
 
 private:
-    TOptional< TArray< FGithubToolsPullRequestReviewInfosPtr > > Reviews;
+    TOptional< TArray< FGithubToolsPullRequestReviewThreadInfosPtr > > Reviews;
 };

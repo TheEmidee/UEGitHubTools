@@ -1,9 +1,9 @@
-#include "SGitHubToolsPullRequestReview.h"
+#include "SGitHubToolsPRInfos.h"
 
 #include "GitHubTools.h"
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
-#include "SGitHubToolsFileComments.h"
+#include "SGitHubToolsPRReviewList.h"
 
 #include <AssetToolsModule.h>
 #include <RevisionControlStyle/RevisionControlStyle.h>
@@ -23,11 +23,11 @@ namespace SGitSourceControlReviewFilesWidgetDefs
     const float CommentButtonColumnWidth = 120.0f;
 }
 
-SGitHubToolsPullRequestReview::~SGitHubToolsPullRequestReview()
+SGitHubToolsPRInfos::~SGitHubToolsPRInfos()
 {
 }
 
-void SGitHubToolsPullRequestReview::Construct( const FArguments & arguments )
+void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
 {
     ParentFrame = arguments._ParentWindow.Get();
     SortByColumn = SGitSourceControlReviewFilesWidgetDefs::ColumnID_FileLabel;
@@ -53,7 +53,7 @@ void SGitHubToolsPullRequestReview::Construct( const FArguments & arguments )
                                 .Padding( FMargin( 10 ) )
                                     [ SNew( SButton )
                                             .Text( LOCTEXT( "OpenInGitHub", "Open in GitHub" ) )
-                                            .OnClicked( this, &SGitHubToolsPullRequestReview::OpenInGitHubClicked ) ] +
+                                            .OnClicked( this, &SGitHubToolsPRInfos::OpenInGitHubClicked ) ] +
                             SHorizontalBox::Slot()
                                 .FillWidth( 1.0f )
                                 .Padding( FMargin( 10 ) )
@@ -74,7 +74,7 @@ void SGitHubToolsPullRequestReview::Construct( const FArguments & arguments )
                                             .ToolTipText( LOCTEXT( "OnlyShowUAssetsToolTip", "Toggle whether or not to only show uasset files." ) )
                                             .Type( ESlateCheckBoxType::CheckBox )
                                             .IsChecked( ECheckBoxState::Checked )
-                                            .OnCheckStateChanged( this, &SGitHubToolsPullRequestReview::OnShowOnlyUAssetsCheckStateChanged )
+                                            .OnCheckStateChanged( this, &SGitHubToolsPRInfos::OnShowOnlyUAssetsCheckStateChanged )
                                             .Padding( 4.f )
                                                 [ SNew( STextBlock )
                                                         .Text( LOCTEXT( "OnlyShowUAssets", "Only show uassets" ) ) ] ] +
@@ -85,7 +85,7 @@ void SGitHubToolsPullRequestReview::Construct( const FArguments & arguments )
                                             .ToolTipText( LOCTEXT( "HideOFPAToolTip", "Hide OFPA assets." ) )
                                             .Type( ESlateCheckBoxType::CheckBox )
                                             .IsChecked( ECheckBoxState::Checked )
-                                            .OnCheckStateChanged( this, &SGitHubToolsPullRequestReview::OnHideOFPACheckStateChanged )
+                                            .OnCheckStateChanged( this, &SGitHubToolsPRInfos::OnHideOFPACheckStateChanged )
                                             .Padding( 4.f )
                                                 [ SNew( STextBlock )
                                                         .Text( LOCTEXT( "HideOFPA", "Hide OFPA assets" ) ) ] ]
@@ -102,42 +102,51 @@ void SGitHubToolsPullRequestReview::Construct( const FArguments & arguments )
     header_row_widget->AddColumn(
         SHeaderRow::Column( SGitSourceControlReviewFilesWidgetDefs::ColumnID_IconLabel )
             [ SNew( SSpacer ) ]
-                .SortMode( this, &SGitHubToolsPullRequestReview::GetColumnSortMode, SGitSourceControlReviewFilesWidgetDefs::ColumnID_IconLabel )
-                .OnSort( this, &SGitHubToolsPullRequestReview::OnColumnSortModeChanged )
+                .SortMode( this, &SGitHubToolsPRInfos::GetColumnSortMode, SGitSourceControlReviewFilesWidgetDefs::ColumnID_IconLabel )
+                .OnSort( this, &SGitHubToolsPRInfos::OnColumnSortModeChanged )
                 .FixedWidth( SGitSourceControlReviewFilesWidgetDefs::IconColumnWidth ) );
 
     header_row_widget->AddColumn(
         SHeaderRow::Column( SGitSourceControlReviewFilesWidgetDefs::ColumnID_FileLabel )
             .DefaultLabel( LOCTEXT( "FileColumnLabel", "File" ) )
-            .SortMode( this, &SGitHubToolsPullRequestReview::GetColumnSortMode, SGitSourceControlReviewFilesWidgetDefs::ColumnID_FileLabel )
-            .OnSort( this, &SGitHubToolsPullRequestReview::OnColumnSortModeChanged )
+            .SortMode( this, &SGitHubToolsPRInfos::GetColumnSortMode, SGitSourceControlReviewFilesWidgetDefs::ColumnID_FileLabel )
+            .OnSort( this, &SGitHubToolsPRInfos::OnColumnSortModeChanged )
             .FillWidth( 7.0f ) );
 
     contents->AddSlot()
         .Padding( FMargin( 5, 0 ) )
         .FillHeight( 1.0f )
             [ SNew( SBorder )
-                    [ SAssignNew( ListView, SListView< FGithubToolsPullRequestFileInfosPtr > )
-                            .ItemHeight( 20 )
-                            .ListItemsSource( &PRInfos->FileInfos )
-                            .OnGenerateRow( this, &SGitHubToolsPullRequestReview::OnGenerateRowForList )
-                            .OnMouseButtonDoubleClick( this, &SGitHubToolsPullRequestReview::OnDiffAgainstRemoteStatusBranchSelected )
-                            .HeaderRow( header_row_widget )
-                            .SelectionMode( ESelectionMode::Single ) ] ];
+                    [ SNew( SHorizontalBox ) +
+                        SHorizontalBox::Slot()
+                            .FillWidth( 0.5f )
+                                [ SAssignNew( ListView, SListView< FGithubToolsPullRequestFileInfosPtr > )
+                                        .ItemHeight( 20 )
+                                        .ListItemsSource( &PRInfos->FileInfos )
+                                        .OnGenerateRow( this, &SGitHubToolsPRInfos::OnGenerateRowForList )
+                                        .OnMouseButtonClick( this, &SGitHubToolsPRInfos::OnSelectedFileChanged )
+                                        .OnMouseButtonDoubleClick( this, &SGitHubToolsPRInfos::OnDiffAgainstRemoteStatusBranchSelected )
+                                        .HeaderRow( header_row_widget )
+                                        .SelectionMode( ESelectionMode::Single ) ] +
+                        SHorizontalBox::Slot()
+                            .FillWidth( 0.5f )
+                                [ SAssignNew( ReviewList, SGitHubToolsPRReviewList )
+                                        .PRInfos( PRInfos ) ] ] ];
 
     contents->AddSlot()
         .AutoHeight()
         .Padding( FMargin( 5, 5, 5, 0 ) )
             [ SNew( SBorder )
-                    .Visibility( this, &SGitHubToolsPullRequestReview::IsWarningPanelVisible )
+                    .Visibility( this, &SGitHubToolsPRInfos::IsWarningPanelVisible )
                     .Padding( 5 )
                         [ SNew( SErrorText )
                                 .ErrorText( NSLOCTEXT( "GitHubTools.ReviewWindow", "EmptyToken", "You must define the GitHub Token to be able to see and add comments on assets" ) ) ] ];
 
+    ReviewList->SetEnabled( false );
     RequestSort();
 }
 
-void SGitHubToolsPullRequestReview::OnDiffAgainstRemoteStatusBranchSelected( FGithubToolsPullRequestFileInfosPtr selected_item )
+void SGitHubToolsPRInfos::OnDiffAgainstRemoteStatusBranchSelected( FGithubToolsPullRequestFileInfosPtr selected_item )
 {
     if ( selected_item->FileState == EGitHubToolsFileState::Added )
     {
@@ -158,7 +167,7 @@ void SGitHubToolsPullRequestReview::OnDiffAgainstRemoteStatusBranchSelected( FGi
     }
 }
 
-FReply SGitHubToolsPullRequestReview::OpenInGitHubClicked()
+FReply SGitHubToolsPRInfos::OpenInGitHubClicked()
 {
     auto * settings = GetDefault< UGitHubToolsSettings >();
 
@@ -175,17 +184,17 @@ FReply SGitHubToolsPullRequestReview::OpenInGitHubClicked()
     return FReply::Handled();
 }
 
-void SGitHubToolsPullRequestReview::OnShowOnlyUAssetsCheckStateChanged( ECheckBoxState new_state )
+void SGitHubToolsPRInfos::OnShowOnlyUAssetsCheckStateChanged( ECheckBoxState new_state )
 {
     RequestSort();
 }
 
-void SGitHubToolsPullRequestReview::OnHideOFPACheckStateChanged( ECheckBoxState new_state )
+void SGitHubToolsPRInfos::OnHideOFPACheckStateChanged( ECheckBoxState new_state )
 {
     RequestSort();
 }
 
-FReply SGitHubToolsPullRequestReview::OnKeyDown( const FGeometry & my_geometry, const FKeyEvent & key_event )
+FReply SGitHubToolsPRInfos::OnKeyDown( const FGeometry & my_geometry, const FKeyEvent & key_event )
 {
     if ( key_event.GetKey() == EKeys::Escape )
     {
@@ -195,7 +204,7 @@ FReply SGitHubToolsPullRequestReview::OnKeyDown( const FGeometry & my_geometry, 
     return FReply::Unhandled();
 }
 
-bool SGitHubToolsPullRequestReview::IsFileCommentsButtonEnabled() const
+bool SGitHubToolsPRInfos::IsFileCommentsButtonEnabled() const
 {
     if ( auto * settings = GetDefault< UGitHubToolsSettings >() )
     {
@@ -205,7 +214,7 @@ bool SGitHubToolsPullRequestReview::IsFileCommentsButtonEnabled() const
     return false;
 }
 
-EVisibility SGitHubToolsPullRequestReview::IsWarningPanelVisible() const
+EVisibility SGitHubToolsPRInfos::IsWarningPanelVisible() const
 {
     if ( auto * settings = GetDefault< UGitHubToolsSettings >() )
     {
@@ -217,12 +226,12 @@ EVisibility SGitHubToolsPullRequestReview::IsWarningPanelVisible() const
     return EVisibility::Visible;
 }
 
-FReply SGitHubToolsPullRequestReview::CancelClicked()
+FReply SGitHubToolsPRInfos::CancelClicked()
 {
     return FReply::Handled();
 }
 
-FReply SGitHubToolsPullRequestReview::OnFileCommentsButtonClicked( FGithubToolsPullRequestFileInfosPtr item )
+FReply SGitHubToolsPRInfos::OnFileCommentsButtonClicked( FGithubToolsPullRequestFileInfosPtr item )
 {
     //FGitHubToolsModule::DisplayInProgressNotification( LOCTEXT( "SourceControlMenu_InProgress", "Fetching the file comments" ) );
 
@@ -242,20 +251,16 @@ FReply SGitHubToolsPullRequestReview::OnFileCommentsButtonClicked( FGithubToolsP
     return FReply::Handled();
 }
 
-TSharedRef< ITableRow > SGitHubToolsPullRequestReview::OnGenerateRowForList( FGithubToolsPullRequestFileInfosPtr file_infos, const TSharedRef< STableViewBase > & owner_table )
+TSharedRef< ITableRow > SGitHubToolsPRInfos::OnGenerateRowForList( FGithubToolsPullRequestFileInfosPtr file_infos, const TSharedRef< STableViewBase > & owner_table )
 {
-    TSharedRef< ITableRow > row =
-        SNew( SGitSourceControlReviewFilesListRow, owner_table )
-            .SourceControlSubmitWidget( SharedThis( this ) )
+    return SNew( SGitHubToolsFileInfosRow, owner_table )
             .FileInfos( file_infos )
             .Visibility( MakeAttributeLambda( [ &, file_infos ]() {
                 return GetItemRowVisibility( file_infos );
             } ) );
-
-    return row;
 }
 
-EVisibility SGitHubToolsPullRequestReview::GetItemRowVisibility( FGithubToolsPullRequestFileInfosPtr file_infos ) const
+EVisibility SGitHubToolsPRInfos::GetItemRowVisibility( FGithubToolsPullRequestFileInfosPtr file_infos ) const
 {
     if ( OnlyShowAssetsCheckBox->GetCheckedState() == ECheckBoxState::Checked )
     {
@@ -277,7 +282,7 @@ EVisibility SGitHubToolsPullRequestReview::GetItemRowVisibility( FGithubToolsPul
     return EVisibility::Visible;
 }
 
-EColumnSortMode::Type SGitHubToolsPullRequestReview::GetColumnSortMode( const FName column_id ) const
+EColumnSortMode::Type SGitHubToolsPRInfos::GetColumnSortMode( const FName column_id ) const
 {
     if ( SortByColumn != column_id )
     {
@@ -287,7 +292,7 @@ EColumnSortMode::Type SGitHubToolsPullRequestReview::GetColumnSortMode( const FN
     return SortMode;
 }
 
-void SGitHubToolsPullRequestReview::OnColumnSortModeChanged( const EColumnSortPriority::Type /*sort_priority*/, const FName & column_id, const EColumnSortMode::Type sort_mode )
+void SGitHubToolsPRInfos::OnColumnSortModeChanged( const EColumnSortPriority::Type /*sort_priority*/, const FName & column_id, const EColumnSortMode::Type sort_mode )
 {
     SortByColumn = column_id;
     SortMode = sort_mode;
@@ -295,14 +300,14 @@ void SGitHubToolsPullRequestReview::OnColumnSortModeChanged( const EColumnSortPr
     RequestSort();
 }
 
-void SGitHubToolsPullRequestReview::RequestSort()
+void SGitHubToolsPRInfos::RequestSort()
 {
     SortTree();
 
     ListView->RequestListRefresh();
 }
 
-void SGitHubToolsPullRequestReview::SortTree()
+void SGitHubToolsPRInfos::SortTree()
 {
     if ( SortByColumn == SGitSourceControlReviewFilesWidgetDefs::ColumnID_FileLabel )
     {
@@ -336,15 +341,20 @@ void SGitHubToolsPullRequestReview::SortTree()
     }
 }
 
-void SGitSourceControlReviewFilesListRow::Construct( const FArguments & arguments, const TSharedRef< STableViewBase > & owner_table_view )
+void SGitHubToolsPRInfos::OnSelectedFileChanged( FGithubToolsPullRequestFileInfosPtr selected_item )
 {
-    SourceControlSubmitWidgetPtr = arguments._SourceControlSubmitWidget;
+    ReviewList->SetEnabled( true );
+    ReviewList->ShowFileReviews( selected_item );
+}
+
+void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TSharedRef< STableViewBase > & owner_table_view )
+{
     FileInfos = arguments._FileInfos;
 
     SMultiColumnTableRow< FGithubToolsPullRequestFileInfosPtr >::Construct( FSuperRowType::FArguments(), owner_table_view );
 }
 
-TSharedRef< SWidget > SGitSourceControlReviewFilesListRow::GenerateWidgetForColumn( const FName & column_name )
+TSharedRef< SWidget > SGitHubToolsFileInfosRow::GenerateWidgetForColumn( const FName & column_name )
 {
     const FMargin row_padding( 3, 0, 0, 0 );
 
