@@ -46,7 +46,7 @@ void FGitHubToolsHttpResponseData_GetPullRequestFiles::ParseResponse( FHttpRespo
     for ( const auto file_infos : files_infos )
     {
         const auto file_infos_object = file_infos->AsObject();
-        filenames.Emplace( MakeShared< FGithubToolsPullRequestFileInfos >( file_infos_object->GetStringField( TEXT( "filename" ) ), file_infos_object->GetStringField( TEXT( "status" ) ) ) );
+        //filenames.Emplace( MakeShared< FGithubToolsPullRequestFileInfos >( file_infos_object->GetStringField( TEXT( "filename" ) ), file_infos_object->GetStringField( TEXT( "status" ) ) ) );
     }
 
     Files = filenames;

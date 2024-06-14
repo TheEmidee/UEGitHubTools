@@ -28,6 +28,7 @@ FString FGitHubToolsHttpRequestData_GetPullRequestInfos::GetBody() const
     string_builder << TEXT( "                  node {" );
     string_builder << TEXT( "                      path" );
     string_builder << TEXT( "                      changeType" );
+    string_builder << TEXT( "                      viewerViewedState" );
     string_builder << TEXT( "                  }" );
     string_builder << TEXT( "              }" );
     string_builder << TEXT( "          }" );
@@ -106,7 +107,8 @@ void FGitHubToolsHttpResponseData_GetPullRequestInfos::ParseResponse( FHttpRespo
 
         pr_infos->FileInfos.Emplace( MakeShared< FGithubToolsPullRequestFileInfos >(
             file_node_object->GetStringField( TEXT( "path" ) ),
-            file_node_object->GetStringField( TEXT( "changeType" ) ) ) );
+            file_node_object->GetStringField( TEXT( "changeType" ) ),
+            file_node_object->GetStringField( TEXT( "viewerViewedState" ) ) ) );
     }
 
     const auto reviews_object = pull_request_object->GetObjectField( TEXT( "reviewThreads" ) );

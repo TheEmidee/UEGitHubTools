@@ -2,13 +2,21 @@
 
 #include <CoreMinimal.h>
 
-enum class EGitHubToolsFileState : uint8
+enum class EGitHubToolsFileChangedState : uint8
 {
     Unknown,
     Added,
     Modified,
     Removed,
     Renamed
+};
+
+enum class EGitHubToolsFileViewedState : uint8
+{
+    Unknown,
+    Viewed,
+    Unviewed,
+    Dismissed
 };
 
 struct FGithubToolsPullRequestComment
@@ -26,15 +34,19 @@ typedef TSharedPtr< FGithubToolsPullRequestComment > FGithubToolsPullRequestComm
 struct FGithubToolsPullRequestFileInfos
 {
     FGithubToolsPullRequestFileInfos() = default;
-    FGithubToolsPullRequestFileInfos( const FString & file_name, const FString & status );
+    FGithubToolsPullRequestFileInfos( const FString & file_name, const FString & change_type, const FString & viewed_state );
 
     FString FileName;
-    EGitHubToolsFileState FileState;
     FText AssetName;
     FText PackageName;
-    FSlateIcon Icon;
-    FName IconName;
-    FText ToolTip;
+    EGitHubToolsFileChangedState ChangedState;
+    FSlateIcon ChangedStateIcon;
+    FName ChangedStateIconName;
+    FText ChangedStateToolTip;
+    EGitHubToolsFileViewedState ViewedState;
+    FSlateIcon ViewedStateIcon;
+    FName ViewedStateIconName;
+    FText ViewedStateToolTip;
 };
 
 typedef TSharedPtr< FGithubToolsPullRequestFileInfos > FGithubToolsPullRequestFileInfosPtr;

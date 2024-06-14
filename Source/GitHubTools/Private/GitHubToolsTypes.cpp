@@ -7,59 +7,107 @@
 
 namespace
 {
-    EGitHubToolsFileState GetFileStateFromStatus( const FString & status )
+    EGitHubToolsFileChangedState GetFileChangedState( const FString & status )
     {
         if ( status == TEXT( "ADDED" ) )
         {
-            return EGitHubToolsFileState::Added;
+            return EGitHubToolsFileChangedState::Added;
         }
         if ( status == TEXT( "MODIFIED" ) )
         {
-            return EGitHubToolsFileState::Modified;
+            return EGitHubToolsFileChangedState::Modified;
         }
         if ( status == TEXT( "REMOVED" ) )
         {
-            return EGitHubToolsFileState::Removed;
+            return EGitHubToolsFileChangedState::Removed;
         }
         if ( status == TEXT( "RENAMED" ) )
         {
-            return EGitHubToolsFileState::Renamed;
+            return EGitHubToolsFileChangedState::Renamed;
         }
 
-        return EGitHubToolsFileState::Unknown;
+        return EGitHubToolsFileChangedState::Unknown;
     }
 
-    FSlateIcon GetSlateIconFromFileState( EGitHubToolsFileState file_state )
+    EGitHubToolsFileViewedState GetFileViewedState( const FString & status )
+    {
+        if ( status == TEXT( "DISMISSED" ) )
+        {
+            return EGitHubToolsFileViewedState::Dismissed;
+        }
+        if ( status == TEXT( "VIEWED" ) )
+        {
+            return EGitHubToolsFileViewedState::Viewed;
+        }
+        if ( status == TEXT( "UNVIEWED" ) )
+        {
+            return EGitHubToolsFileViewedState::Unviewed;
+        }
+
+        return EGitHubToolsFileViewedState::Unknown;
+    }
+
+    FSlateIcon GetSlateIconFromFileChangeState( EGitHubToolsFileChangedState file_state )
     {
         switch ( file_state )
         {
-            case EGitHubToolsFileState::Added:
+            case EGitHubToolsFileChangedState::Added:
                 return GET_ICON_RETURN( OpenForAdd );
-            case EGitHubToolsFileState::Modified:
+            case EGitHubToolsFileChangedState::Modified:
                 return GET_ICON_RETURN( CheckedOut );
-            case EGitHubToolsFileState::Removed:
+            case EGitHubToolsFileChangedState::Removed:
                 return GET_ICON_RETURN( MarkedForDelete );
-            case EGitHubToolsFileState::Renamed:
+            case EGitHubToolsFileChangedState::Renamed:
                 return GET_ICON_RETURN( CheckedOut );
             default:
                 return FSlateIcon();
         }
     }
 
-    FText GetToolTipFromFileState( EGitHubToolsFileState file_state )
+    FSlateIcon GetSlateIconFromFileViewedState( EGitHubToolsFileViewedState viewed_state )
     {
-        switch ( file_state )
+        switch ( viewed_state )
         {
-            case EGitHubToolsFileState::Added:
+            case EGitHubToolsFileViewedState::Dismissed:
+                return GET_ICON_RETURN( OpenForAdd );
+            case EGitHubToolsFileViewedState::Viewed:
+                return GET_ICON_RETURN( CheckedOut );
+            case EGitHubToolsFileViewedState::Unviewed:
+                return GET_ICON_RETURN( MarkedForDelete );
+            default:
+                return FSlateIcon();
+        }
+    }
+
+    FText GetToolTipFromFileChangedState( EGitHubToolsFileChangedState state )
+    {
+        switch ( state )
+        {
+            case EGitHubToolsFileChangedState::Added:
                 return LOCTEXT( "FileAdded", "File Added" );
-            case EGitHubToolsFileState::Modified:
+            case EGitHubToolsFileChangedState::Modified:
                 return LOCTEXT( "FileModified", "File Modified" );
-            case EGitHubToolsFileState::Removed:
+            case EGitHubToolsFileChangedState::Removed:
                 return LOCTEXT( "FileRemoved", "File Removed" );
-            case EGitHubToolsFileState::Renamed:
+            case EGitHubToolsFileChangedState::Renamed:
                 return LOCTEXT( "FileRenamed", "File Renamed" );
             default:
                 return LOCTEXT( "FileRenamed", "Unknown file state" );
+        }
+    }
+
+    FText GetToolTipFromFileViewedState( EGitHubToolsFileViewedState state )
+    {
+        switch ( state )
+        {
+            case EGitHubToolsFileViewedState::Dismissed:
+                return LOCTEXT( "FileAdded", "No changes since last viewed" );
+            case EGitHubToolsFileViewedState::Viewed:
+                return LOCTEXT( "FileModified", "Viewed" );
+            case EGitHubToolsFileViewedState::Unviewed:
+                return LOCTEXT( "FileRemoved", "Unviewed" );
+            default:
+                return LOCTEXT( "FileRenamed", "Unknown viewed state" );
         }
     }
 
@@ -78,14 +126,18 @@ namespace
     }
 }
 
-FGithubToolsPullRequestFileInfos::FGithubToolsPullRequestFileInfos( const FString & file_name, const FString & status ) :
+FGithubToolsPullRequestFileInfos::FGithubToolsPullRequestFileInfos( const FString & file_name, const FString & change_type, const FString & viewed_state ) :
     FileName( file_name ),
-    FileState( GetFileStateFromStatus( status ) ),
     AssetName( FText::FromString( FPaths::GetCleanFilename( file_name ) ) ),
     PackageName( FText::FromString( file_name ) ),
-    Icon( GetSlateIconFromFileState( FileState ) ),
-    IconName( Icon.GetStyleName() ),
-    ToolTip( GetToolTipFromFileState( FileState ) )
+    ChangedState( GetFileChangedState( change_type ) ),
+    ChangedStateIcon( GetSlateIconFromFileChangeState( ChangedState ) ),
+    ChangedStateIconName( ChangedStateIcon.GetStyleName() ),
+    ChangedStateToolTip( GetToolTipFromFileChangedState( ChangedState ) ),
+    ViewedState( GetFileViewedState( viewed_state ) ),
+    ViewedStateIcon( GetSlateIconFromFileViewedState( ViewedState ) ),
+    ViewedStateIconName( ViewedStateIcon.GetStyleName() ),
+    ViewedStateToolTip( GetToolTipFromFileViewedState( ViewedState ) )
 {
 }
 

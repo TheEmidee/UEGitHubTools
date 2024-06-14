@@ -23,13 +23,10 @@ public:
     virtual ~SGitHubToolsPRInfos() override;
 
     void Construct( const FArguments & arguments );
-    FReply OnKeyDown( const FGeometry & my_geometry, const FKeyEvent & key_event ) override;
 
 private:
     bool IsFileCommentsButtonEnabled() const;
     EVisibility IsWarningPanelVisible() const;
-    FReply CancelClicked();
-    FReply OnFileCommentsButtonClicked( FGithubToolsPullRequestFileInfosPtr item );
     TSharedRef< ITableRow > OnGenerateRowForList( FGithubToolsPullRequestFileInfosPtr SubmitItemData, const TSharedRef< STableViewBase > & owner_table );
     EVisibility GetItemRowVisibility( FGithubToolsPullRequestFileInfosPtr file_infos ) const;
     EColumnSortMode::Type GetColumnSortMode( const FName column_id ) const;
