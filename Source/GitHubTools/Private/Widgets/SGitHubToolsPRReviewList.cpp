@@ -38,6 +38,20 @@ void SGitHubToolsPRReviewList::Construct( const FArguments & arguments )
                         [ SNew( STextBlock )
                                 .Text( LOCTEXT( "CommentsTitle", "Reviews" ) ) ] +
                 SVerticalBox::Slot()
+                    .AutoHeight()
+                        [ SNew( SHorizontalBox ) +
+                            SHorizontalBox::Slot()
+                                .AutoWidth()
+                                .Padding( FMargin( 5 ) )
+                                    [ SAssignNew( HideResolvedThreadsCheckBox, SCheckBox )
+                                            .ToolTipText( LOCTEXT( "HideResolvedThreads", "Toggle whether or not to hide resolved threads." ) )
+                                            .Type( ESlateCheckBoxType::CheckBox )
+                                            .IsChecked( ECheckBoxState::Checked )
+                                            .OnCheckStateChanged( this, &SGitHubToolsPRReviewList::OnHideResolvedThreadsCheckStateChanged )
+                                            .Padding( 4.f )
+                                                [ SNew( STextBlock )
+                                                        .Text( LOCTEXT( "HideResolvedThreads", "Hide resolved threads" ) ) ] ] ] +
+                SVerticalBox::Slot()
                     .FillHeight( 1.0f )
                     .Padding( FMargin( 5.0f ) )
                         [ SNew( SBox )
@@ -123,6 +137,11 @@ FReply SGitHubToolsPRReviewList::CancelClicked()
 TSharedRef< ITableRow > SGitHubToolsPRReviewList::GenerateItemRow( FGithubToolsPullRequestReviewThreadInfosPtr item, const TSharedRef< STableViewBase > & owner_table )
 {
     return SNew( SGitHubToolsPRReviewThreadTableRow, owner_table )
+        .Visibility( MakeAttributeLambda( [ &, item ]() {
+            return ( !item->bIsResolved || HideResolvedThreadsCheckBox->GetCheckedState() == ECheckBoxState::Unchecked )
+                       ? EVisibility::Visible
+                       : EVisibility::Collapsed;
+        } ) )
         .ThreadInfos( item );
 }
 
@@ -144,6 +163,11 @@ void SGitHubToolsPRReviewList::OnRequestCompleted( FHttpRequestPtr pRequest, FHt
                 UE_LOG( LogTemp, Error, TEXT( "Request failed." ) );
         }
     }
+}
+
+void SGitHubToolsPRReviewList::OnHideResolvedThreadsCheckStateChanged( ECheckBoxState new_state )
+{
+    ReviewThreadsListView->RequestListRefresh();
 }
 
 #undef LOCTEXT_NAMESPACE

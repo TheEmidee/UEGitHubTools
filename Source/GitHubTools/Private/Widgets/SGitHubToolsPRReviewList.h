@@ -31,6 +31,7 @@ private:
     FReply CancelClicked();
     TSharedRef< ITableRow > GenerateItemRow( FGithubToolsPullRequestReviewThreadInfosPtr item, const TSharedRef< STableViewBase > & owner_table );
     void OnRequestCompleted( FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully );
+    void OnHideResolvedThreadsCheckStateChanged( ECheckBoxState new_state );
 
     TWeakPtr< SWindow > ParentFrame;
     FGithubToolsPullRequestInfosPtr PRInfos;
@@ -38,4 +39,5 @@ private:
     TSharedPtr< SVerticalBox > AllCommentsVerticalBox;
     TSharedPtr< SListView< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > > > ReviewThreadsListView;
     TArray< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > > ReviewThreads;
+    TSharedPtr< SCheckBox > HideResolvedThreadsCheckBox;
 };

@@ -1,8 +1,8 @@
 #include "SGitHubToolsPRReviewThreadTableRow.h"
 
 #include "GitHubTools.h"
-#include "SGitHubToolsPRCommentTableRow.h"
 #include "HttpRequests/GitHubToolsHttpRequest_ResolveReviewThread.h"
+#include "SGitHubToolsPRCommentTableRow.h"
 
 #if SOURCE_CONTROL_WITH_SLATE
 
@@ -18,26 +18,35 @@ void SGitHubToolsPRReviewThreadTableRow::Construct( const FArguments & arguments
                 [ SNew( SBorder )
                         .BorderBackgroundColor( this, &SGitHubToolsPRReviewThreadTableRow::GetBorderBackgroundColor )
                         .Padding( FMargin( 10.0f ) )
-                            [ SNew( SVerticalBox ) +
-                                SVerticalBox::Slot()
-                                    .FillHeight( 1.0f )
-                                        [ SNew( SBox )
-                                                .WidthOverride( 520 )
-                                                    [ SAssignNew( CommentsListView, SListView< FGithubToolsPullRequestCommentPtr > )
-                                                            .ItemHeight( 50 )
-                                                            .ListItemsSource( &ThreadInfos->Comments )
-                                                            .OnGenerateRow( this, &SGitHubToolsPRReviewThreadTableRow::GenerateCommentRow )
-                                                            .SelectionMode( ESelectionMode::None ) ] ] +
-                                SVerticalBox::Slot()
-                                    .AutoHeight()
-                                    .Padding( FMargin( 5.0f ) )
-                                    .HAlign( EHorizontalAlignment::HAlign_Center )
+                            [ SNew( SHorizontalBox ) +
+                                SHorizontalBox::Slot()
+                                    .AutoWidth()
+                                    .VAlign( VAlign_Center )
                                         [ SNew( SButton )
+                                                .Text( this, &SGitHubToolsPRReviewThreadTableRow::GetCollapsedButtonText )
+                                                .OnClicked( this, &SGitHubToolsPRReviewThreadTableRow::OnCollapsedButtonClicked ) ] +
+                                SHorizontalBox::Slot()
+                                    .FillWidth( 1.0f )
+                                        [ SAssignNew( CommentsPanel, SVerticalBox ) +
+                                            SVerticalBox::Slot()
+                                                .FillHeight( 1.0f )
+                                                    [ SNew( SBox )
+                                                            .WidthOverride( 520 )
+                                                                [ SAssignNew( CommentsListView, SListView< FGithubToolsPullRequestCommentPtr > )
+                                                                        .ItemHeight( 50 )
+                                                                        .ListItemsSource( &ThreadInfos->Comments )
+                                                                        .OnGenerateRow( this, &SGitHubToolsPRReviewThreadTableRow::GenerateCommentRow )
+                                                                        .SelectionMode( ESelectionMode::None ) ] ] +
+                                            SVerticalBox::Slot()
+                                                .AutoHeight()
+                                                .Padding( FMargin( 5.0f ) )
                                                 .HAlign( EHorizontalAlignment::HAlign_Center )
-                                                .ContentPadding( FMargin( 5.0f ) )
-                                                .IsEnabled( !ThreadInfos->bIsResolved )
-                                                .OnClicked( this, &SGitHubToolsPRReviewThreadTableRow::OnResolveConversationClicked )
-                                                .Text( LOCTEXT( "ReviewThread_ResolveButtonText", "Resolve conversation" ) ) ] ] ],
+                                                    [ SNew( SButton )
+                                                            .HAlign( EHorizontalAlignment::HAlign_Center )
+                                                            .ContentPadding( FMargin( 5.0f ) )
+                                                            .IsEnabled( !ThreadInfos->bIsResolved )
+                                                            .OnClicked( this, &SGitHubToolsPRReviewThreadTableRow::OnResolveConversationClicked )
+                                                            .Text( LOCTEXT( "ReviewThread_ResolveButtonText", "Resolve conversation" ) ) ] ] ] ],
         owner_table_view );
 }
 
@@ -75,6 +84,21 @@ FReply SGitHubToolsPRReviewThreadTableRow::OnResolveConversationClicked()
             ThreadInfos->bIsResolved = true;
         } );
 
+    return FReply::Handled();
+}
+
+FText SGitHubToolsPRReviewThreadTableRow::GetCollapsedButtonText() const
+{
+    return CommentsPanel->GetVisibility() == EVisibility::Collapsed
+               ? LOCTEXT( "ReviewThread_CollapseButton_Expand", "+" )
+               : LOCTEXT( "ReviewThread_CollapseButton_Expand", "-" );
+}
+
+FReply SGitHubToolsPRReviewThreadTableRow::OnCollapsedButtonClicked()
+{
+    CommentsPanel->SetVisibility( CommentsPanel->GetVisibility() == EVisibility::Collapsed
+                                      ? EVisibility::Visible
+                                      : EVisibility::Collapsed );
     return FReply::Handled();
 }
 

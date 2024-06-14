@@ -21,7 +21,10 @@ private:
     FSlateColor GetBorderBackgroundColor() const;
     TSharedRef< ITableRow > GenerateCommentRow( FGithubToolsPullRequestCommentPtr item, const TSharedRef< STableViewBase > & owner_table );
     FReply OnResolveConversationClicked();
+    FText GetCollapsedButtonText() const;
+    FReply OnCollapsedButtonClicked();
 
     FGithubToolsPullRequestReviewThreadInfosPtr ThreadInfos;
     TSharedPtr< SListView< FGithubToolsPullRequestCommentPtr > > CommentsListView;
+    TSharedPtr< SVerticalBox > CommentsPanel;
 };
