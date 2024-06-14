@@ -20,6 +20,7 @@ public:
 private:
     FSlateColor GetBorderBackgroundColor() const;
     TSharedRef< ITableRow > GenerateCommentRow( FGithubToolsPullRequestCommentPtr item, const TSharedRef< STableViewBase > & owner_table );
+    FReply OnResolveConversationClicked();
 
     FGithubToolsPullRequestReviewThreadInfosPtr ThreadInfos;
     TSharedPtr< SListView< FGithubToolsPullRequestCommentPtr > > CommentsListView;

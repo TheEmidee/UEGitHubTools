@@ -18,64 +18,52 @@ FString FGitHubToolsHttpRequestData_GetPullRequestInfos::GetBody() const
 {
     TStringBuilder< 512 > string_builder;
 
-    const auto add_to_string_builder = [ &string_builder ]( const FString & string ) {
-        auto count = 0;
-        auto index = 0;
-
-        while ( string[ index++ ] == ' ' )
-        {
-            ++count;
-        }
-
-        string_builder << string.RightChop( FMath::Max( 0, count - 1 ) );
-    };
-
-    add_to_string_builder( TEXT( "{ \"query\" : \"query ($repoOwner: String!, $repoName: String!, $pullNumber: Int!) {" ) );
-    add_to_string_builder( TEXT( "  repository(owner: $repoOwner, name: $repoName) {" ) );
-    add_to_string_builder( TEXT( "      pullRequest( number : $pullNumber ) {" ) );
-    add_to_string_builder( TEXT( "          number" ) );
-    add_to_string_builder( TEXT( "          title" ) );
-    add_to_string_builder( TEXT( "          files( first : 100 ) {" ) );
-    add_to_string_builder( TEXT( "              edges {" ) );
-    add_to_string_builder( TEXT( "                  node {" ) );
-    add_to_string_builder( TEXT( "                      path" ) );
-    add_to_string_builder( TEXT( "                      changeType" ) );
-    add_to_string_builder( TEXT( "                  }" ) );
-    add_to_string_builder( TEXT( "              }" ) );
-    add_to_string_builder( TEXT( "          }" ) );
-    add_to_string_builder( TEXT( "          reviewThreads( first : 100 ) {" ) );
-    add_to_string_builder( TEXT( "              nodes {" ) );
-    add_to_string_builder( TEXT( "                  resolvedBy {" ) );
-    add_to_string_builder( TEXT( "                      login" ) );
-    add_to_string_builder( TEXT( "                  } " ) );
-    add_to_string_builder( TEXT( "                  id" ) );
-    add_to_string_builder( TEXT( "                  isResolved" ) );
-    add_to_string_builder( TEXT( "                  path" ) );
-    add_to_string_builder( TEXT( "                  comments( first : 100 ) {" ) );
-    add_to_string_builder( TEXT( "                      edges {" ) );
-    add_to_string_builder( TEXT( "                          node {" ) );
-    add_to_string_builder( TEXT( "                              author {" ) );
-    add_to_string_builder( TEXT( "                                  login" ) );
-    add_to_string_builder( TEXT( "                              } " ) );
-    add_to_string_builder( TEXT( "                              id" ) );
-    add_to_string_builder( TEXT( "                              body" ) );
-    add_to_string_builder( TEXT( "                              createdAt" ) );
-    add_to_string_builder( TEXT( "                          }" ) );
-    add_to_string_builder( TEXT( "                      }" ) );
-    add_to_string_builder( TEXT( "                  }" ) );
-    add_to_string_builder( TEXT( "              }" ) );
-    add_to_string_builder( TEXT( "          }" ) );
-    add_to_string_builder( TEXT( "      }" ) );
-    add_to_string_builder( TEXT( "  }" ) );
-    add_to_string_builder( TEXT( "}" ) );
-    add_to_string_builder( TEXT( "\"," ) );
-    add_to_string_builder( TEXT( "\"variables\": " ) );
-    add_to_string_builder( TEXT( "  {" ) );
-    add_to_string_builder( TEXT( "    \"repoOwner\": \"FishingCactus\"," ) );
-    add_to_string_builder( TEXT( "    \"repoName\": \"SummerCamp\"," ) );
-    add_to_string_builder( TEXT( "    \"pullNumber\": 730" ) );
-    add_to_string_builder( TEXT( "  }" ) );
-    add_to_string_builder( TEXT( "}" ) );
+    string_builder << TEXT( "{ \"query\" : \"query ($repoOwner: String!, $repoName: String!, $pullNumber: Int!) {" );
+    string_builder << TEXT( "  repository(owner: $repoOwner, name: $repoName) {" );
+    string_builder << TEXT( "      pullRequest( number : $pullNumber ) {" );
+    string_builder << TEXT( "          number" );
+    string_builder << TEXT( "          title" );
+    string_builder << TEXT( "          files( first : 100 ) {" );
+    string_builder << TEXT( "              edges {" );
+    string_builder << TEXT( "                  node {" );
+    string_builder << TEXT( "                      path" );
+    string_builder << TEXT( "                      changeType" );
+    string_builder << TEXT( "                  }" );
+    string_builder << TEXT( "              }" );
+    string_builder << TEXT( "          }" );
+    string_builder << TEXT( "          reviewThreads( first : 100 ) {" );
+    string_builder << TEXT( "              nodes {" );
+    string_builder << TEXT( "                  resolvedBy {" );
+    string_builder << TEXT( "                      login" );
+    string_builder << TEXT( "                  } " );
+    string_builder << TEXT( "                  id" );
+    string_builder << TEXT( "                  isResolved" );
+    string_builder << TEXT( "                  path" );
+    string_builder << TEXT( "                  comments( first : 100 ) {" );
+    string_builder << TEXT( "                      edges {" );
+    string_builder << TEXT( "                          node {" );
+    string_builder << TEXT( "                              author {" );
+    string_builder << TEXT( "                                  login" );
+    string_builder << TEXT( "                              } " );
+    string_builder << TEXT( "                              id" );
+    string_builder << TEXT( "                              body" );
+    string_builder << TEXT( "                              createdAt" );
+    string_builder << TEXT( "                          }" );
+    string_builder << TEXT( "                      }" );
+    string_builder << TEXT( "                  }" );
+    string_builder << TEXT( "              }" );
+    string_builder << TEXT( "          }" );
+    string_builder << TEXT( "      }" );
+    string_builder << TEXT( "  }" );
+    string_builder << TEXT( "}" );
+    string_builder << TEXT( "\"," );
+    string_builder << TEXT( "\"variables\": " );
+    string_builder << TEXT( "  {" );
+    string_builder << TEXT( "    \"repoOwner\": \"FishingCactus\"," );
+    string_builder << TEXT( "    \"repoName\": \"SummerCamp\"," );
+    string_builder << TEXT( "    \"pullNumber\": 730" );
+    string_builder << TEXT( "  }" );
+    string_builder << TEXT( "}" );
 
     return *string_builder;
 }

@@ -2,6 +2,7 @@
 
 #include "GitHubTools.h"
 #include "GitHubToolsSettings.h"
+#include "Interfaces/IHttpResponse.h"
 
 #include <HttpModule.h>
 
@@ -86,7 +87,7 @@ void TGitHubToolsHttpRequest< TRequest, TResponse >::OnProcessRequestComplete( F
     TResponse response;
     if ( success )
     {
-        response.ParseResponse( response_ptr );
+        response.ProcessResponse( response_ptr );
         FGitHubToolsModule::Get().GetNotificationManager().RemoveInProgressNotification();
     }
     else
@@ -111,4 +112,31 @@ TFuture< TResponse > FGitHubToolsHttpRequestManager::SendRequest( TArgTypes &&..
 
     request->ProcessRequest();
     return request->GetFuture();
+}
+
+void FGitHubToolsHttpResponseData::ProcessResponse( const FHttpResponsePtr & response_ptr )
+{
+    const auto json_response = response_ptr->GetContentAsString();
+    const auto json_reader = TJsonReaderFactory<>::Create( json_response );
+
+    TSharedPtr< FJsonObject > result;
+    if ( FJsonSerializer::Deserialize( json_reader, result ) )
+    {
+        const TArray< TSharedPtr< FJsonValue > > * errors;
+        if ( result->TryGetArrayField( TEXT( "errors" ), errors ) )
+        {
+            if ( !errors->IsEmpty() )
+            {
+                ErrorMessage = ( *errors )[ 0 ]->AsObject()->GetStringField( TEXT( "message" ) );
+                return;
+            }
+        }
+
+        if ( result->TryGetStringField( TEXT( "message" ), ErrorMessage ) )
+        {
+            return;
+        }
+    }
+
+    ParseResponse( response_ptr );
 }

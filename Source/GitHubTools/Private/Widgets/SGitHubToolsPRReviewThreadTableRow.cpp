@@ -1,6 +1,8 @@
 #include "SGitHubToolsPRReviewThreadTableRow.h"
 
+#include "GitHubTools.h"
 #include "SGitHubToolsPRCommentTableRow.h"
+#include "HttpRequests/GitHubToolsHttpRequest_ResolveReviewThread.h"
 
 #if SOURCE_CONTROL_WITH_SLATE
 
@@ -34,6 +36,7 @@ void SGitHubToolsPRReviewThreadTableRow::Construct( const FArguments & arguments
                                                 .HAlign( EHorizontalAlignment::HAlign_Center )
                                                 .ContentPadding( FMargin( 5.0f ) )
                                                 .IsEnabled( !ThreadInfos->bIsResolved )
+                                                .OnClicked( this, &SGitHubToolsPRReviewThreadTableRow::OnResolveConversationClicked )
                                                 .Text( LOCTEXT( "ReviewThread_ResolveButtonText", "Resolve conversation" ) ) ] ] ],
         owner_table_view );
 }
@@ -49,6 +52,30 @@ TSharedRef< ITableRow > SGitHubToolsPRReviewThreadTableRow::GenerateCommentRow( 
 {
     return SNew( SGitHubToolsPRCommentTableRow, owner_table )
         .Comment( item );
+}
+
+FReply SGitHubToolsPRReviewThreadTableRow::OnResolveConversationClicked()
+{
+    FGitHubToolsModule::Get()
+        .GetRequestManager()
+        .SendRequest< FGitHubToolsHttpRequestData_ResolveReviewThread, FGitHubToolsHttpResponseData_ResolveReviewThread >( ThreadInfos->Id )
+        .Then( [ & ]( const TFuture< FGitHubToolsHttpResponseData_ResolveReviewThread > & result ) {
+            const auto & response_data = result.Get();
+            const auto & error_message = response_data.GetErrorMessage();
+
+            if ( !error_message.IsEmpty() )
+            {
+                FGitHubToolsModule::Get()
+                    .GetNotificationManager()
+                    .DisplayFailureNotification( FText::FromString( FString::Printf( TEXT( "Error while resolving the conversation : %s" ), *error_message ) ) );
+
+                return;
+            }
+
+            ThreadInfos->bIsResolved = true;
+        } );
+
+    return FReply::Handled();
 }
 
 #undef LOCTEXT_NAMESPACE

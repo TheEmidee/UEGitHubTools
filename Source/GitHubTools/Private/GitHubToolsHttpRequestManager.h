@@ -43,7 +43,17 @@ class FGitHubToolsHttpResponseData
 public:
     virtual ~FGitHubToolsHttpResponseData() = default;
 
+    const FString & GetErrorMessage() const
+    {
+        return ErrorMessage;
+    }
+
+    void ProcessResponse( const FHttpResponsePtr & response_ptr );
+
+protected:
     virtual void ParseResponse( FHttpResponsePtr response_ptr ) = 0;
+
+    FString ErrorMessage;
 };
 
 class IGitHubToolsHttpRequest

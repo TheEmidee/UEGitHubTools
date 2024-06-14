@@ -47,11 +47,14 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
         .GetRequestManager()
         .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestInfos, FGitHubToolsHttpResponseData_GetPullRequestInfos >( 573 )
         .Then( [ & ]( const TFuture< FGitHubToolsHttpResponseData_GetPullRequestInfos > & result ) {
-            const auto pr_infos = result.Get().GetPullRequestInfos();
+            const auto response_data = result.Get();
+            const auto pr_infos = response_data.GetPullRequestInfos();
 
             if ( !pr_infos.IsSet() )
             {
-                FGitHubToolsModule::Get().GetNotificationManager().DisplayFailureNotification( LOCTEXT( "GetPullRequestInfos_Error", "Error while fetching the pull request informations" ) );
+                FGitHubToolsModule::Get()
+                    .GetNotificationManager()
+                    .DisplayFailureNotification( FText::FromString( FString::Printf( TEXT( "Error while fetching the pull request informations : %s" ), *response_data.GetErrorMessage() ) ) );
                 return;
             }
             ShowPullRequestReviewWindow( pr_infos.GetValue() );

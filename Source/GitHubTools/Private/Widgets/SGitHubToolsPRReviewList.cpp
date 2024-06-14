@@ -39,6 +39,7 @@ void SGitHubToolsPRReviewList::Construct( const FArguments & arguments )
                                 .Text( LOCTEXT( "CommentsTitle", "Reviews" ) ) ] +
                 SVerticalBox::Slot()
                     .FillHeight( 1.0f )
+                    .Padding( FMargin( 5.0f ) )
                         [ SNew( SBox )
                                 .WidthOverride( 520 )
                                     [ SAssignNew( ReviewThreadsListView, SListView< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > > )
