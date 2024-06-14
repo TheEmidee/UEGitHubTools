@@ -3,6 +3,7 @@
 #include "GitHubTools.h"
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
+#include "MaterialGraph/MaterialGraphSchema.h"
 #include "SGitHubToolsPRReviewList.h"
 
 #include <AssetToolsModule.h>
@@ -254,10 +255,10 @@ FReply SGitHubToolsPRInfos::OnFileCommentsButtonClicked( FGithubToolsPullRequest
 TSharedRef< ITableRow > SGitHubToolsPRInfos::OnGenerateRowForList( FGithubToolsPullRequestFileInfosPtr file_infos, const TSharedRef< STableViewBase > & owner_table )
 {
     return SNew( SGitHubToolsFileInfosRow, owner_table )
-            .FileInfos( file_infos )
-            .Visibility( MakeAttributeLambda( [ &, file_infos ]() {
-                return GetItemRowVisibility( file_infos );
-            } ) );
+        .FileInfos( file_infos )
+        .Visibility( MakeAttributeLambda( [ &, file_infos ]() {
+            return GetItemRowVisibility( file_infos );
+        } ) );
 }
 
 EVisibility SGitHubToolsPRInfos::GetItemRowVisibility( FGithubToolsPullRequestFileInfosPtr file_infos ) const

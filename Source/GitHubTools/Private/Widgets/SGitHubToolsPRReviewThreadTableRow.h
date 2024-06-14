@@ -12,6 +12,7 @@ public:
     {}
 
     SLATE_ARGUMENT( FGithubToolsPullRequestReviewThreadInfosPtr, ThreadInfos )
+    SLATE_EVENT( FOnClicked, OnAddCommentClicked )
 
     SLATE_END_ARGS()
 
@@ -27,4 +28,5 @@ private:
     FGithubToolsPullRequestReviewThreadInfosPtr ThreadInfos;
     TSharedPtr< SListView< FGithubToolsPullRequestCommentPtr > > CommentsListView;
     TSharedPtr< SVerticalBox > CommentsPanel;
+    FOnClicked OnAddCommentButtonClicked;
 };
