@@ -13,21 +13,25 @@ SGitHubToolsAddCommentForm::~SGitHubToolsAddCommentForm()
 
 void SGitHubToolsAddCommentForm::Construct( const FArguments & arguments )
 {
-    OnSubmitClicked = arguments._OnSubmitClicked;
-    OnCancelClicked = arguments._OnCancelClicked;
-    
+    ParentFrame = arguments._ParentWindow.Get();
+    PRInfos = arguments._PRInfos.Get();
+    ThreadInfos = arguments._ThreadInfos.Get();
+
     ChildSlot
         [ SNew( SBorder )
                 .BorderImage( FAppStyle::GetBrush( "ToolPanel.GroupBorder" ) )
                     [ SNew( SVerticalBox ) +
                         SVerticalBox::Slot()
                             .AutoHeight()
-                                [ SAssignNew( HeaderText, STextBlock ) ] +
+                                [ SAssignNew( HeaderText, STextBlock )
+                                        .Text( ThreadInfos.IsValid()
+                                                   ? LOCTEXT( "AddCommentHeaderText", "Add comment to thread" )
+                                                   : LOCTEXT( "CreateThread", "Create new comments thread" ) ) ] +
                         SVerticalBox::Slot()
-                            .AutoHeight()
+                            .FillHeight( 1.0f )
                                 [ SNew( SBox )
                                         .HeightOverride( 300 )
-                                            [ SAssignNew( ChangeListDescriptionTextCtrl, SMultiLineEditableTextBox )
+                                            [ SAssignNew( CommentTextBox, SMultiLineEditableTextBox )
                                                     .SelectAllTextWhenFocused( false )
                                                     .Text( FText::GetEmpty() )
                                                     .AutoWrapText( true )
@@ -47,23 +51,42 @@ void SGitHubToolsAddCommentForm::Construct( const FArguments & arguments )
                                                 .ContentPadding( FAppStyle::GetMargin( "StandardDialog.ContentPadding" ) )
                                                 .IsEnabled( this, &SGitHubToolsAddCommentForm::CanSubmitComment )
                                                 .Text( NSLOCTEXT( "SourceControl.SubmitPanel", "OKButton", "Submit" ) )
-                                                .OnClicked( OnSubmitClicked ) ] +
+                                                .OnClicked( this, &SGitHubToolsAddCommentForm::OnSubmitButtonClicked ) ] +
                                     SUniformGridPanel::Slot( 1, 0 )
                                         [ SNew( SButton )
                                                 .HAlign( HAlign_Center )
                                                 .ContentPadding( FAppStyle::GetMargin( "StandardDialog.ContentPadding" ) )
                                                 .Text( NSLOCTEXT( "SourceControl.SubmitPanel", "CancelButton", "Cancel" ) )
-                                                .OnClicked( OnCancelClicked ) ] ] ] ];
-}
+                                                .OnClicked( this, &SGitHubToolsAddCommentForm::OnCancelButtonClicked ) ] ] ] ];
 
-void SGitHubToolsAddCommentForm::SetHeaderText( const FText & text )
-{
-    HeaderText->SetText( text );
+    ParentFrame.Pin()->SetWidgetToFocusOnActivate( CommentTextBox );
 }
 
 bool SGitHubToolsAddCommentForm::CanSubmitComment() const
 {
-    return !ChangeListDescriptionTextCtrl->GetText().IsEmpty();
+    return !CommentTextBox->GetText().IsEmpty();
+}
+
+FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
+{
+    CloseDialog();
+    return FReply::Handled();
+}
+
+FReply SGitHubToolsAddCommentForm::OnCancelButtonClicked()
+{
+    CloseDialog();
+    return FReply::Handled();
+}
+
+void SGitHubToolsAddCommentForm::CloseDialog()
+{
+    ParentFrame.Pin()->RequestDestroyWindow();
+    /*if ( const auto containing_window = FSlateApplication::Get().FindWidgetWindow( AsShared() );
+         containing_window.IsValid() )
+    {
+        containing_window->RequestDestroyWindow();
+    }*/
 }
 
 #undef LOCTEXT_NAMESPACE

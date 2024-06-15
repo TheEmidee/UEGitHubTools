@@ -2,7 +2,6 @@
 
 #include "GitHubToolsTypes.h"
 #include "SGitHubToolsAddCommentForm.h"
-#include "Interfaces/IHttpRequest.h"
 
 #include <CoreMinimal.h>
 #include <Widgets/Input/SMultiLineEditableTextBox.h>
@@ -30,9 +29,8 @@ private:
     TSharedRef< ITableRow > GenerateItemRow( FGithubToolsPullRequestReviewThreadInfosPtr item, const TSharedRef< STableViewBase > & owner_table );
     void OnHideResolvedThreadsCheckStateChanged( ECheckBoxState new_state );
     bool CanSubmitComment() const;
-    FReply OnSubmitCommentCliked();
-    FReply OnCancelCommentClicked();
     FReply OnCreateNewThreadButtonClicked();
+    void ShowAddCommentWindow(FGithubToolsPullRequestReviewThreadInfosPtr thread_infos);
 
     TWeakPtr< SWindow > ParentFrame;
     FGithubToolsPullRequestInfosPtr PRInfos;
@@ -41,6 +39,6 @@ private:
     TSharedPtr< SListView< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > > > ReviewThreadsListView;
     TArray< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > > ReviewThreads;
     TSharedPtr< SCheckBox > HideResolvedThreadsCheckBox;
-    TSharedPtr< SWidgetSwitcher > WidgetSwitcher;
     TSharedPtr< SGitHubToolsAddCommentForm > AddCommentForm;
+    TSharedPtr< SWindow > AddCommentWindow;
 };

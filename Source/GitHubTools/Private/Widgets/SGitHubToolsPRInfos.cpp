@@ -31,7 +31,6 @@ SGitHubToolsPRInfos::~SGitHubToolsPRInfos()
 
 void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
 {
-    ParentFrame = arguments._ParentWindow.Get();
     SortByColumn = SGitSourceControlReviewFilesWidgetDefs::ColumnID_FileLabel;
     SortMode = EColumnSortMode::Ascending;
 
@@ -332,7 +331,6 @@ void SGitHubToolsPRInfos::SortTree()
 
 void SGitHubToolsPRInfos::OnSelectedFileChanged( FGithubToolsPullRequestFileInfosPtr selected_item )
 {
-    ReviewList->SetEnabled( true );
     ReviewList->ShowFileReviews( selected_item );
 }
 

@@ -97,7 +97,6 @@ void FGitHubToolsMenu::ShowPullRequestReviewWindow( const FGithubToolsPullReques
 
     const TSharedRef< SGitHubToolsPRInfos > pull_request_review_widget =
         SNew( SGitHubToolsPRInfos )
-            .ParentWindow( ReviewWindowPtr )
             .Infos( pr_infos );
 
     ReviewWindowPtr->SetContent( pull_request_review_widget );

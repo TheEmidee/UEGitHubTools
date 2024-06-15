@@ -24,53 +24,48 @@ void SGitHubToolsPRReviewList::Construct( const FArguments & arguments )
     ChildSlot
         [ SNew( SBorder )
                 .BorderImage( FAppStyle::GetBrush( "ToolPanel.GroupBorder" ) )
-                    [ SAssignNew( WidgetSwitcher, SWidgetSwitcher )
-                            .WidgetIndex( 0 ) +
-                        SWidgetSwitcher::Slot()
-                            [ SNew( SVerticalBox ) +
-                                SVerticalBox::Slot()
-                                    .AutoHeight()
-                                        [ SNew( STextBlock )
-                                                .Text( LOCTEXT( "CommentsTitle", "Reviews" ) ) ] +
-                                SVerticalBox::Slot()
-                                    .AutoHeight()
-                                        [ SNew( SHorizontalBox ) +
-                                            SHorizontalBox::Slot()
-                                                .Padding( FMargin( 5.0f ) )
-                                                .AutoWidth()
-                                                .HAlign( HAlign_Left )
-                                                    [ SNew( SButton )
-                                                            .Text( LOCTEXT( "CreateNewThread", "Create new thread" ) )
-                                                            .OnClicked( this, &SGitHubToolsPRReviewList::OnCreateNewThreadButtonClicked ) ] +
-                                            SHorizontalBox::Slot()
-                                                .AutoWidth()
-                                                .Padding( FMargin( 5 ) )
-                                                    [ SAssignNew( HideResolvedThreadsCheckBox, SCheckBox )
-                                                            .ToolTipText( LOCTEXT( "HideResolvedThreads", "Toggle whether or not to hide resolved threads." ) )
-                                                            .Type( ESlateCheckBoxType::CheckBox )
-                                                            .IsChecked( ECheckBoxState::Checked )
-                                                            .OnCheckStateChanged( this, &SGitHubToolsPRReviewList::OnHideResolvedThreadsCheckStateChanged )
-                                                            .Padding( 4.f )
-                                                                [ SNew( STextBlock )
-                                                                        .Text( LOCTEXT( "HideResolvedThreads", "Hide resolved threads" ) ) ] ] ] +
-                                SVerticalBox::Slot()
-                                    .FillHeight( 1.0f )
-                                    .Padding( FMargin( 5.0f ) )
-                                        [ SNew( SBox )
-                                                .WidthOverride( 520 )
-                                                    [ SAssignNew( ReviewThreadsListView, SListView< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > > )
-                                                            .ItemHeight( 50 )
-                                                            .ListItemsSource( &ReviewThreads )
-                                                            .OnGenerateRow( this, &SGitHubToolsPRReviewList::GenerateItemRow )
-                                                            .SelectionMode( ESelectionMode::None ) ] ] ] +
-                        SWidgetSwitcher::Slot()
-                            [ SAssignNew( AddCommentForm, SGitHubToolsAddCommentForm )
-                                    .OnSubmitClicked( this, &SGitHubToolsPRReviewList::OnSubmitCommentCliked )
-                                    .OnCancelClicked( this, &SGitHubToolsPRReviewList::OnCancelCommentClicked ) ] ] ];
+                    [ SNew( SVerticalBox ) +
+                        SVerticalBox::Slot()
+                            .AutoHeight()
+                                [ SNew( STextBlock )
+                                        .Text( LOCTEXT( "CommentsTitle", "Reviews" ) ) ] +
+                        SVerticalBox::Slot()
+                            .AutoHeight()
+                                [ SNew( SHorizontalBox ) +
+                                    SHorizontalBox::Slot()
+                                        .Padding( FMargin( 5.0f ) )
+                                        .AutoWidth()
+                                        .HAlign( HAlign_Left )
+                                            [ SNew( SButton )
+                                                    .Text( LOCTEXT( "CreateNewThread", "Create new thread" ) )
+                                                    .OnClicked( this, &SGitHubToolsPRReviewList::OnCreateNewThreadButtonClicked ) ] +
+                                    SHorizontalBox::Slot()
+                                        .AutoWidth()
+                                        .Padding( FMargin( 5 ) )
+                                            [ SAssignNew( HideResolvedThreadsCheckBox, SCheckBox )
+                                                    .ToolTipText( LOCTEXT( "HideResolvedThreads", "Toggle whether or not to hide resolved threads." ) )
+                                                    .Type( ESlateCheckBoxType::CheckBox )
+                                                    .IsChecked( ECheckBoxState::Checked )
+                                                    .OnCheckStateChanged( this, &SGitHubToolsPRReviewList::OnHideResolvedThreadsCheckStateChanged )
+                                                    .Padding( 4.f )
+                                                        [ SNew( STextBlock )
+                                                                .Text( LOCTEXT( "HideResolvedThreads", "Hide resolved threads" ) ) ] ] ] +
+                        SVerticalBox::Slot()
+                            .FillHeight( 1.0f )
+                            .Padding( FMargin( 5.0f ) )
+                                [ SNew( SBox )
+                                        .WidthOverride( 520 )
+                                            [ SAssignNew( ReviewThreadsListView, SListView< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > > )
+                                                    .ItemHeight( 50 )
+                                                    .ListItemsSource( &ReviewThreads )
+                                                    .OnGenerateRow( this, &SGitHubToolsPRReviewList::GenerateItemRow )
+                                                    .SelectionMode( ESelectionMode::None ) ] ] ] ];
 }
 
 void SGitHubToolsPRReviewList::ShowFileReviews( FGithubToolsPullRequestFileInfosPtr file_infos )
 {
+    SetEnabled( true );
+
     ReviewThreads.Reset();
 
     for ( const auto review : PRInfos->Reviews )
@@ -86,8 +81,7 @@ void SGitHubToolsPRReviewList::ShowFileReviews( FGithubToolsPullRequestFileInfos
 
 FReply SGitHubToolsPRReviewList::OnAddCommentClicked( FGithubToolsPullRequestReviewThreadInfosPtr thread_infos )
 {
-    AddCommentForm->SetHeaderText( LOCTEXT( "AddCommentHeaderText", "Add comment to thread" ) );
-    WidgetSwitcher->SetActiveWidgetIndex( 1 );
+    ShowAddCommentWindow( thread_infos );
 
     return FReply::Handled();
 }
@@ -114,23 +108,36 @@ bool SGitHubToolsPRReviewList::CanSubmitComment() const
     return !ChangeListDescriptionTextCtrl->GetText().IsEmpty();
 }
 
-FReply SGitHubToolsPRReviewList::OnSubmitCommentCliked()
-{
-    WidgetSwitcher->SetActiveWidgetIndex( 0 );
-    return FReply::Handled();
-}
-
-FReply SGitHubToolsPRReviewList::OnCancelCommentClicked()
-{
-    WidgetSwitcher->SetActiveWidgetIndex( 0 );
-    return FReply::Handled();
-}
-
 FReply SGitHubToolsPRReviewList::OnCreateNewThreadButtonClicked()
 {
-    AddCommentForm->SetHeaderText( LOCTEXT( "CreateThread", "Create new comments thread" ) );
-    WidgetSwitcher->SetActiveWidgetIndex( 1 );
+    ShowAddCommentWindow( nullptr );
     return FReply::Handled();
+}
+
+void SGitHubToolsPRReviewList::ShowAddCommentWindow( FGithubToolsPullRequestReviewThreadInfosPtr thread_infos )
+{
+    AddCommentWindow = SNew( SWindow )
+                           .Title( LOCTEXT( "SourceControlLoginTitle", "Add comment" ) )
+                           .ClientSize( FVector2D( 640, 200 ) )
+                           .HasCloseButton( true )
+                           .SupportsMaximize( false )
+                           .SupportsMinimize( false )
+                           .SizingRule( ESizingRule::FixedSize );
+
+    AddCommentWindow->SetOnWindowClosed( FOnWindowClosed::CreateLambda( [ & ]( const TSharedRef< SWindow > & /*window*/ ) {
+        AddCommentWindow = nullptr;
+    } ) );
+
+    AddCommentWindow->SetContent( SNew( SGitHubToolsAddCommentForm )
+                                      .ParentWindow( AddCommentWindow )
+                                      .PRInfos( PRInfos )
+                                      .ThreadInfos( thread_infos ) );
+
+    if ( const TSharedPtr< SWindow > root_window = FGlobalTabmanager::Get()->GetRootWindow();
+         root_window.IsValid() )
+    {
+        FSlateApplication::Get().AddModalWindow( AddCommentWindow.ToSharedRef(), root_window.ToSharedRef() );
+    }
 }
 
 #undef LOCTEXT_NAMESPACE

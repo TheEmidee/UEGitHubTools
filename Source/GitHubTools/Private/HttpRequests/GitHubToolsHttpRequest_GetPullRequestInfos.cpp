@@ -140,6 +140,7 @@ void FGitHubToolsHttpResponseData_GetPullRequestInfos::ParseResponse( FHttpRespo
         review_thread_infos->bIsResolved = review_node_object->GetBoolField( TEXT( "isResolved" ) );
         review_thread_infos->FileName = review_node_object->GetStringField( TEXT( "path" ) );
         review_thread_infos->ResolvedByUserName = get_resolved_by_user_name();
+        review_thread_infos->PRNumber = pr_infos->Number;
 
         const auto comments_object = review_node_object->GetObjectField( TEXT( "comments" ) );
         const auto comments_edges_object = comments_object->GetArrayField( TEXT( "edges" ) );

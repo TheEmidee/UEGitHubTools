@@ -10,12 +10,9 @@ class SGitSourceControlReviewFilesListRow;
 class SGitHubToolsPRInfos final : public SCompoundWidget
 {
 public:
-    SLATE_BEGIN_ARGS( SGitHubToolsPRInfos ) :
-        _ParentWindow()
-    //_Items()
+    SLATE_BEGIN_ARGS( SGitHubToolsPRInfos )
     {}
 
-    SLATE_ATTRIBUTE( TSharedPtr< SWindow >, ParentWindow )
     SLATE_ATTRIBUTE( FGithubToolsPullRequestInfosPtr, Infos )
 
     SLATE_END_ARGS()
@@ -44,7 +41,6 @@ private:
     TSharedPtr< SCheckBox > OnlyShowAssetsCheckBox;
     TSharedPtr< SCheckBox > HideOFPACheckBox;
     TSharedPtr< SGitHubToolsPRReviewList > ReviewList;
-    TWeakPtr< SWindow > ParentFrame;
     FName SortByColumn;
     EColumnSortMode::Type SortMode = EColumnSortMode::Ascending;
 };

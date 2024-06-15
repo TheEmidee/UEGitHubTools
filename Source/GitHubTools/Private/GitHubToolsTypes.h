@@ -67,6 +67,7 @@ struct FGithubToolsPullRequestReviewThreadInfos
     FText ResolvedByUserName;
     FString FileName;
     TArray< FGithubToolsPullRequestCommentPtr > Comments;
+    int PRNumber;
 };
 
 typedef TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > FGithubToolsPullRequestReviewThreadInfosPtr;
