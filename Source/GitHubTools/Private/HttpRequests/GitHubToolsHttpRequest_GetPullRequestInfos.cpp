@@ -80,7 +80,7 @@ FText FGitHubToolsHttpRequestData_GetPullRequestInfos::GetFailureText() const
     return LOCTEXT( "GetPullRequestReviews", "Error while fetching the reviews of the pull request" );
 }
 
-void FGitHubToolsHttpResponseData_GetPullRequestInfos::ParseResponse( FHttpResponsePtr response_ptr )
+void FGitHubToolsHttpRequestData_GetPullRequestInfos::ParseResponse( FHttpResponsePtr response_ptr )
 {
     const auto json_response = response_ptr->GetContentAsString();
     const auto json_reader = TJsonReaderFactory<>::Create( json_response );
@@ -166,7 +166,7 @@ void FGitHubToolsHttpResponseData_GetPullRequestInfos::ParseResponse( FHttpRespo
         pr_infos->Reviews.Emplace( review_thread_infos );
     }
 
-    PRInfos = pr_infos;
+    Result = pr_infos;
 }
 
 #undef LOCTEXT_NAMESPACE

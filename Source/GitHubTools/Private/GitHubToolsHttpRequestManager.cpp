@@ -6,8 +6,8 @@
 
 #include <HttpModule.h>
 
-template < typename TRequest, typename TResponse >
-bool TGitHubToolsHttpRequest< TRequest, TResponse >::ProcessRequest()
+template < typename TRequest >
+bool TGitHubToolsHttpRequest< TRequest >::ProcessRequest()
 {
     FString token;
     FString repository_owner;
@@ -75,19 +75,19 @@ bool TGitHubToolsHttpRequest< TRequest, TResponse >::ProcessRequest()
 
     request->SetURL( *string_builder );
     request->SetContentAsString( Request.GetBody() );
-    request->OnProcessRequestComplete().BindRaw( this, &::TGitHubToolsHttpRequest< TRequest, TResponse >::OnProcessRequestComplete );
+    request->OnProcessRequestComplete().BindRaw( this, &::TGitHubToolsHttpRequest< TRequest >::OnProcessRequestComplete );
     //request->SetDelegateThreadPolicy( EHttpRequestDelegateThreadPolicy::CompleteOnHttpThread );
 
     return request->ProcessRequest();
 }
 
-template < typename TRequest, typename TResponse >
-void TGitHubToolsHttpRequest< TRequest, TResponse >::OnProcessRequestComplete( FHttpRequestPtr request_ptr, FHttpResponsePtr response_ptr, bool success )
+template < typename TRequest >
+void TGitHubToolsHttpRequest< TRequest >::OnProcessRequestComplete( FHttpRequestPtr request_ptr, FHttpResponsePtr response_ptr, bool success )
 {
-    TResponse response;
+    //TResponse response;
     if ( success )
     {
-        response.ProcessResponse( response_ptr );
+        Request.ProcessResponse( response_ptr );
         FGitHubToolsModule::Get().GetNotificationManager().RemoveInProgressNotification();
     }
     else
@@ -95,15 +95,16 @@ void TGitHubToolsHttpRequest< TRequest, TResponse >::OnProcessRequestComplete( F
         FGitHubToolsModule::Get().GetNotificationManager().DisplayFailureNotification( Request.GetFailureText() );
     }
 
-    Promise.SetValue( MoveTemp( response ) );
+    // possiblt to MoveTemp and make GetResult not-const?
+    Promise.SetValue( Request.GetResult() );
 }
 
-template < typename TRequest, typename TResponse, typename... TArgTypes >
-TFuture< TResponse > FGitHubToolsHttpRequestManager::SendRequest( TArgTypes &&... args )
+template < typename TRequest, typename... TArgTypes >
+TFuture< TOptional< typename TRequest::ResponseType > > FGitHubToolsHttpRequestManager::SendRequest( TArgTypes &&... args )
 {
-    static_assert( TIsDerivedFrom< TRequest, FGitHubToolsHttpRequestData >::IsDerived, "Sent RequestType need to derive from FGitHubToolsHttpRequest." );
+    //static_assert( TIsDerivedFrom< TRequest, FGitHubToolsHttpRequest >::IsDerived, "Sent RequestType need to derive from FGitHubToolsHttpRequest." );
 
-    typedef TGitHubToolsHttpRequest< TRequest, TResponse > HttpRequestType;
+    typedef TGitHubToolsHttpRequest< TRequest > HttpRequestType;
     auto request = MakeShared< HttpRequestType >( Forward< TArgTypes >( args )... );
 
     Request = request;
@@ -114,7 +115,8 @@ TFuture< TResponse > FGitHubToolsHttpRequestManager::SendRequest( TArgTypes &&..
     return request->GetFuture();
 }
 
-void FGitHubToolsHttpResponseData::ProcessResponse( const FHttpResponsePtr & response_ptr )
+template < typename TResultType >
+void FGitHubToolsHttpRequest< TResultType >::ProcessResponse( const FHttpResponsePtr & response_ptr )
 {
     const auto json_response = response_ptr->GetContentAsString();
     const auto json_reader = TJsonReaderFactory<>::Create( json_response );

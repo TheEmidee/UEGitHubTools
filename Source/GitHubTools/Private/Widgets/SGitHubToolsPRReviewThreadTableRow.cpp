@@ -1,7 +1,7 @@
 #include "SGitHubToolsPRReviewThreadTableRow.h"
 
 #include "GitHubTools.h"
-#include "HttpRequests/GitHubToolsHttpRequest_ResolveReviewThread.h"
+//#include "HttpRequests/GitHubToolsHttpRequest_ResolveReviewThread.h"
 #include "SGitHubToolsPRCommentTableRow.h"
 
 #if SOURCE_CONTROL_WITH_SLATE
@@ -78,7 +78,7 @@ TSharedRef< ITableRow > SGitHubToolsPRReviewThreadTableRow::GenerateCommentRow( 
 
 FReply SGitHubToolsPRReviewThreadTableRow::OnResolveConversationClicked()
 {
-    FGitHubToolsModule::Get()
+    /*FGitHubToolsModule::Get()
         .GetRequestManager()
         .SendRequest< FGitHubToolsHttpRequestData_ResolveReviewThread, FGitHubToolsHttpResponseData_ResolveReviewThread >( ThreadInfos->Id )
         .Then( [ & ]( const TFuture< FGitHubToolsHttpResponseData_ResolveReviewThread > & result ) {
@@ -95,7 +95,7 @@ FReply SGitHubToolsPRReviewThreadTableRow::OnResolveConversationClicked()
             }
 
             ThreadInfos->bIsResolved = true;
-        } );
+        } );*/
 
     return FReply::Handled();
 }

@@ -45,16 +45,17 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
 
     FGitHubToolsModule::Get()
         .GetRequestManager()
-        .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestInfos, FGitHubToolsHttpResponseData_GetPullRequestInfos >( 573 )
-        .Then( [ & ]( const TFuture< FGitHubToolsHttpResponseData_GetPullRequestInfos > & result ) {
-            const auto response_data = result.Get();
-            const auto pr_infos = response_data.GetPullRequestInfos();
+        .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestInfos >( 573 )
+        .Then( [ & ]( const TFuture< TOptional< FGithubToolsPullRequestInfosPtr > > & result ) {
+            const auto pr_infos = result.Get();
+            //const auto pr_infos = response_data.GetValue();
+            //GetPullRequestInfos();
 
             if ( !pr_infos.IsSet() )
             {
-                FGitHubToolsModule::Get()
+                /*FGitHubToolsModule::Get()
                     .GetNotificationManager()
-                    .DisplayFailureNotification( FText::FromString( FString::Printf( TEXT( "Error while fetching the pull request informations : %s" ), *response_data.GetErrorMessage() ) ) );
+                    .DisplayFailureNotification( FText::FromString( FString::Printf( TEXT( "Error while fetching the pull request informations : %s" ), *response_data.GetErrorMessage() ) ) );*/
                 return;
             }
             ShowPullRequestReviewWindow( pr_infos.GetValue() );

@@ -9,10 +9,18 @@ enum class EGitHubToolsRequestType : uint8
     POST
 };
 
-class FGitHubToolsHttpRequestData
+template < typename TResultType >
+class FGitHubToolsHttpRequest
 {
 public:
-    virtual ~FGitHubToolsHttpRequestData() = default;
+    using ResultType = TResultType;
+
+    virtual ~FGitHubToolsHttpRequest() = default;
+
+    FORCEINLINE const TOptional< TResultType > & GetResult() const
+    {
+        return Result;
+    }
 
     virtual EGitHubToolsRequestType GetVerb() const
     {
@@ -34,26 +42,19 @@ public:
         return false;
     }
 
-    virtual FText GetNotificationText() const = 0;
-    virtual FText GetFailureText() const = 0;
-};
-
-class FGitHubToolsHttpResponseData
-{
-public:
-    virtual ~FGitHubToolsHttpResponseData() = default;
-
     const FString & GetErrorMessage() const
     {
         return ErrorMessage;
     }
 
+    virtual FText GetNotificationText() const = 0;
+    virtual FText GetFailureText() const = 0;
     void ProcessResponse( const FHttpResponsePtr & response_ptr );
 
 protected:
     virtual void ParseResponse( FHttpResponsePtr response_ptr ) = 0;
-
     FString ErrorMessage;
+    TOptional< TResultType > Result;
 };
 
 class IGitHubToolsHttpRequest
@@ -62,12 +63,11 @@ public:
     virtual ~IGitHubToolsHttpRequest() = default;
 };
 
-template < typename TRequest, typename TResponse >
+template < typename TRequest >
 class TGitHubToolsHttpRequest : public IGitHubToolsHttpRequest
 {
 public:
-    static_assert( TIsDerivedFrom< TRequest, FGitHubToolsHttpRequestData >::IsDerived, "TGitHubToolsHttpRequest TRequest must derive from FGitHubToolsHttpRequestRequestData." );
-    static_assert( TIsDerivedFrom< TResponse, FGitHubToolsHttpResponseData >::IsDerived, "TGitHubToolsHttpRequest TResponse must derive from FGitHubToolsHttpRequestResponseData." );
+    //static_assert( TIsDerivedFrom< TRequest, FGitHubToolsHttpRequest >::IsDerived, "TGitHubToolsHttpRequest TRequest must derive from FGitHubToolsHttpRequestRequestData." );
 
     template < typename... TArgTypes >
     TGitHubToolsHttpRequest( TArgTypes &&... args ) :
@@ -83,7 +83,7 @@ public:
         return Request;
     }
 
-    FORCEINLINE TFuture< TResponse > GetFuture()
+    FORCEINLINE TFuture< TOptional< typename TRequest::ResponseType > > GetFuture()
     {
         return Promise.GetFuture();
     }
@@ -91,15 +91,15 @@ public:
 protected:
     void OnProcessRequestComplete( FHttpRequestPtr request_ptr, FHttpResponsePtr response_ptr, bool success );
 
-    TPromise< TResponse > Promise;
+    TPromise< TOptional< typename TRequest::ResponseType > > Promise;
     TRequest Request;
 };
 
 class FGitHubToolsHttpRequestManager : public TSharedFromThis< FGitHubToolsHttpRequestManager >
 {
 public:
-    template < typename TRequest, typename TResponse, typename... TArgTypes >
-    TFuture< TResponse > SendRequest( TArgTypes &&... args );
+    template < typename TRequest, typename... TArgTypes >
+    TFuture< TOptional< typename TRequest::ResponseType > > SendRequest( TArgTypes &&... args );
 
 private:
     TSharedPtr< IGitHubToolsHttpRequest > Request;

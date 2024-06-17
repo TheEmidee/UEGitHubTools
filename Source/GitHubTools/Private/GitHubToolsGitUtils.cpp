@@ -1,16 +1,12 @@
 #include "GitHubToolsGitUtils.h"
 
-#include "AssetDefinition.h"
-#include "AssetRegistry/AssetRegistryModule.h"
-#include "AssetToolsModule.h"
 #include "GitHubTools.h"
 #include "GitSourceControlModule.h"
 #include "GitSourceControlUtils.h"
-#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestComments.h"
-#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestFiles.h"
-#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestNumber.h"
-#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestReviewComment.h"
-#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestReviews.h"
+
+#include <AssetDefinition.h>
+#include <AssetRegistry/AssetRegistryModule.h>
+#include <AssetToolsModule.h>
 
 namespace GitHubToolsGitUtils
 {

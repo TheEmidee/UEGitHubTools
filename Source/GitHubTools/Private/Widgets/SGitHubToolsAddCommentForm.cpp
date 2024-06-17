@@ -1,10 +1,10 @@
 #include "SGitHubToolsAddCommentForm.h"
 
 #include "GitHubTools.h"
-#include "HttpRequests/GitHubToolsHttpRequest_AddPRReview.h"
-#include "HttpRequests/GitHubToolsHttpRequest_AddPRReviewThread.h"
-#include "HttpRequests/GitHubToolsHttpRequest_AddPRReviewThreadReply.h"
-#include "HttpRequests/GitHubToolsHttpRequest_SubmitPRReview.h"
+//#include "HttpRequests/GitHubToolsHttpRequest_AddPRReview.h"
+//#include "HttpRequests/GitHubToolsHttpRequest_AddPRReviewThread.h"
+//#include "HttpRequests/GitHubToolsHttpRequest_AddPRReviewThreadReply.h"
+//#include "HttpRequests/GitHubToolsHttpRequest_SubmitPRReview.h"
 
 #include <Widgets/Input/SMultiLineEditableTextBox.h>
 #include <Widgets/Layout/SUniformGridPanel.h>
@@ -76,7 +76,7 @@ bool SGitHubToolsAddCommentForm::CanSubmitComment() const
 
 FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
 {
-    if ( ThreadInfos != nullptr )
+    /*if ( ThreadInfos != nullptr )
     {
         FGitHubToolsModule::Get()
             .GetRequestManager()
@@ -117,7 +117,7 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
                             } );
                     } );
             } );
-    }
+    }*/
 
     return FReply::Handled();
 }
