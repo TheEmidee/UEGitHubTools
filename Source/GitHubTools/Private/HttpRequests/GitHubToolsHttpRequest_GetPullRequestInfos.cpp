@@ -24,15 +24,6 @@ FString FGitHubToolsHttpRequestData_GetPullRequestInfos::GetBody() const
     string_builder << TEXT( "          number" );
     string_builder << TEXT( "          id" );
     string_builder << TEXT( "          title" );
-    string_builder << TEXT( "          files( first : 100 ) {" );
-    string_builder << TEXT( "              edges {" );
-    string_builder << TEXT( "                  node {" );
-    string_builder << TEXT( "                      path" );
-    string_builder << TEXT( "                      changeType" );
-    string_builder << TEXT( "                      viewerViewedState" );
-    string_builder << TEXT( "                  }" );
-    string_builder << TEXT( "              }" );
-    string_builder << TEXT( "          }" );
     string_builder << TEXT( "          reviewThreads( first : 100 ) {" );
     string_builder << TEXT( "              nodes {" );
     string_builder << TEXT( "                  resolvedBy {" );
@@ -63,21 +54,11 @@ FString FGitHubToolsHttpRequestData_GetPullRequestInfos::GetBody() const
     string_builder << TEXT( "  {" );
     string_builder << TEXT( "    \"repoOwner\": \"FishingCactus\"," );
     string_builder << TEXT( "    \"repoName\": \"SummerCamp\"," );
-    string_builder << TEXT( "    \"pullNumber\": 730" );
+    string_builder << TEXT( "    \"pullNumber\": " << PullRequestNumber );
     string_builder << TEXT( "  }" );
     string_builder << TEXT( "}" );
 
     return *string_builder;
-}
-
-FText FGitHubToolsHttpRequestData_GetPullRequestInfos::GetNotificationText() const
-{
-    return LOCTEXT( "GetPullRequestReviews", "Fetching the reviews of the pull request" );
-}
-
-FText FGitHubToolsHttpRequestData_GetPullRequestInfos::GetFailureText() const
-{
-    return LOCTEXT( "GetPullRequestReviews", "Error while fetching the reviews of the pull request" );
 }
 
 void FGitHubToolsHttpRequestData_GetPullRequestInfos::ParseResponse( FHttpResponsePtr response_ptr )
@@ -96,21 +77,6 @@ void FGitHubToolsHttpRequestData_GetPullRequestInfos::ParseResponse( FHttpRespon
     const auto pull_request_object = repository_object->GetObjectField( TEXT( "pullRequest" ) );
 
     auto pr_infos = MakeShared< FGithubToolsPullRequestInfos >( pull_request_object->GetIntegerField( TEXT( "number" ) ), pull_request_object->GetStringField( TEXT( "id" ) ), pull_request_object->GetStringField( TEXT( "title" ) ) );
-
-    const auto files_object = pull_request_object->GetObjectField( TEXT( "files" ) );
-    const auto files_edges_object = files_object->GetArrayField( TEXT( "edges" ) );
-
-    pr_infos->FileInfos.Reserve( files_edges_object.Num() );
-
-    for ( const auto file_object : files_edges_object )
-    {
-        const auto file_node_object = file_object->AsObject()->GetObjectField( TEXT( "node" ) );
-
-        pr_infos->FileInfos.Emplace( MakeShared< FGithubToolsPullRequestFileInfos >(
-            file_node_object->GetStringField( TEXT( "path" ) ),
-            file_node_object->GetStringField( TEXT( "changeType" ) ),
-            file_node_object->GetStringField( TEXT( "viewerViewedState" ) ) ) );
-    }
 
     const auto reviews_object = pull_request_object->GetObjectField( TEXT( "reviewThreads" ) );
     const auto reviews_nodes_object = reviews_object->GetArrayField( TEXT( "nodes" ) );

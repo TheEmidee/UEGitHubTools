@@ -1,6 +1,5 @@
 #include "GitHubToolsHttpRequestManager.h"
 
-#include "GitHubTools.h"
 #include "GitHubToolsSettings.h"
 #include "Interfaces/IHttpResponse.h"
 
@@ -76,7 +75,7 @@ bool TGitHubToolsHttpRequest< TRequest >::ProcessRequest()
     request->SetURL( *string_builder );
     request->SetContentAsString( Request.GetBody() );
     request->OnProcessRequestComplete().BindRaw( this, &::TGitHubToolsHttpRequest< TRequest >::OnProcessRequestComplete );
-    //request->SetDelegateThreadPolicy( EHttpRequestDelegateThreadPolicy::CompleteOnHttpThread );
+    request->SetDelegateThreadPolicy( EHttpRequestDelegateThreadPolicy::CompleteOnHttpThread );
 
     return request->ProcessRequest();
 }
@@ -84,32 +83,21 @@ bool TGitHubToolsHttpRequest< TRequest >::ProcessRequest()
 template < typename TRequest >
 void TGitHubToolsHttpRequest< TRequest >::OnProcessRequestComplete( FHttpRequestPtr request_ptr, FHttpResponsePtr response_ptr, bool success )
 {
-    //TResponse response;
     if ( success )
     {
         Request.ProcessResponse( response_ptr );
-        FGitHubToolsModule::Get().GetNotificationManager().RemoveInProgressNotification();
-    }
-    else
-    {
-        FGitHubToolsModule::Get().GetNotificationManager().DisplayFailureNotification( Request.GetFailureText() );
     }
 
-    // possiblt to MoveTemp and make GetResult not-const?
-    Promise.SetValue( Request.GetResult() );
+    Promise.SetValue( Request );
 }
 
 template < typename TRequest, typename... TArgTypes >
-TFuture< TOptional< typename TRequest::ResponseType > > FGitHubToolsHttpRequestManager::SendRequest( TArgTypes &&... args )
+TFuture< TRequest > FGitHubToolsHttpRequestManager::SendRequest( TArgTypes &&... args )
 {
-    //static_assert( TIsDerivedFrom< TRequest, FGitHubToolsHttpRequest >::IsDerived, "Sent RequestType need to derive from FGitHubToolsHttpRequest." );
-
     typedef TGitHubToolsHttpRequest< TRequest > HttpRequestType;
     auto request = MakeShared< HttpRequestType >( Forward< TArgTypes >( args )... );
 
     Request = request;
-
-    FGitHubToolsModule::Get().GetNotificationManager().DisplayInProgressNotification( request->GetRequestData().GetNotificationText() );
 
     request->ProcessRequest();
     return request->GetFuture();
@@ -141,9 +129,6 @@ void FGitHubToolsHttpRequest< TResultType >::ProcessResponse( const FHttpRespons
 
     if ( !ErrorMessage.IsEmpty() )
     {
-        FGitHubToolsModule::Get()
-            .GetNotificationManager()
-            .DisplayFailureNotification( FText::FromString( FString::Printf( TEXT( "Error while fetching the pull request informations : %s" ), *ErrorMessage ) ) );
         return;
     }
 

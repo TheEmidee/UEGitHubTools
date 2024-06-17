@@ -12,8 +12,6 @@ public:
 
     FString GetBody() const override;
     bool UsesGraphQL() const override;
-    FText GetNotificationText() const override;
-    FText GetFailureText() const override;
     void ParseResponse( FHttpResponsePtr response_ptr ) override;
 
 private:

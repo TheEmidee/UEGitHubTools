@@ -9,5 +9,6 @@ namespace GitHubToolsGitUtils
     TOptional< FAssetData > GetAssetDataFromFileInfos( const FGithubToolsPullRequestFileInfos & state );
     void DiffFileAgainstOriginStatusBranch( const FGithubToolsPullRequestFileInfos & file_infos );
 
-    TFuture< FGithubToolsPullRequestInfosPtr > GetPullRequestInfos();
+    TFuture< FGithubToolsPullRequestInfosPtr > GetPullRequestInfos( const int pr_number );
+    TFuture< TArray< FGithubToolsPullRequestFileInfosPtr > > GetPullRequestFiles( const int pr_number );
 }

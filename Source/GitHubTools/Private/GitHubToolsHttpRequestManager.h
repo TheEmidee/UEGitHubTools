@@ -47,8 +47,6 @@ public:
         return ErrorMessage;
     }
 
-    virtual FText GetNotificationText() const = 0;
-    virtual FText GetFailureText() const = 0;
     void ProcessResponse( const FHttpResponsePtr & response_ptr );
 
 protected:
@@ -67,8 +65,6 @@ template < typename TRequest >
 class TGitHubToolsHttpRequest : public IGitHubToolsHttpRequest
 {
 public:
-    //static_assert( TIsDerivedFrom< TRequest, FGitHubToolsHttpRequest >::IsDerived, "TGitHubToolsHttpRequest TRequest must derive from FGitHubToolsHttpRequestRequestData." );
-
     template < typename... TArgTypes >
     TGitHubToolsHttpRequest( TArgTypes &&... args ) :
         Request( Forward< TArgTypes >( args )... )
@@ -83,7 +79,7 @@ public:
         return Request;
     }
 
-    FORCEINLINE TFuture< TOptional< typename TRequest::ResponseType > > GetFuture()
+    FORCEINLINE TFuture< TRequest > GetFuture()
     {
         return Promise.GetFuture();
     }
@@ -91,7 +87,7 @@ public:
 protected:
     void OnProcessRequestComplete( FHttpRequestPtr request_ptr, FHttpResponsePtr response_ptr, bool success );
 
-    TPromise< TOptional< typename TRequest::ResponseType > > Promise;
+    TPromise< TRequest > Promise;
     TRequest Request;
 };
 
@@ -99,7 +95,7 @@ class FGitHubToolsHttpRequestManager : public TSharedFromThis< FGitHubToolsHttpR
 {
 public:
     template < typename TRequest, typename... TArgTypes >
-    TFuture< TOptional< typename TRequest::ResponseType > > SendRequest( TArgTypes &&... args );
+    TFuture< TRequest > SendRequest( TArgTypes &&... args );
 
 private:
     TSharedPtr< IGitHubToolsHttpRequest > Request;

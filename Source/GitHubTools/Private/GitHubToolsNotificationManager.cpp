@@ -57,7 +57,7 @@ void FGitHubToolsNotificationManager::DisplayFailureNotification( const FText & 
 
     FNotificationInfo info( error_message );
     info.ExpireDuration = 8.0f;
-    FSlateNotificationManager::Get().AddNotification( info );
+    //FSlateNotificationManager::Get().AddNotification( info );
 
     UE_LOG( LogGitHubTools, Error, TEXT( "%s" ), *error_message.ToString() );
 }
