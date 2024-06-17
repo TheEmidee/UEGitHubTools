@@ -12,6 +12,8 @@ bool FGitHubToolsNotificationManager::IsOperationInProgress() const
 
 void FGitHubToolsNotificationManager::DisplayInProgressNotification( const FText & message )
 {
+    RemoveInProgressNotification();
+
     if ( !OperationInProgressNotification.IsValid() )
     {
         FNotificationInfo info( message );

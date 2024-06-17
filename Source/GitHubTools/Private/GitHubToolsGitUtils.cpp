@@ -60,7 +60,7 @@ namespace GitHubToolsGitUtils
         const auto & git_source_control = FModuleManager::GetModuleChecked< FGitSourceControlModule >( "GitSourceControl" );
         const auto & path_to_repository_root = git_source_control.GetProvider().GetPathToRepositoryRoot();
 
-        const auto absolute_path = FPaths::ConvertRelativePathToFull( path_to_repository_root, file_infos.FileName );
+        const auto absolute_path = FPaths::ConvertRelativePathToFull( path_to_repository_root, file_infos.Path );
 
         if ( FString package_name;
              FPackageName::TryConvertFilenameToLongPackageName( absolute_path, package_name ) )

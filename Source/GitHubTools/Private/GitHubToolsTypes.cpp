@@ -126,10 +126,10 @@ namespace
     }
 }
 
-FGithubToolsPullRequestFileInfos::FGithubToolsPullRequestFileInfos( const FString & file_name, const FString & change_type, const FString & viewed_state ) :
-    FileName( file_name ),
-    AssetName( FText::FromString( FPaths::GetCleanFilename( file_name ) ) ),
-    PackageName( FText::FromString( file_name ) ),
+FGithubToolsPullRequestFileInfos::FGithubToolsPullRequestFileInfos( const FString & path, const FString & change_type, const FString & viewed_state ) :
+    Path( path ),
+    AssetName( FText::FromString( FPaths::GetCleanFilename( path ) ) ),
+    PackageName( FText::FromString( path ) ),
     ChangedState( GetFileChangedState( change_type ) ),
     ChangedStateIcon( GetSlateIconFromFileChangeState( ChangedState ) ),
     ChangedStateIconName( ChangedStateIcon.GetStyleName() ),
@@ -141,8 +141,9 @@ FGithubToolsPullRequestFileInfos::FGithubToolsPullRequestFileInfos( const FStrin
 {
 }
 
-FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( int number, const FString & title ) :
+FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( int number, const FString & id, const FString & title ) :
     Number( number ),
+    Id( id ),
     Title( FText::FromString( title ) )
 {
 }

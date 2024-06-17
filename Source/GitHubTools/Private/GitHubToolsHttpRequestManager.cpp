@@ -128,14 +128,21 @@ void FGitHubToolsHttpResponseData::ProcessResponse( const FHttpResponsePtr & res
             if ( !errors->IsEmpty() )
             {
                 ErrorMessage = ( *errors )[ 0 ]->AsObject()->GetStringField( TEXT( "message" ) );
-                return;
             }
         }
 
-        if ( result->TryGetStringField( TEXT( "message" ), ErrorMessage ) )
+        if ( ErrorMessage.IsEmpty() )
         {
-            return;
+            result->TryGetStringField( TEXT( "message" ), ErrorMessage );
         }
+    }
+
+    if ( !ErrorMessage.IsEmpty() )
+    {
+        FGitHubToolsModule::Get()
+            .GetNotificationManager()
+            .DisplayFailureNotification( FText::FromString( FString::Printf( TEXT( "Error while fetching the pull request informations : %s" ), *ErrorMessage ) ) );
+        return;
     }
 
     ParseResponse( response_ptr );

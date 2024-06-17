@@ -237,7 +237,7 @@ EVisibility SGitHubToolsPRInfos::GetItemRowVisibility( FGithubToolsPullRequestFi
 {
     if ( OnlyShowAssetsCheckBox->GetCheckedState() == ECheckBoxState::Checked )
     {
-        if ( !file_infos->FileName.EndsWith( TEXT( ".uasset" ) ) )
+        if ( !file_infos->Path.EndsWith( TEXT( ".uasset" ) ) )
         {
             return EVisibility::Collapsed;
         }
@@ -245,8 +245,8 @@ EVisibility SGitHubToolsPRInfos::GetItemRowVisibility( FGithubToolsPullRequestFi
 
     if ( HideOFPACheckBox->GetCheckedState() == ECheckBoxState::Checked )
     {
-        if ( file_infos->FileName.Contains( TEXT( "__ExternalActors__" ) ) ||
-             file_infos->FileName.Contains( TEXT( "__ExternalObjects__" ) ) )
+        if ( file_infos->Path.Contains( TEXT( "__ExternalActors__" ) ) ||
+             file_infos->Path.Contains( TEXT( "__ExternalObjects__" ) ) )
         {
             return EVisibility::Collapsed;
         }

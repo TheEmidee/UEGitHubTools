@@ -22,6 +22,7 @@ FString FGitHubToolsHttpRequestData_GetPullRequestInfos::GetBody() const
     string_builder << TEXT( "  repository(owner: $repoOwner, name: $repoName) {" );
     string_builder << TEXT( "      pullRequest( number : $pullNumber ) {" );
     string_builder << TEXT( "          number" );
+    string_builder << TEXT( "          id" );
     string_builder << TEXT( "          title" );
     string_builder << TEXT( "          files( first : 100 ) {" );
     string_builder << TEXT( "              edges {" );
@@ -94,7 +95,7 @@ void FGitHubToolsHttpResponseData_GetPullRequestInfos::ParseResponse( FHttpRespo
     const auto repository_object = data_object->GetObjectField( TEXT( "repository" ) );
     const auto pull_request_object = repository_object->GetObjectField( TEXT( "pullRequest" ) );
 
-    auto pr_infos = MakeShared< FGithubToolsPullRequestInfos >( pull_request_object->GetIntegerField( TEXT( "number" ) ), pull_request_object->GetStringField( TEXT( "title" ) ) );
+    auto pr_infos = MakeShared< FGithubToolsPullRequestInfos >( pull_request_object->GetIntegerField( TEXT( "number" ) ), pull_request_object->GetStringField( TEXT( "id" ) ), pull_request_object->GetStringField( TEXT( "title" ) ) );
 
     const auto files_object = pull_request_object->GetObjectField( TEXT( "files" ) );
     const auto files_edges_object = files_object->GetArrayField( TEXT( "edges" ) );

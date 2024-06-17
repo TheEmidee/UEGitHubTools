@@ -62,15 +62,17 @@ void SGitHubToolsPRReviewList::Construct( const FArguments & arguments )
                                                     .SelectionMode( ESelectionMode::None ) ] ] ] ];
 }
 
-void SGitHubToolsPRReviewList::ShowFileReviews( FGithubToolsPullRequestFileInfosPtr file_infos )
+void SGitHubToolsPRReviewList::ShowFileReviews( const FGithubToolsPullRequestFileInfosPtr & file_infos )
 {
+    FileInfos = file_infos;
+
     SetEnabled( true );
 
     ReviewThreads.Reset();
 
     for ( const auto review : PRInfos->Reviews )
     {
-        if ( review->FileName == file_infos->FileName )
+        if ( review->FileName == file_infos->Path )
         {
             ReviewThreads.Emplace( review );
         }
@@ -114,7 +116,7 @@ FReply SGitHubToolsPRReviewList::OnCreateNewThreadButtonClicked()
     return FReply::Handled();
 }
 
-void SGitHubToolsPRReviewList::ShowAddCommentWindow( FGithubToolsPullRequestReviewThreadInfosPtr thread_infos )
+void SGitHubToolsPRReviewList::ShowAddCommentWindow( const FGithubToolsPullRequestReviewThreadInfosPtr & thread_infos )
 {
     AddCommentWindow = SNew( SWindow )
                            .Title( LOCTEXT( "SourceControlLoginTitle", "Add comment" ) )
@@ -131,12 +133,13 @@ void SGitHubToolsPRReviewList::ShowAddCommentWindow( FGithubToolsPullRequestRevi
     AddCommentWindow->SetContent( SNew( SGitHubToolsAddCommentForm )
                                       .ParentWindow( AddCommentWindow )
                                       .PRInfos( PRInfos )
+                                      .FileInfos( FileInfos )
                                       .ThreadInfos( thread_infos ) );
 
     if ( const TSharedPtr< SWindow > root_window = FGlobalTabmanager::Get()->GetRootWindow();
          root_window.IsValid() )
     {
-        FSlateApplication::Get().AddModalWindow( AddCommentWindow.ToSharedRef(), root_window.ToSharedRef() );
+        FSlateApplication::Get().AddWindow( AddCommentWindow.ToSharedRef() );
     }
 }
 

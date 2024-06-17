@@ -2,10 +2,10 @@
 
 #include "GitHubToolsHttpRequestManager.h"
 
-class FGitHubToolsHttpRequestData_ResolveReviewThread : public FGitHubToolsHttpRequestData
+class FGitHubToolsHttpRequestData_AddPRReviewThreadReply : public FGitHubToolsHttpRequestData
 {
 public:
-    explicit FGitHubToolsHttpRequestData_ResolveReviewThread( const FString & thread_id );
+    explicit FGitHubToolsHttpRequestData_AddPRReviewThreadReply( const FString & thread_id, const FString & comment );
 
     FString GetBody() const override;
     bool UsesGraphQL() const override;
@@ -14,9 +14,10 @@ public:
 
 private:
     FString ThreadId;
+    FString Comment;
 };
 
-class FGitHubToolsHttpResponseData_ResolveReviewThread final : public FGitHubToolsHttpResponseData
+class FGitHubToolsHttpResponseData_AddPRReviewThreadReply final : public FGitHubToolsHttpResponseData
 {
 public:
     

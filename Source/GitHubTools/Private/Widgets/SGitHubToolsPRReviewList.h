@@ -22,7 +22,7 @@ public:
     virtual ~SGitHubToolsPRReviewList() override;
 
     void Construct( const FArguments & arguments );
-    void ShowFileReviews( FGithubToolsPullRequestFileInfosPtr file_infos );
+    void ShowFileReviews( const FGithubToolsPullRequestFileInfosPtr & file_infos );
 
 private:
     FReply OnAddCommentClicked( FGithubToolsPullRequestReviewThreadInfosPtr thread_infos );
@@ -30,10 +30,11 @@ private:
     void OnHideResolvedThreadsCheckStateChanged( ECheckBoxState new_state );
     bool CanSubmitComment() const;
     FReply OnCreateNewThreadButtonClicked();
-    void ShowAddCommentWindow(FGithubToolsPullRequestReviewThreadInfosPtr thread_infos);
+    void ShowAddCommentWindow( const FGithubToolsPullRequestReviewThreadInfosPtr & thread_infos);
 
     TWeakPtr< SWindow > ParentFrame;
     FGithubToolsPullRequestInfosPtr PRInfos;
+    FGithubToolsPullRequestFileInfosPtr FileInfos;
     TSharedPtr< SMultiLineEditableTextBox > ChangeListDescriptionTextCtrl;
     TSharedPtr< SVerticalBox > AllCommentsVerticalBox;
     TSharedPtr< SListView< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > > > ReviewThreadsListView;

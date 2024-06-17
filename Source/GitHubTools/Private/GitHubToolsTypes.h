@@ -2,6 +2,14 @@
 
 #include <CoreMinimal.h>
 
+enum class EGitHubToolsPullRequestReviewEvent : uint8
+{
+    Approve,
+    Comment,
+    Dismiss,
+    RequestChanges
+};
+
 enum class EGitHubToolsFileChangedState : uint8
 {
     Unknown,
@@ -34,9 +42,9 @@ typedef TSharedPtr< FGithubToolsPullRequestComment > FGithubToolsPullRequestComm
 struct FGithubToolsPullRequestFileInfos
 {
     FGithubToolsPullRequestFileInfos() = default;
-    FGithubToolsPullRequestFileInfos( const FString & file_name, const FString & change_type, const FString & viewed_state );
+    FGithubToolsPullRequestFileInfos( const FString & path, const FString & change_type, const FString & viewed_state );
 
-    FString FileName;
+    FString Path;
     FText AssetName;
     FText PackageName;
     EGitHubToolsFileChangedState ChangedState;
@@ -74,9 +82,10 @@ typedef TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > FGithubToolsPullR
 
 struct FGithubToolsPullRequestInfos
 {
-    FGithubToolsPullRequestInfos( int number, const FString & title );
+    FGithubToolsPullRequestInfos( int number, const FString & id, const FString & title );
 
     int Number;
+    FString Id;
     FText Title;
     TArray< FGithubToolsPullRequestFileInfosPtr > FileInfos;
     TArray< FGithubToolsPullRequestReviewThreadInfosPtr > Reviews;

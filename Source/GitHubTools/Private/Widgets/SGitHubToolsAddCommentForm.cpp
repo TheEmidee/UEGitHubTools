@@ -1,5 +1,11 @@
 #include "SGitHubToolsAddCommentForm.h"
 
+#include "GitHubTools.h"
+#include "HttpRequests/GitHubToolsHttpRequest_AddPRReview.h"
+#include "HttpRequests/GitHubToolsHttpRequest_AddPRReviewThread.h"
+#include "HttpRequests/GitHubToolsHttpRequest_AddPRReviewThreadReply.h"
+#include "HttpRequests/GitHubToolsHttpRequest_SubmitPRReview.h"
+
 #include <Widgets/Input/SMultiLineEditableTextBox.h>
 #include <Widgets/Layout/SUniformGridPanel.h>
 
@@ -15,6 +21,7 @@ void SGitHubToolsAddCommentForm::Construct( const FArguments & arguments )
 {
     ParentFrame = arguments._ParentWindow.Get();
     PRInfos = arguments._PRInfos.Get();
+    FileInfos = arguments._FileInfos.Get();
     ThreadInfos = arguments._ThreadInfos.Get();
 
     ChildSlot
@@ -69,7 +76,44 @@ bool SGitHubToolsAddCommentForm::CanSubmitComment() const
 
 FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
 {
-    CloseDialog();
+    if ( ThreadInfos != nullptr )
+    {
+        FGitHubToolsModule::Get()
+            .GetRequestManager()
+            .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThreadReply, FGitHubToolsHttpResponseData_AddPRReviewThreadReply >( ThreadInfos->Id, CommentTextBox->GetText().ToString() )
+            .Then( [ & ]( const TFuture< FGitHubToolsHttpResponseData_AddPRReviewThreadReply > & result ) {
+                CloseDialog();
+            } );
+    }
+    else
+    {
+        FGitHubToolsModule::Get()
+            .GetRequestManager()
+            .SendRequest< FGitHubToolsHttpRequestData_AddPRReview, FGitHubToolsHttpResponseData_AddPRReview >( PRInfos->Id )
+            .Then( [ & ]( const TFuture< FGitHubToolsHttpResponseData_AddPRReview > & add_pr_review_result ) {
+                const auto review_id = add_pr_review_result.Get().GetThreadId().GetValue();
+
+                FGitHubToolsModule::Get()
+                    .GetRequestManager()
+                    .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThread, FGitHubToolsHttpResponseData_AddPRReviewThread >( PRInfos->Id, review_id, FileInfos->Path, CommentTextBox->GetText().ToString() )
+                    .Then( [ &, review_id ]( const TFuture< FGitHubToolsHttpResponseData_AddPRReviewThread > & result ) {
+                        auto response_data = result.Get();
+
+                        FGitHubToolsModule::Get()
+                            .GetRequestManager()
+                            .SendRequest< FGitHubToolsHttpRequestData_SubmitPRReview, FGitHubToolsHttpResponseData_SubmitPRReview >( PRInfos->Id, review_id, EGitHubToolsPullRequestReviewEvent::RequestChanges )
+                            .Then( [ & ]( const TFuture< FGitHubToolsHttpResponseData_SubmitPRReview > & submit_pr_result ) {
+                                auto submit_pr_result_data = submit_pr_result.Get();
+
+                                if ( !submit_pr_result_data.GetPullRequestReviewId()->IsEmpty() )
+                                {
+                                    CloseDialog();
+                                }
+                            } );
+                    } );
+            } );
+    }
+
     return FReply::Handled();
 }
 

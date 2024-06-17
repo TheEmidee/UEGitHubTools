@@ -12,14 +12,13 @@ public:
     {}
     SLATE_ATTRIBUTE( TSharedPtr< SWindow >, ParentWindow )
     SLATE_ATTRIBUTE( FGithubToolsPullRequestInfosPtr, PRInfos )
+    SLATE_ATTRIBUTE( FGithubToolsPullRequestFileInfosPtr, FileInfos )
     SLATE_ATTRIBUTE( FGithubToolsPullRequestReviewThreadInfosPtr, ThreadInfos )
     SLATE_END_ARGS()
 
     virtual ~SGitHubToolsAddCommentForm() override;
 
     void Construct( const FArguments & arguments );
-    bool SupportsKeyboardFocus() const override;
-    FReply OnFocusReceived( const FGeometry & my_geometry, const FFocusEvent & focus_event ) override;
 
 private:
     bool CanSubmitComment() const;
@@ -32,4 +31,5 @@ private:
     TWeakPtr< SWindow > ParentFrame;
     FGithubToolsPullRequestInfosPtr PRInfos;
     FGithubToolsPullRequestReviewThreadInfosPtr ThreadInfos;
+    FGithubToolsPullRequestFileInfosPtr FileInfos;
 };
