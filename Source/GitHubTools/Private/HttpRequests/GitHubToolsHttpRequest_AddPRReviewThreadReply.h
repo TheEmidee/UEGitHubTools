@@ -20,6 +20,14 @@ private:
 class FGitHubToolsHttpResponseData_AddPRReviewThreadReply final : public FGitHubToolsHttpResponseData
 {
 public:
-    
+    FORCEINLINE TOptional< FGithubToolsPullRequestCommentPtr > GetComment() const
+    {
+        return Comment;
+    }
+
     void ParseResponse( FHttpResponsePtr response_ptr ) override;
+
+private:
+
+    TOptional< FGithubToolsPullRequestCommentPtr > Comment;
 };

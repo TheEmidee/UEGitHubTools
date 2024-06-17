@@ -82,6 +82,9 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
             .GetRequestManager()
             .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThreadReply, FGitHubToolsHttpResponseData_AddPRReviewThreadReply >( ThreadInfos->Id, CommentTextBox->GetText().ToString() )
             .Then( [ & ]( const TFuture< FGitHubToolsHttpResponseData_AddPRReviewThreadReply > & result ) {
+                const auto & result_data = result.Get();
+                ThreadInfos->Comments.Add( result_data.GetComment().GetValue() );
+
                 CloseDialog();
             } );
     }
@@ -96,17 +99,19 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
                 FGitHubToolsModule::Get()
                     .GetRequestManager()
                     .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThread, FGitHubToolsHttpResponseData_AddPRReviewThread >( PRInfos->Id, review_id, FileInfos->Path, CommentTextBox->GetText().ToString() )
-                    .Then( [ &, review_id ]( const TFuture< FGitHubToolsHttpResponseData_AddPRReviewThread > & result ) {
-                        auto response_data = result.Get();
+                    .Then( [ &, review_id ]( const TFuture< FGitHubToolsHttpResponseData_AddPRReviewThread > & add_pr_review_thread_result ) {
+                        auto add_pr_review_thread_result_data = add_pr_review_thread_result.Get();
 
                         FGitHubToolsModule::Get()
                             .GetRequestManager()
                             .SendRequest< FGitHubToolsHttpRequestData_SubmitPRReview, FGitHubToolsHttpResponseData_SubmitPRReview >( PRInfos->Id, review_id, EGitHubToolsPullRequestReviewEvent::RequestChanges )
-                            .Then( [ & ]( const TFuture< FGitHubToolsHttpResponseData_SubmitPRReview > & submit_pr_result ) {
+                            .Then( [ &, add_pr_review_thread_result_data ]( const TFuture< FGitHubToolsHttpResponseData_SubmitPRReview > & submit_pr_result ) {
                                 auto submit_pr_result_data = submit_pr_result.Get();
 
                                 if ( !submit_pr_result_data.GetPullRequestReviewId()->IsEmpty() )
                                 {
+                                    PRInfos->Reviews.Add( add_pr_review_thread_result_data.GetThreadInfos().GetValue() );
+
                                     CloseDialog();
                                 }
                             } );

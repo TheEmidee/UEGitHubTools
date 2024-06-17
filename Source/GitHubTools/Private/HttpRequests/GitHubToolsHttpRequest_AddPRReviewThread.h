@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GitHubToolsHttpRequestManager.h"
+#include "GitHubToolsTypes.h"
 
 class FGitHubToolsHttpRequestData_AddPRReviewThread : public FGitHubToolsHttpRequestData
 {
@@ -22,13 +23,13 @@ private:
 class FGitHubToolsHttpResponseData_AddPRReviewThread final : public FGitHubToolsHttpResponseData
 {
 public:
-    FORCEINLINE TOptional< FString > GetThreadId() const
+    FORCEINLINE TOptional< FGithubToolsPullRequestReviewThreadInfosPtr > GetThreadInfos() const
     {
-        return ThreadId;
+        return ThreadInfos;
     }
 
     void ParseResponse( FHttpResponsePtr response_ptr ) override;
 
 private:
-    TOptional< FString > ThreadId;
+    TOptional< FGithubToolsPullRequestReviewThreadInfosPtr > ThreadInfos;
 };

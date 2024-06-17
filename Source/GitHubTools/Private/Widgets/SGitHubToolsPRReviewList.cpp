@@ -128,6 +128,7 @@ void SGitHubToolsPRReviewList::ShowAddCommentWindow( const FGithubToolsPullReque
 
     AddCommentWindow->SetOnWindowClosed( FOnWindowClosed::CreateLambda( [ & ]( const TSharedRef< SWindow > & /*window*/ ) {
         AddCommentWindow = nullptr;
+        ShowFileReviews( FileInfos );
     } ) );
 
     AddCommentWindow->SetContent( SNew( SGitHubToolsAddCommentForm )
