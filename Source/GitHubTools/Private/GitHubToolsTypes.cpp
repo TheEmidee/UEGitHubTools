@@ -141,10 +141,11 @@ FGithubToolsPullRequestFileInfos::FGithubToolsPullRequestFileInfos( const FStrin
 {
 }
 
-FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( int number, const FString & id, const FString & title ) :
+FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( int number, const FString & id, const FString & title, const FString & author ) :
     Number( number ),
     Id( id ),
-    Title( FText::FromString( title ) )
+    Title( title ),
+    Author( FText::FromString( author ) )
 {
 }
 

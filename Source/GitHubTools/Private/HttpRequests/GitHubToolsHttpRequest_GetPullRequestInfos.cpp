@@ -24,6 +24,9 @@ FString FGitHubToolsHttpRequestData_GetPullRequestInfos::GetBody() const
     string_builder << TEXT( "          number" );
     string_builder << TEXT( "          id" );
     string_builder << TEXT( "          title" );
+    string_builder << TEXT( "          author {" );
+    string_builder << TEXT( "            login" );
+    string_builder << TEXT( "          } " );
     string_builder << TEXT( "          reviewThreads( first : 100 ) {" );
     string_builder << TEXT( "              nodes {" );
     string_builder << TEXT( "                  resolvedBy {" );
@@ -75,8 +78,13 @@ void FGitHubToolsHttpRequestData_GetPullRequestInfos::ParseResponse( FHttpRespon
     const auto data_object = data->AsObject()->GetObjectField( TEXT( "data" ) );
     const auto repository_object = data_object->GetObjectField( TEXT( "repository" ) );
     const auto pull_request_object = repository_object->GetObjectField( TEXT( "pullRequest" ) );
+    const auto author_object = pull_request_object->GetObjectField( TEXT( "author" ) );
 
-    auto pr_infos = MakeShared< FGithubToolsPullRequestInfos >( pull_request_object->GetIntegerField( TEXT( "number" ) ), pull_request_object->GetStringField( TEXT( "id" ) ), pull_request_object->GetStringField( TEXT( "title" ) ) );
+    auto pr_infos = MakeShared< FGithubToolsPullRequestInfos >(
+        pull_request_object->GetIntegerField( TEXT( "number" ) ),
+        pull_request_object->GetStringField( TEXT( "id" ) ),
+        pull_request_object->GetStringField( TEXT( "title" ) ),
+        author_object->GetStringField( TEXT( "login" ) ) );
 
     const auto reviews_object = pull_request_object->GetObjectField( TEXT( "reviewThreads" ) );
     const auto reviews_nodes_object = reviews_object->GetArrayField( TEXT( "nodes" ) );

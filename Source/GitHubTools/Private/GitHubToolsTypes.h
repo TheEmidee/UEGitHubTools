@@ -82,11 +82,12 @@ typedef TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > FGithubToolsPullR
 
 struct FGithubToolsPullRequestInfos
 {
-    FGithubToolsPullRequestInfos( int number, const FString & id, const FString & title );
+    FGithubToolsPullRequestInfos( int number, const FString & id, const FString & title, const FString & author );
 
     int Number;
     FString Id;
-    FText Title;
+    FString Title;
+    FText Author;
     TArray< FGithubToolsPullRequestFileInfosPtr > FileInfos;
     TArray< FGithubToolsPullRequestReviewThreadInfosPtr > Reviews;
 };

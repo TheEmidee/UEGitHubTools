@@ -53,14 +53,25 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
                                 .AutoWidth()
                                 .Padding( FMargin( 10 ) )
                                     [ SNew( SButton )
+                                            .VAlign( VAlign_Center )
                                             .Text( LOCTEXT( "OpenInGitHub", "Open in GitHub" ) )
                                             .OnClicked( this, &SGitHubToolsPRInfos::OpenInGitHubClicked ) ] +
                             SHorizontalBox::Slot()
                                 .FillWidth( 1.0f )
                                 .Padding( FMargin( 10 ) )
-                                    [ SNew( STextBlock )
-                                            .Text( PRInfos->Title )
-                                            .Justification( ETextJustify::Type::Left ) ] ] ];
+                                    [ SNew( SVerticalBox ) +
+                                        SVerticalBox::Slot()
+                                            .AutoHeight()
+                                                [ SNew( STextBlock )
+                                                        .Text( PRInfos->Author )
+                                                        .Justification( ETextJustify::Type::Left ) ] +
+                                        SVerticalBox::Slot()
+                                            .AutoHeight()
+                                                [ SNew( STextBlock )
+                                                        .Text( FText::FromString( FString::Printf( TEXT( "%s ( # %i )" ), *PRInfos->Title, PRInfos->Number ) ) )
+                                                        .Justification( ETextJustify::Type::Left ) ] ]
+
+    ] ];
 
     contents->AddSlot()
         .Padding( FMargin( 5 ) )
@@ -270,7 +281,7 @@ void SGitHubToolsPRInfos::OnGetChildrenForTreeView( FGitHubToolsFileInfosTreeIte
     children.Append( tree_item->Children );
 }
 
-TSharedRef< ITableRow > SGitHubToolsPRInfos::OnGenerateRowForList(FGitHubToolsFileInfosTreeItemPtr tree_item, const TSharedRef< STableViewBase > & owner_table)
+TSharedRef< ITableRow > SGitHubToolsPRInfos::OnGenerateRowForList( FGitHubToolsFileInfosTreeItemPtr tree_item, const TSharedRef< STableViewBase > & owner_table )
 {
     //return SNew( STableRow< FText >, owner_table )
     //    .Style( FAppStyle::Get(), "GameplayTagTreeView" )
@@ -340,6 +351,11 @@ void SGitHubToolsPRInfos::RequestSort()
     SortTree();
 
     TreeView->RequestListRefresh();
+
+    for ( auto root_node : TreeItems )
+    {
+        TreeView->SetItemExpansion( root_node, true );
+    }
 }
 
 void SGitHubToolsPRInfos::SortTree()
