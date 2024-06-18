@@ -158,7 +158,7 @@ void SGitHubToolsPRInfos::OnDiffAgainstRemoteStatusBranchSelected( FGithubToolsP
 {
     if ( selected_item->ChangedState == EGitHubToolsFileChangedState::Added )
     {
-        const auto asset_data = GitHubToolsGitUtils::GetAssetDataFromFileInfos( *selected_item );
+        const auto asset_data = GitHubToolsUtils::GetAssetDataFromFileInfos( *selected_item );
         if ( asset_data.IsSet() )
         {
             const auto & asset_tools_module = FModuleManager::GetModuleChecked< FAssetToolsModule >( "AssetTools" );
@@ -170,7 +170,7 @@ void SGitHubToolsPRInfos::OnDiffAgainstRemoteStatusBranchSelected( FGithubToolsP
 
     if ( selected_item->ChangedState == EGitHubToolsFileChangedState::Modified )
     {
-        GitHubToolsGitUtils::DiffFileAgainstOriginStatusBranch( *selected_item );
+        GitHubToolsUtils::DiffFileAgainstOriginStatusBranch( *selected_item );
         //selected_item->SetCheckBoxState( ECheckBoxState::Checked );
     }
 }

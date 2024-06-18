@@ -17,17 +17,3 @@ public:
 private:
     int PullRequestNumber;
 };
-
-//class FGitHubToolsHttpResponseData_GetPullRequestInfos final : public FGitHubToolsHttpResponseData
-//{
-//public:
-//    FORCEINLINE TOptional< FGithubToolsPullRequestInfosPtr > GetPullRequestInfos() const
-//    {
-//        return PRInfos;
-//    }
-//
-//    void ParseResponse( FHttpResponsePtr response_ptr ) override;
-//
-//private:
-//    TOptional< FGithubToolsPullRequestInfosPtr > PRInfos;
-//};

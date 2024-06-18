@@ -12,7 +12,7 @@
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 
-namespace GitHubToolsGitUtils
+namespace GitHubToolsUtils
 {
     bool GetDiffNameStatusWithBranch( const FString & path_to_git_binary, const FString & repository_root, TMap< FString, FGitSourceControlState > & updated_states, TArray< FString > & error_messages, const FString & branch_name )
     {
@@ -143,9 +143,11 @@ namespace GitHubToolsGitUtils
 
         TPromise< FGithubToolsPullRequestInfosPtr > promise;
 
-        GetPullRequestFiles( pr_number )
+        RunPaginatedRequest< FGitHubToolsHttpRequestData_GetPullRequestFiles >( pr_number )
             .Then( [ & ]( const TFuture< TArray< FGithubToolsPullRequestFileInfosPtr > > & result ) {
                 const auto files = result.Get();
+
+
 
                 const auto request = FGitHubToolsModule::Get()
                                          .GetRequestManager()
@@ -161,32 +163,6 @@ namespace GitHubToolsGitUtils
 
         return promise.GetFuture();
     }
-
-    TFuture< TArray< FGithubToolsPullRequestFileInfosPtr > > GetPullRequestFiles( const int pr_number )
-    {
-        FString Cursor;
-        TPromise< TArray< FGithubToolsPullRequestFileInfosPtr > > promise;
-        TArray< FGithubToolsPullRequestFileInfosPtr > all_files;
-
-        while ( true )
-        {
-            const auto request = FGitHubToolsModule::Get()
-                                     .GetRequestManager()
-                                     .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestFiles >( pr_number, Cursor )
-                                     .Get();
-
-            const auto result = request.GetResult().GetValue();
-            all_files.Append( result );
-
-            if ( !request.HasNextPage() )
-            {
-                promise.SetValue( all_files );
-                break;
-            }
-
-            Cursor = request.GetEndCursor();
-        }
-
-        return promise.GetFuture();
-    }
 }
+
+#undef LOCTEXT_NAMESPACE

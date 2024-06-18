@@ -134,3 +134,45 @@ void FGitHubToolsHttpRequest< TResultType >::ProcessResponse( const FHttpRespons
 
     ParseResponse( response_ptr );
 }
+
+template < typename TResultType >
+FGitHubToolsHttpRequestWithPagination< TResultType >::FGitHubToolsHttpRequestWithPagination( const FString & after_cursor ) :
+    AfterCursor( after_cursor ),
+    bHasNextPage( false )
+{
+}
+
+template < typename TResultType >
+FString FGitHubToolsHttpRequestWithPagination< TResultType >::GetCursorInfo() const
+{
+    TStringBuilder< 128 > string_builder;
+    string_builder << TEXT( "first : 100" );
+
+    if ( !AfterCursor.IsEmpty() )
+    {
+        string_builder << TEXT( ", after: \\\"" ) << AfterCursor << TEXT( "\\\"" );
+    }
+
+    return *string_builder;
+}
+
+template < typename TResultType >
+FString FGitHubToolsHttpRequestWithPagination< TResultType >::GetPageInfoJson() const
+{
+    TStringBuilder< 128 > string_builder;
+
+    string_builder << TEXT( "pageInfo { " );
+    string_builder << TEXT( "  endCursor " );
+    string_builder << TEXT( "  hasNextPage " );
+    string_builder << TEXT( "}" );
+
+    return *string_builder;
+}
+
+template < typename TResultType >
+void FGitHubToolsHttpRequestWithPagination< TResultType >::ParsePageInfo( const TSharedPtr< FJsonObject > & json_object )
+{
+    const auto page_info = json_object->GetObjectField( TEXT( "pageInfo" ) );
+    EndCursor = page_info->GetStringField( TEXT( "endCursor" ) );
+    bHasNextPage = page_info->GetStringField( TEXT( "hasNextPage" ) ) == TEXT( "true" );
+}

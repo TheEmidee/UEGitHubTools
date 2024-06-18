@@ -55,6 +55,33 @@ protected:
     TOptional< TResultType > Result;
 };
 
+template < typename TResultType >
+class FGitHubToolsHttpRequestWithPagination : public FGitHubToolsHttpRequest< TResultType >
+{
+public:
+    explicit FGitHubToolsHttpRequestWithPagination( const FString & after_cursor = TEXT( "" ) );
+
+    FORCEINLINE bool HasNextPage() const
+    {
+        return bHasNextPage;
+    }
+
+    FORCEINLINE FString GetEndCursor() const
+    {
+        return EndCursor;
+    }
+
+protected:
+    FString GetCursorInfo() const;
+    FString GetPageInfoJson() const;
+    void ParsePageInfo( const TSharedPtr< FJsonObject > & json_object );
+
+private:
+    FString AfterCursor;
+    bool bHasNextPage;
+    FString EndCursor;
+};
+
 class IGitHubToolsHttpRequest
 {
 public:

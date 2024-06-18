@@ -43,43 +43,7 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
         return;
     }
 
-    //FGitHubToolsModule::Get()
-    //    .GetRequestManager()
-    //    .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestInfos >( 728 )
-    //    .Then( [ & ]( const TFuture< TOptional< FGithubToolsPullRequestInfosPtr > > & result ) {
-    //        const auto pr_infos = result.Get();
-    //        //const auto pr_infos = response_data.GetValue();
-    //        //GetPullRequestInfos();
-
-    //        if ( !pr_infos.IsSet() )
-    //        {
-    //            /*FGitHubToolsModule::Get()
-    //                .GetNotificationManager()
-    //                .DisplayFailureNotification( FText::FromString( FString::Printf( TEXT( "Error while fetching the pull request informations : %s" ), *response_data.GetErrorMessage() ) ) );*/
-    //            return;
-    //        }
-    //        ShowPullRequestReviewWindow( pr_infos.GetValue() );
-    //    } );
-
-    //FGitHubToolsModule::Get()
-    //    .GetRequestManager()
-    //    .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestFiles >( 728 )
-    //    .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestFiles > & result ) {
-    //        const auto files = result.Get();
-    //        //const auto pr_infos = response_data.GetValue();
-    //        //GetPullRequestInfos();
-
-    //        //if ( !pr_infos.IsSet() )
-    //        //{
-    //        //    /*FGitHubToolsModule::Get()
-    //        //        .GetNotificationManager()
-    //        //        .DisplayFailureNotification( FText::FromString( FString::Printf( TEXT( "Error while fetching the pull request informations : %s" ), *response_data.GetErrorMessage() ) ) );*/
-    //        //    return;
-    //        //}
-    //        //ShowPullRequestReviewWindow( pr_infos.GetValue() );
-    //    } );
-
-    GitHubToolsGitUtils::GetPullRequestInfos( 730 )
+    GitHubToolsUtils::GetPullRequestInfos( 728 )
         .Then( [ & ]( const TFuture< FGithubToolsPullRequestInfosPtr > & future_result ) {
             const auto pr_infos = future_result.Get();
 

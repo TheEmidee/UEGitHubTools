@@ -5,9 +5,8 @@
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 
 FGitHubToolsHttpRequestData_GetPullRequestFiles::FGitHubToolsHttpRequestData_GetPullRequestFiles( int pull_request_number, const FString & after_cursor ) :
-    PullRequestNumber( pull_request_number ),
-    AfterCursor( after_cursor ),
-    bHasNextPage( false )
+    FGitHubToolsHttpRequestWithPagination( after_cursor ),
+    PullRequestNumber( pull_request_number )
 {
 }
 
@@ -23,25 +22,15 @@ FString FGitHubToolsHttpRequestData_GetPullRequestFiles::GetBody() const
     string_builder << TEXT( "{ \"query\" : \"query ($repoOwner: String!, $repoName: String!, $pullNumber: Int!) {" );
     string_builder << TEXT( "  repository(owner: $repoOwner, name: $repoName) {" );
     string_builder << TEXT( "    pullRequest( number : $pullNumber ) {" );
-    string_builder << TEXT( "      files( first: 100" );
-
-    if ( !AfterCursor.IsEmpty() )
-    {
-        string_builder << TEXT( ", after: \\\"" ) << AfterCursor << TEXT( "\\\"" );
-    }
-
-    string_builder << TEXT( " ) {" );
+    string_builder << TEXT( "      files(" ) << GetCursorInfo() << TEXT( " ) {" );
     string_builder << TEXT( "        nodes {" );
     string_builder << TEXT( "          path" );
     string_builder << TEXT( "          changeType" );
     string_builder << TEXT( "          viewerViewedState" );
     string_builder << TEXT( "        }" );
-    string_builder << TEXT( "        pageInfo { " );
-    string_builder << TEXT( "          endCursor " );
-    string_builder << TEXT( "          startCursor " );
-    string_builder << TEXT( "          hasNextPage " );
-    string_builder << TEXT( "          hasPreviousPage " );
-    string_builder << TEXT( "        }" );
+
+    string_builder << GetPageInfoJson();
+
     string_builder << TEXT( "      }" );
     string_builder << TEXT( "    }" );
     string_builder << TEXT( "  }" );
@@ -88,11 +77,7 @@ void FGitHubToolsHttpRequestData_GetPullRequestFiles::ParseResponse( FHttpRespon
             file_node_object->GetStringField( TEXT( "viewerViewedState" ) ) ) );
     }
 
-    const auto page_info = files_object->GetObjectField( TEXT( "pageInfo" ) );
-    EndCursor = page_info->GetStringField( TEXT( "endCursor" ) );
-    const auto start_cursor = page_info->GetStringField( TEXT( "startCursor" ) );
-    bHasNextPage = page_info->GetStringField( TEXT( "hasNextPage" ) ) == TEXT( "true" );
-    const auto has_previous_page = page_info->GetStringField( TEXT( "hasPreviousPage" ) );
+    ParsePageInfo( files_object );
 
     Result = files;
 }
