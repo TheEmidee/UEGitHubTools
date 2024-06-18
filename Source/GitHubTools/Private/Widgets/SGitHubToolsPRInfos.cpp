@@ -15,12 +15,10 @@
 
 namespace SGitSourceControlReviewFilesWidgetDefs
 {
-    const FName ColumnID_CheckBoxLabel( "CheckBox" );
     const FName ColumnID_FileChangedStateIconLabel( "FileChangedStateIcon" );
     const FName ColumnID_FileViewedStateIconLabel( "FileViewedStateIcon" );
     const FName ColumnID_FileLabel( "File" );
 
-    const float CheckBoxColumnWidth = 23.0f;
     const float IconColumnWidth = 21.0f;
     const float CommentButtonColumnWidth = 120.0f;
 }
@@ -35,6 +33,8 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
     SortMode = EColumnSortMode::Ascending;
 
     PRInfos = arguments._Infos.Get();
+
+    ConstructFileInfos();
 
     TSharedPtr< SVerticalBox > contents;
 
@@ -93,34 +93,6 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
 
     ] ];
 
-    const TSharedRef< SHeaderRow > header_row_widget = SNew( SHeaderRow );
-
-    header_row_widget->AddColumn(
-        SHeaderRow::Column( SGitSourceControlReviewFilesWidgetDefs::ColumnID_CheckBoxLabel )
-            [ SNew( SCheckBox ) ]
-                .FixedWidth( SGitSourceControlReviewFilesWidgetDefs::CheckBoxColumnWidth ) );
-
-    header_row_widget->AddColumn(
-        SHeaderRow::Column( SGitSourceControlReviewFilesWidgetDefs::ColumnID_FileChangedStateIconLabel )
-            [ SNew( SSpacer ) ]
-                .SortMode( this, &SGitHubToolsPRInfos::GetColumnSortMode, SGitSourceControlReviewFilesWidgetDefs::ColumnID_FileChangedStateIconLabel )
-                .OnSort( this, &SGitHubToolsPRInfos::OnColumnSortModeChanged )
-                .FixedWidth( SGitSourceControlReviewFilesWidgetDefs::IconColumnWidth ) );
-
-    header_row_widget->AddColumn(
-        SHeaderRow::Column( SGitSourceControlReviewFilesWidgetDefs::ColumnID_FileViewedStateIconLabel )
-            [ SNew( SSpacer ) ]
-                .SortMode( this, &SGitHubToolsPRInfos::GetColumnSortMode, SGitSourceControlReviewFilesWidgetDefs::ColumnID_FileViewedStateIconLabel )
-                .OnSort( this, &SGitHubToolsPRInfos::OnColumnSortModeChanged )
-                .FixedWidth( SGitSourceControlReviewFilesWidgetDefs::IconColumnWidth ) );
-
-    header_row_widget->AddColumn(
-        SHeaderRow::Column( SGitSourceControlReviewFilesWidgetDefs::ColumnID_FileLabel )
-            .DefaultLabel( LOCTEXT( "FileColumnLabel", "File" ) )
-            .SortMode( this, &SGitHubToolsPRInfos::GetColumnSortMode, SGitSourceControlReviewFilesWidgetDefs::ColumnID_FileLabel )
-            .OnSort( this, &SGitHubToolsPRInfos::OnColumnSortModeChanged )
-            .FillWidth( 7.0f ) );
-
     contents->AddSlot()
         .Padding( FMargin( 5, 0 ) )
         .FillHeight( 1.0f )
@@ -128,13 +100,13 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
                     [ SNew( SHorizontalBox ) +
                         SHorizontalBox::Slot()
                             .FillWidth( 0.5f )
-                                [ SAssignNew( ListView, SListView< FGithubToolsPullRequestFileInfosPtr > )
+                                [ SAssignNew( TreeView, STreeView< FGitHubToolsFileInfosTreeItemPtr > )
                                         .ItemHeight( 20 )
-                                        .ListItemsSource( &PRInfos->FileInfos )
+                                        .TreeItemsSource( &TreeItems )
+                                        .OnGetChildren( this, &SGitHubToolsPRInfos::OnGetChildrenForTreeView )
                                         .OnGenerateRow( this, &SGitHubToolsPRInfos::OnGenerateRowForList )
                                         .OnMouseButtonClick( this, &SGitHubToolsPRInfos::OnSelectedFileChanged )
                                         .OnMouseButtonDoubleClick( this, &SGitHubToolsPRInfos::OnDiffAgainstRemoteStatusBranchSelected )
-                                        .HeaderRow( header_row_widget )
                                         .SelectionMode( ESelectionMode::Single ) ] +
                         SHorizontalBox::Slot()
                             .FillWidth( 0.5f )
@@ -154,11 +126,80 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
     RequestSort();
 }
 
-void SGitHubToolsPRInfos::OnDiffAgainstRemoteStatusBranchSelected( FGithubToolsPullRequestFileInfosPtr selected_item )
+void SGitHubToolsPRInfos::ConstructFileInfos()
 {
-    if ( selected_item->ChangedState == EGitHubToolsFileChangedState::Added )
+    TreeItems.Reserve( PRInfos->FileInfos.Num() );
+
+    const auto get_path_parts = []( const FString & path ) {
+        TArray< FString > parts;
+        path.ParseIntoArray( parts, TEXT( "/" ) );
+
+        return parts;
+    };
+
+    const auto add_path_to_tree = [ & ]( FGitHubToolsFileInfosTreeItemPtr root_node, TTuple< FGithubToolsPullRequestFileInfosPtr, TArray< FString > > file ) {
+        const auto & parts = file.Get< 1 >();
+        const auto & file_infos = file.Get< 0 >();
+
+        auto current_node = root_node;
+
+        for ( auto part_index = 1; part_index < parts.Num(); ++part_index )
+        {
+            bool found = false;
+            const auto part = parts[ part_index ];
+
+            for ( auto child : current_node->Children )
+            {
+                if ( child->Path == part )
+                {
+                    current_node = child;
+                    found = true;
+                    break;
+                }
+            }
+
+            if ( !found )
+            {
+                auto new_node = MakeShared< FGitHubToolsFileInfosTreeItem >( part );
+                current_node->Children.Add( new_node );
+                current_node = new_node;
+
+                if ( part_index == parts.Num() - 1 )
+                {
+                    current_node->FileInfos = file_infos;
+                }
+            }
+        }
+    };
+
+    for ( auto file_infos : PRInfos->FileInfos )
     {
-        const auto asset_data = GitHubToolsUtils::GetAssetDataFromFileInfos( *selected_item );
+        const auto path = file_infos->Path;
+        const auto parts = get_path_parts( path );
+        const auto root_part = parts[ 0 ];
+
+        FGitHubToolsFileInfosTreeItemPtr node;
+        if ( auto * found_node = TreeItems.FindByPredicate( [ parts ]( const auto & tree_item ) {
+                 return tree_item->Path == parts[ 0 ];
+             } ) )
+        {
+            node = *found_node;
+        }
+        else
+        {
+            node = MakeShared< FGitHubToolsFileInfosTreeItem >( root_part );
+            TreeItems.Add( node );
+        }
+
+        add_path_to_tree( node, MakeTuple( file_infos, parts ) );
+    }
+}
+
+void SGitHubToolsPRInfos::OnDiffAgainstRemoteStatusBranchSelected( FGitHubToolsFileInfosTreeItemPtr selected_item )
+{
+    if ( selected_item->FileInfos->ChangedState == EGitHubToolsFileChangedState::Added )
+    {
+        const auto asset_data = GitHubToolsUtils::GetAssetDataFromFileInfos( *selected_item->FileInfos );
         if ( asset_data.IsSet() )
         {
             const auto & asset_tools_module = FModuleManager::GetModuleChecked< FAssetToolsModule >( "AssetTools" );
@@ -168,9 +209,9 @@ void SGitHubToolsPRInfos::OnDiffAgainstRemoteStatusBranchSelected( FGithubToolsP
         }
     }
 
-    if ( selected_item->ChangedState == EGitHubToolsFileChangedState::Modified )
+    if ( selected_item->FileInfos->ChangedState == EGitHubToolsFileChangedState::Modified )
     {
-        GitHubToolsUtils::DiffFileAgainstOriginStatusBranch( *selected_item );
+        GitHubToolsUtils::DiffFileAgainstOriginStatusBranch( *selected_item->FileInfos );
         //selected_item->SetCheckBoxState( ECheckBoxState::Checked );
     }
 }
@@ -224,17 +265,38 @@ EVisibility SGitHubToolsPRInfos::IsWarningPanelVisible() const
     return EVisibility::Visible;
 }
 
-TSharedRef< ITableRow > SGitHubToolsPRInfos::OnGenerateRowForList( FGithubToolsPullRequestFileInfosPtr file_infos, const TSharedRef< STableViewBase > & owner_table )
+void SGitHubToolsPRInfos::OnGetChildrenForTreeView( FGitHubToolsFileInfosTreeItemPtr tree_item, TArray< FGitHubToolsFileInfosTreeItemPtr > & children )
 {
+    children.Append( tree_item->Children );
+}
+
+TSharedRef< ITableRow > SGitHubToolsPRInfos::OnGenerateRowForList(FGitHubToolsFileInfosTreeItemPtr tree_item, const TSharedRef< STableViewBase > & owner_table)
+{
+    //return SNew( STableRow< FText >, owner_table )
+    //    .Style( FAppStyle::Get(), "GameplayTagTreeView" )
+    //        [ SNew( SHorizontalBox )
+
+    //            // Tag Selection (selection mode only)
+    //            + SHorizontalBox::Slot()
+    //                  .FillWidth( 1.0f )
+    //                  .HAlign( HAlign_Left )
+    //                  .VAlign( VAlign_Center )
+    //                      [ SNew( STextBlock ).Text( FText::FromString( file_infos->Path ) ) ] ];
+
     return SNew( SGitHubToolsFileInfosRow, owner_table )
-        .FileInfos( file_infos )
-        .Visibility( MakeAttributeLambda( [ &, file_infos ]() {
-            return GetItemRowVisibility( file_infos );
+        .TreeItem( tree_item )
+        .Visibility( MakeAttributeLambda( [ &, tree_item ]() {
+            return GetItemRowVisibility( tree_item->FileInfos );
         } ) );
 }
 
 EVisibility SGitHubToolsPRInfos::GetItemRowVisibility( FGithubToolsPullRequestFileInfosPtr file_infos ) const
 {
+    if ( file_infos == nullptr )
+    {
+        return EVisibility::Visible;
+    }
+
     if ( OnlyShowAssetsCheckBox->GetCheckedState() == ECheckBoxState::Checked )
     {
         if ( !file_infos->Path.EndsWith( TEXT( ".uasset" ) ) )
@@ -277,7 +339,7 @@ void SGitHubToolsPRInfos::RequestSort()
 {
     SortTree();
 
-    ListView->RequestListRefresh();
+    TreeView->RequestListRefresh();
 }
 
 void SGitHubToolsPRInfos::SortTree()
@@ -329,64 +391,48 @@ void SGitHubToolsPRInfos::SortTree()
     }
 }
 
-void SGitHubToolsPRInfos::OnSelectedFileChanged( FGithubToolsPullRequestFileInfosPtr selected_item )
+void SGitHubToolsPRInfos::OnSelectedFileChanged( FGitHubToolsFileInfosTreeItemPtr selected_item )
 {
-    ReviewList->ShowFileReviews( selected_item );
+    ReviewList->ShowFileReviews( selected_item->FileInfos );
 }
 
 void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TSharedRef< STableViewBase > & owner_table_view )
 {
-    FileInfos = arguments._FileInfos;
+    TreeItem = arguments._TreeItem;
 
-    SMultiColumnTableRow< FGithubToolsPullRequestFileInfosPtr >::Construct( FSuperRowType::FArguments(), owner_table_view );
-}
-
-TSharedRef< SWidget > SGitHubToolsFileInfosRow::GenerateWidgetForColumn( const FName & column_name )
-{
-    const FMargin row_padding( 3, 0, 0, 0 );
-
-    TSharedPtr< SWidget > item_content_widget;
-
-    if ( column_name == SGitSourceControlReviewFilesWidgetDefs::ColumnID_CheckBoxLabel )
+    if ( TreeItem->FileInfos != nullptr )
     {
-        item_content_widget = SNew( SHorizontalBox ) +
-                              SHorizontalBox::Slot()
-                                  .Padding( row_padding )
-                                      [ SNew( SCheckBox )
-                                          /*.IsChecked( item.Get(), &FGithubToolsPullRequestFileInfos::GetCheckBoxState )
-                                                                       .OnCheckStateChanged( item.Get(), &FGithubToolsPullRequestFileInfos::SetCheckBoxState ) */
-        ];
+        STableRow< FGitHubToolsFileInfosTreeItemPtr >::Construct(
+            STableRow< FGitHubToolsFileInfosTreeItemPtr >::FArguments()
+                .Content()
+                    [ SNew( SHorizontalBox ) +
+                        SHorizontalBox::Slot()
+                            .AutoWidth()
+                            .HAlign( HAlign_Center )
+                            .VAlign( VAlign_Center )
+                                [ SNew( SImage )
+                                        .Image( FRevisionControlStyleManager::Get().GetBrush( TreeItem->FileInfos->ChangedStateIconName ) )
+                                        .ToolTipText( TreeItem->FileInfos->ChangedStateToolTip ) ] +
+                        SHorizontalBox::Slot()
+                            .AutoWidth()
+                            .HAlign( HAlign_Center )
+                            .VAlign( VAlign_Center )
+                                [ SNew( SImage )
+                                        .Image( FRevisionControlStyleManager::Get().GetBrush( TreeItem->FileInfos->ViewedStateIconName ) )
+                                        .ToolTipText( TreeItem->FileInfos->ViewedStateToolTip ) ] +
+                        SHorizontalBox::Slot()
+                            .FillWidth( 1.0f )
+                                [ SNew( STextBlock )
+                                        .Text( FText::FromString( TreeItem->Path ) ) ] ],
+            owner_table_view );
     }
-    else if ( column_name == SGitSourceControlReviewFilesWidgetDefs::ColumnID_FileChangedStateIconLabel )
+    else
     {
-        item_content_widget = SNew( SHorizontalBox ) +
-                              SHorizontalBox::Slot()
-                                  .HAlign( HAlign_Center )
-                                  .VAlign( VAlign_Center )
-                                      [ SNew( SImage )
-                                              .Image( FRevisionControlStyleManager::Get().GetBrush( FileInfos->ChangedStateIconName ) )
-                                              .ToolTipText( FileInfos->ChangedStateToolTip ) ];
+        STableRow< FGitHubToolsFileInfosTreeItemPtr >::Construct(
+            STableRow< FGitHubToolsFileInfosTreeItemPtr >::FArguments()
+                .Content()[ SNew( STextBlock ).Text( FText::FromString( TreeItem->Path ) ) ],
+            owner_table_view );
     }
-    else if ( column_name == SGitSourceControlReviewFilesWidgetDefs::ColumnID_FileViewedStateIconLabel )
-    {
-        item_content_widget = SNew( SHorizontalBox ) +
-                              SHorizontalBox::Slot()
-                                  .HAlign( HAlign_Center )
-                                  .VAlign( VAlign_Center )
-                                      [ SNew( SImage )
-                                              .Image( FRevisionControlStyleManager::Get().GetBrush( FileInfos->ViewedStateIconName ) )
-                                              .ToolTipText( FileInfos->ViewedStateToolTip ) ];
-    }
-    else if ( column_name == SGitSourceControlReviewFilesWidgetDefs::ColumnID_FileLabel )
-    {
-        item_content_widget = SNew( SHorizontalBox ) +
-                              SHorizontalBox::Slot()
-                                  .Padding( row_padding )
-                                      [ SNew( STextBlock )
-                                              .Text( FileInfos->PackageName ) ];
-    }
-
-    return item_content_widget.ToSharedRef();
 }
 
 #undef LOCTEXT_NAMESPACE

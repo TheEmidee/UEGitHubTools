@@ -43,7 +43,7 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
         return;
     }
 
-    GitHubToolsUtils::GetPullRequestInfos( 728 )
+    GitHubToolsUtils::GetPullRequestInfos( 730 )
         .Then( [ & ]( const TFuture< FGithubToolsPullRequestInfosPtr > & future_result ) {
             const auto pr_infos = future_result.Get();
 
