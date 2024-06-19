@@ -59,6 +59,7 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
                                 [ SNew( SVerticalBox ) +
                                     SVerticalBox::Slot()
                                         .AutoHeight()
+                                        .Padding( FMargin( 10.0f ) )
                                         .HAlign( HAlign_Left )
                                             [ TreeVisibilitySettingsButton.ToSharedRef() ] +
                                     SVerticalBox::Slot()

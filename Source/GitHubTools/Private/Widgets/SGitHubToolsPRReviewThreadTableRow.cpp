@@ -1,8 +1,8 @@
 #include "SGitHubToolsPRReviewThreadTableRow.h"
 
 #include "GitHubTools.h"
-//#include "HttpRequests/GitHubToolsHttpRequest_ResolveReviewThread.h"
 #include "SGitHubToolsPRCommentTableRow.h"
+#include "HttpRequests/GitHubToolsHttpRequest_ResolveReviewThread.h"
 
 #if SOURCE_CONTROL_WITH_SLATE
 
@@ -90,10 +90,10 @@ TSharedRef< ITableRow > SGitHubToolsPRReviewThreadTableRow::GenerateCommentRow( 
 
 FReply SGitHubToolsPRReviewThreadTableRow::OnResolveConversationClicked()
 {
-    /*FGitHubToolsModule::Get()
+    FGitHubToolsModule::Get()
         .GetRequestManager()
-        .SendRequest< FGitHubToolsHttpRequestData_ResolveReviewThread, FGitHubToolsHttpResponseData_ResolveReviewThread >( ThreadInfos->Id )
-        .Then( [ & ]( const TFuture< FGitHubToolsHttpResponseData_ResolveReviewThread > & result ) {
+        .SendRequest< FGitHubToolsHttpRequestData_ResolveReviewThread >( ThreadInfos->Id )
+        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_ResolveReviewThread > & result ) {
             const auto & response_data = result.Get();
             const auto & error_message = response_data.GetErrorMessage();
 
@@ -107,7 +107,7 @@ FReply SGitHubToolsPRReviewThreadTableRow::OnResolveConversationClicked()
             }
 
             ThreadInfos->bIsResolved = true;
-        } );*/
+        } );
 
     return FReply::Handled();
 }
