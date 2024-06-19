@@ -29,4 +29,5 @@ private:
     TSharedPtr< SListView< FGithubToolsPullRequestCommentPtr > > CommentsListView;
     TSharedPtr< SVerticalBox > CommentsPanel;
     FOnClicked OnAddCommentButtonClicked;
+    TSharedPtr< STableViewBase > OwnerTable;
 };

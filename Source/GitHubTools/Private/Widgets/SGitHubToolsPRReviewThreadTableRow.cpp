@@ -13,6 +13,8 @@ void SGitHubToolsPRReviewThreadTableRow::Construct( const FArguments & arguments
     ThreadInfos = arguments._ThreadInfos;
     OnAddCommentButtonClicked = arguments._OnAddCommentClicked;
 
+    OwnerTable = owner_table_view;
+
     STableRow< FGithubToolsPullRequestReviewThreadInfosPtr >::Construct(
         STableRow< FGithubToolsPullRequestReviewThreadInfosPtr >::FArguments()
             .Content()
@@ -37,30 +39,40 @@ void SGitHubToolsPRReviewThreadTableRow::Construct( const FArguments & arguments
                                                                         .ItemHeight( 50 )
                                                                         .ListItemsSource( &ThreadInfos->Comments )
                                                                         .OnGenerateRow( this, &SGitHubToolsPRReviewThreadTableRow::GenerateCommentRow )
-                                                                        .SelectionMode( ESelectionMode::None ) ] ] +
-                                            SVerticalBox::Slot()
-                                                .AutoHeight()
-                                                .Padding( FMargin( 5.0f ) )
-                                                    [ SNew( SHorizontalBox ) +
-                                                        SHorizontalBox::Slot()
-                                                            .AutoWidth()
-                                                                [ SNew( SButton )
-                                                                        .HAlign( EHorizontalAlignment::HAlign_Center )
-                                                                        .ContentPadding( FMargin( 5.0f ) )
-                                                                        .IsEnabled( !ThreadInfos->bIsResolved )
-                                                                        .OnClicked( OnAddCommentButtonClicked )
-                                                                        .Text( LOCTEXT( "ReviewThread_AddCommmentText", "Add Comment" ) ) ] +
-                                                        SHorizontalBox::Slot()
-                                                            .FillWidth( 1.0f ) +
-                                                        SHorizontalBox::Slot()
-                                                            .AutoWidth()
-                                                                [ SNew( SButton )
-                                                                        .HAlign( EHorizontalAlignment::HAlign_Center )
-                                                                        .ContentPadding( FMargin( 5.0f ) )
-                                                                        .IsEnabled( !ThreadInfos->bIsResolved )
-                                                                        .OnClicked( this, &SGitHubToolsPRReviewThreadTableRow::OnResolveConversationClicked )
-                                                                        .Text( LOCTEXT( "ReviewThread_ResolveButtonText", "Resolve conversation" ) ) ] ] ] ] ],
+                                                                        .SelectionMode( ESelectionMode::None ) ] ] ] ] ],
         owner_table_view );
+
+    if ( ThreadInfos->bIsResolved )
+    {
+        CommentsPanel->AddSlot()
+            .AutoHeight()
+            .Padding( FMargin( 5.0f ) )
+                [ SNew( STextBlock )
+                        .Text( FText::FromString( FString::Printf( TEXT( "Resolved by : %s" ), *ThreadInfos->ResolvedByUserName ) ) ) ];
+    }
+    else
+    {
+        CommentsPanel->AddSlot().AutoHeight().Padding( FMargin( 5.0f ) )
+            [ SNew( SHorizontalBox ) +
+                SHorizontalBox::Slot()
+                    .AutoWidth()
+                        [ SNew( SButton )
+                                .HAlign( EHorizontalAlignment::HAlign_Center )
+                                .ContentPadding( FMargin( 5.0f ) )
+                                .IsEnabled( !ThreadInfos->bIsResolved )
+                                .OnClicked( OnAddCommentButtonClicked )
+                                .Text( LOCTEXT( "ReviewThread_AddCommmentText", "Add Comment" ) ) ] +
+                SHorizontalBox::Slot()
+                    .FillWidth( 1.0f ) +
+                SHorizontalBox::Slot()
+                    .AutoWidth()
+                        [ SNew( SButton )
+                                .HAlign( EHorizontalAlignment::HAlign_Center )
+                                .ContentPadding( FMargin( 5.0f ) )
+                                .IsEnabled( !ThreadInfos->bIsResolved )
+                                .OnClicked( this, &SGitHubToolsPRReviewThreadTableRow::OnResolveConversationClicked )
+                                .Text( LOCTEXT( "ReviewThread_ResolveButtonText", "Resolve conversation" ) ) ] ];
+    }
 }
 
 FSlateColor SGitHubToolsPRReviewThreadTableRow::GetBorderBackgroundColor() const
@@ -112,6 +124,8 @@ FReply SGitHubToolsPRReviewThreadTableRow::OnCollapsedButtonClicked()
     CommentsPanel->SetVisibility( CommentsPanel->GetVisibility() == EVisibility::Collapsed
                                       ? EVisibility::Visible
                                       : EVisibility::Collapsed );
+
+    OwnerTable->RequestListRefresh();
     return FReply::Handled();
 }
 

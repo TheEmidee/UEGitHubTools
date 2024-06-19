@@ -72,7 +72,7 @@ struct FGithubToolsPullRequestReviewThreadInfos
 
     FString Id;
     bool bIsResolved;
-    FText ResolvedByUserName;
+    FString ResolvedByUserName;
     FString FileName;
     TArray< FGithubToolsPullRequestCommentPtr > Comments;
     int PRNumber;

@@ -129,7 +129,7 @@ void FGitHubToolsHttpRequestData_GetPullRequestInfos::ParseResponse( FHttpRespon
                 }
             }
 
-            return FText::FromString( user_name );
+            return user_name;
         };
 
         auto review_thread_infos = MakeShared< FGithubToolsPullRequestReviewThreadInfos >();
