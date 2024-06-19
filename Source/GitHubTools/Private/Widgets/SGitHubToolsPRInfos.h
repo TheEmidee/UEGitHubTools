@@ -50,7 +50,6 @@ private:
     EVisibility GetItemRowVisibility( FGithubToolsPullRequestFileInfosPtr file_infos ) const;
     void OnSelectedFileChanged( FGitHubToolsFileInfosTreeItemPtr selected_item );
     void OnDiffAgainstRemoteStatusBranchSelected( FGitHubToolsFileInfosTreeItemPtr selected_item );
-    FReply OpenInGitHubClicked();
     void OnShowOnlyUAssetsCheckStateChanged( ECheckBoxState new_state );
     void OnHideOFPACheckStateChanged( ECheckBoxState new_state );
     void OnShowOnlyModifiedFilesCheckStateChanged( ECheckBoxState new_state );

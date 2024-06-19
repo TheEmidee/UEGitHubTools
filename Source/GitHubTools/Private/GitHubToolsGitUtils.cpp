@@ -146,15 +146,20 @@ namespace GitHubToolsUtils
         RunPaginatedRequest< FGitHubToolsHttpRequestData_GetPullRequestFiles >( pr_number )
             .Then( [ & ]( const TFuture< TArray< FGithubToolsPullRequestFileInfosPtr > > & result ) {
                 const auto files = result.Get();
-
-
-
                 const auto request = FGitHubToolsModule::Get()
                                          .GetRequestManager()
                                          .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestInfos >( pr_number )
                                          .Get();
 
-                auto pr_infos = request.GetResult().GetValue();
+                const auto optional_result = request.GetResult();
+
+                if ( !optional_result.IsSet() )
+                {
+                    promise.SetValue( MakeShared< FGithubToolsPullRequestInfos >() );
+                    return;
+                }
+
+                auto pr_infos = optional_result.GetValue();
                 pr_infos->FileInfos.Append( files );
 
                 FGitHubToolsModule::Get().GetNotificationManager().RemoveInProgressNotification();

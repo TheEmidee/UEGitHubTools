@@ -4,6 +4,7 @@
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
 #include "MaterialGraph/MaterialGraphSchema.h"
+#include "SGitHubToolsPRInfosHeader.h"
 #include "SGitHubToolsPRReviewList.h"
 
 #include <AssetToolsModule.h>
@@ -33,32 +34,8 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
     contents->AddSlot()
         .Padding( FMargin( 5 ) )
         .AutoHeight()
-            [ SNew( SBorder )
-                    .Padding( FMargin( 10 ) )
-                        [ SNew( SHorizontalBox ) +
-                            SHorizontalBox::Slot()
-                                .AutoWidth()
-                                .Padding( FMargin( 10 ) )
-                                    [ SNew( SButton )
-                                            .VAlign( VAlign_Center )
-                                            .Text( LOCTEXT( "OpenInGitHub", "Open in GitHub" ) )
-                                            .OnClicked( this, &SGitHubToolsPRInfos::OpenInGitHubClicked ) ] +
-                            SHorizontalBox::Slot()
-                                .FillWidth( 1.0f )
-                                .Padding( FMargin( 10 ) )
-                                    [ SNew( SVerticalBox ) +
-                                        SVerticalBox::Slot()
-                                            .AutoHeight()
-                                                [ SNew( STextBlock )
-                                                        .Text( PRInfos->Author )
-                                                        .Justification( ETextJustify::Type::Left ) ] +
-                                        SVerticalBox::Slot()
-                                            .AutoHeight()
-                                                [ SNew( STextBlock )
-                                                        .Text( FText::FromString( FString::Printf( TEXT( "%s ( # %i )" ), *PRInfos->Title, PRInfos->Number ) ) )
-                                                        .Justification( ETextJustify::Type::Left ) ] ]
-
-    ] ];
+            [ SNew( SGitHubToolsPRHeader )
+                    .PRInfos( PRInfos ) ];
 
     TreeVisibilitySettingsButton =
         SNew( SComboButton )
@@ -199,23 +176,6 @@ void SGitHubToolsPRInfos::OnDiffAgainstRemoteStatusBranchSelected( FGitHubToolsF
     {
         GitHubToolsUtils::DiffFileAgainstOriginStatusBranch( *selected_item->FileInfos );
     }
-}
-
-FReply SGitHubToolsPRInfos::OpenInGitHubClicked()
-{
-    auto * settings = GetDefault< UGitHubToolsSettings >();
-
-    TStringBuilder< 256 > url;
-    url << TEXT( "https://github.com/" );
-    url << settings->RepositoryOwner;
-    url << TEXT( "/" );
-    url << settings->RepositoryName;
-    url << TEXT( "/pull/" );
-    url << PRInfos->Number;
-
-    FPlatformProcess::LaunchURL( *url, nullptr, nullptr );
-
-    return FReply::Handled();
 }
 
 void SGitHubToolsPRInfos::OnShowOnlyUAssetsCheckStateChanged( ECheckBoxState new_state )

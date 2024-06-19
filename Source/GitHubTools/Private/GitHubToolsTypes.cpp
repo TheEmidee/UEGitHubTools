@@ -141,12 +141,32 @@ FGithubToolsPullRequestFileInfos::FGithubToolsPullRequestFileInfos( const FStrin
 {
 }
 
-FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( int number, const FString & id, const FString & title, const FString & author ) :
-    Number( number ),
-    Id( id ),
-    Title( title ),
-    Author( FText::FromString( author ) )
+FGitHubToolsPullRequestCheckInfos::FGitHubToolsPullRequestCheckInfos( const TSharedPtr< FJsonObject > & json )
 {
+    Context = json->GetStringField( TEXT( "context" ) );
+    State = json->GetStringField( TEXT( "state" ) );
+    Description = json->GetStringField( TEXT( "description" ) );
+}
+
+FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( const TSharedPtr< FJsonObject > & json )
+{
+    const auto author_object = json->GetObjectField( TEXT( "author" ) );
+    const auto commits_object = json->GetObjectField( TEXT( "commits" ) );
+
+    Number = json->GetIntegerField( TEXT( "number" ) );
+    Id = json->GetStringField( TEXT( "id" ) );
+    Title = json->GetStringField( TEXT( "title" ) );
+    Author = FText::FromString( author_object->GetStringField( TEXT( "login" ) ) );
+    BaseRefName = json->GetStringField( TEXT( "baseRefName" ) );
+    Body = json->GetStringField( TEXT( "bodyText" ) );
+    ChangedFiles = json->GetIntegerField( TEXT( "changedFiles" ) );
+    CommitCount = commits_object->GetIntegerField( TEXT( "totalCount" ) );
+    CreatedAt = json->GetStringField( TEXT( "createdAt" ) );
+    HeadRefName = json->GetStringField( TEXT( "headRefName" ) );
+    bIsDraft = json->GetBoolField( TEXT( "isDraft" ) );
+    bIsMergeable = json->GetBoolField( TEXT( "mergeable" ) );
+    URL = json->GetStringField( TEXT( "url" ) );
+    State = json->GetStringField( TEXT( "state" ) );
 }
 
 #undef LOCTEXT_NAMESPACE

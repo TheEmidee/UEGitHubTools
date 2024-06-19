@@ -29,6 +29,13 @@ namespace GitHubToolsUtils
                                      .Get();
 
             const auto optional_result = request.GetResult();
+
+            if ( !optional_result.IsSet() )
+            {
+                promise.SetValue( result );
+                break;
+            }
+
             result.Append( optional_result.GetValue() );
 
             if ( !request.HasNextPage() )

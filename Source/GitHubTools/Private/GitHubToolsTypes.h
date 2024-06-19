@@ -80,16 +80,40 @@ struct FGithubToolsPullRequestReviewThreadInfos
 
 typedef TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > FGithubToolsPullRequestReviewThreadInfosPtr;
 
+struct FGitHubToolsPullRequestCheckInfos
+{
+    FGitHubToolsPullRequestCheckInfos() = default;
+    explicit FGitHubToolsPullRequestCheckInfos( const TSharedPtr< FJsonObject > & json );
+
+    FString Context;
+    FString State;
+    FString Description;
+};
+
+typedef TSharedPtr< FGitHubToolsPullRequestCheckInfos > FGitHubToolsPullRequestCheckInfosPtr;
+
 struct FGithubToolsPullRequestInfos
 {
-    FGithubToolsPullRequestInfos( int number, const FString & id, const FString & title, const FString & author );
+    FGithubToolsPullRequestInfos() = default;
+    explicit FGithubToolsPullRequestInfos( const TSharedPtr< FJsonObject > & json );
 
     int Number;
     FString Id;
     FString Title;
     FText Author;
+    FString BaseRefName;
+    FString Body;
+    int ChangedFiles;
+    int CommitCount;
+    FString CreatedAt;
+    FString HeadRefName;
+    bool bIsDraft;
+    bool bIsMergeable;
+    FString State;
+    FString URL;
     TArray< FGithubToolsPullRequestFileInfosPtr > FileInfos;
     TArray< FGithubToolsPullRequestReviewThreadInfosPtr > Reviews;
+    TArray< FGitHubToolsPullRequestCheckInfosPtr > Checks;
 };
 
 typedef TSharedPtr< FGithubToolsPullRequestInfos > FGithubToolsPullRequestInfosPtr;
