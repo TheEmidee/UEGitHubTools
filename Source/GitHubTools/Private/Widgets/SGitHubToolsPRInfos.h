@@ -35,30 +35,39 @@ public:
     void Construct( const FArguments & arguments );
 
 private:
+    enum class EShowFlags : uint8
+    {
+        All,
+        OnlyModified,
+        OnlyUnViewed
+    };
+
     void ConstructFileInfos();
     bool IsFileCommentsButtonEnabled() const;
     EVisibility IsWarningPanelVisible() const;
     void OnGetChildrenForTreeView( FGitHubToolsFileInfosTreeItemPtr tree_item, TArray< FGitHubToolsFileInfosTreeItemPtr > & children );
     TSharedRef< ITableRow > OnGenerateRowForList( FGitHubToolsFileInfosTreeItemPtr tree_item, const TSharedRef< STableViewBase > & owner_table );
     EVisibility GetItemRowVisibility( FGithubToolsPullRequestFileInfosPtr file_infos ) const;
-    EColumnSortMode::Type GetColumnSortMode( const FName column_id ) const;
-    void OnColumnSortModeChanged( const EColumnSortPriority::Type sort_priority, const FName & column_id, const EColumnSortMode::Type sort_mode );
-    void RequestSort();
-    void SortTree();
     void OnSelectedFileChanged( FGitHubToolsFileInfosTreeItemPtr selected_item );
     void OnDiffAgainstRemoteStatusBranchSelected( FGitHubToolsFileInfosTreeItemPtr selected_item );
     FReply OpenInGitHubClicked();
     void OnShowOnlyUAssetsCheckStateChanged( ECheckBoxState new_state );
     void OnHideOFPACheckStateChanged( ECheckBoxState new_state );
+    void OnShowOnlyModifiedFilesCheckStateChanged( ECheckBoxState new_state );
+    void OnShowOnlyUnViewedFilesCheckStateChanged( ECheckBoxState new_state );
+    TSharedRef< SWidget > MakeVisibilityComboMenu( TSharedPtr< SComboButton > owner_combo );
+    void OnExpandAllClicked();
+    void OnCollapseAllClicked();
+    void SetItemExpansion( FGitHubToolsFileInfosTreeItemPtr tree_item, bool is_expanded );
 
     FGithubToolsPullRequestInfosPtr PRInfos;
     TSharedPtr< STreeView< FGitHubToolsFileInfosTreeItemPtr > > TreeView;
-    TSharedPtr< SCheckBox > OnlyShowAssetsCheckBox;
-    TSharedPtr< SCheckBox > HideOFPACheckBox;
     TSharedPtr< SGitHubToolsPRReviewList > ReviewList;
+    TSharedPtr< SComboButton > TreeVisibilitySettingsButton;
     TArray< FGitHubToolsFileInfosTreeItemPtr > TreeItems;
-    FName SortByColumn;
-    EColumnSortMode::Type SortMode = EColumnSortMode::Ascending;
+    bool bShowOnlyUAssets = true;
+    bool bHideOFPA = true;
+    EShowFlags ShowFlags = EShowFlags::All;
 };
 
 class SGitHubToolsFileInfosRow : public STableRow< FGitHubToolsFileInfosTreeItemPtr >

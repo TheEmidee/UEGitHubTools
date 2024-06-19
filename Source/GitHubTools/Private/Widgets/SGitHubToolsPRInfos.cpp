@@ -13,25 +13,12 @@
 
 #define LOCTEXT_NAMESPACE "GitHubToolsPullRequestReviewWidget"
 
-namespace SGitSourceControlReviewFilesWidgetDefs
-{
-    const FName ColumnID_FileChangedStateIconLabel( "FileChangedStateIcon" );
-    const FName ColumnID_FileViewedStateIconLabel( "FileViewedStateIcon" );
-    const FName ColumnID_FileLabel( "File" );
-
-    const float IconColumnWidth = 21.0f;
-    const float CommentButtonColumnWidth = 120.0f;
-}
-
 SGitHubToolsPRInfos::~SGitHubToolsPRInfos()
 {
 }
 
 void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
 {
-    SortByColumn = SGitSourceControlReviewFilesWidgetDefs::ColumnID_FileLabel;
-    SortMode = EColumnSortMode::Ascending;
-
     PRInfos = arguments._Infos.Get();
 
     ConstructFileInfos();
@@ -73,36 +60,17 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
 
     ] ];
 
-    contents->AddSlot()
-        .Padding( FMargin( 5 ) )
-        .AutoHeight()
-            [ SNew( SBorder )
-                    .Padding( FMargin( 10 ) )
-                        [ SNew( SHorizontalBox ) +
-                            SHorizontalBox::Slot()
-                                .AutoWidth()
-                                .Padding( FMargin( 5 ) )
-                                    [ SAssignNew( OnlyShowAssetsCheckBox, SCheckBox )
-                                            .ToolTipText( LOCTEXT( "OnlyShowUAssetsToolTip", "Toggle whether or not to only show uasset files." ) )
-                                            .Type( ESlateCheckBoxType::CheckBox )
-                                            .IsChecked( ECheckBoxState::Checked )
-                                            .OnCheckStateChanged( this, &SGitHubToolsPRInfos::OnShowOnlyUAssetsCheckStateChanged )
-                                            .Padding( 4.f )
-                                                [ SNew( STextBlock )
-                                                        .Text( LOCTEXT( "OnlyShowUAssets", "Only show uassets" ) ) ] ] +
-                            SHorizontalBox::Slot()
-                                .AutoWidth()
-                                .Padding( FMargin( 5 ) )
-                                    [ SAssignNew( HideOFPACheckBox, SCheckBox )
-                                            .ToolTipText( LOCTEXT( "HideOFPAToolTip", "Hide OFPA assets." ) )
-                                            .Type( ESlateCheckBoxType::CheckBox )
-                                            .IsChecked( ECheckBoxState::Checked )
-                                            .OnCheckStateChanged( this, &SGitHubToolsPRInfos::OnHideOFPACheckStateChanged )
-                                            .Padding( 4.f )
-                                                [ SNew( STextBlock )
-                                                        .Text( LOCTEXT( "HideOFPA", "Hide OFPA assets" ) ) ] ]
-
-    ] ];
+    TreeVisibilitySettingsButton =
+        SNew( SComboButton )
+            .VAlign( VAlign_Center )
+            .HAlign( HAlign_Center )
+            .ButtonStyle( FAppStyle::Get(), "SimpleButton" )
+            .HasDownArrow( false )
+            .OnGetMenuContent( FOnGetContent::CreateSP( this, &SGitHubToolsPRInfos::MakeVisibilityComboMenu, TreeVisibilitySettingsButton ) )
+            .ButtonContent()
+                [ SNew( SImage )
+                        .Image( FAppStyle::GetBrush( "Icons.Settings" ) )
+                        .ColorAndOpacity( FSlateColor::UseForeground() ) ];
 
     contents->AddSlot()
         .Padding( FMargin( 5, 0 ) )
@@ -111,14 +79,21 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
                     [ SNew( SHorizontalBox ) +
                         SHorizontalBox::Slot()
                             .FillWidth( 0.5f )
-                                [ SAssignNew( TreeView, STreeView< FGitHubToolsFileInfosTreeItemPtr > )
-                                        .ItemHeight( 20 )
-                                        .TreeItemsSource( &TreeItems )
-                                        .OnGetChildren( this, &SGitHubToolsPRInfos::OnGetChildrenForTreeView )
-                                        .OnGenerateRow( this, &SGitHubToolsPRInfos::OnGenerateRowForList )
-                                        .OnMouseButtonClick( this, &SGitHubToolsPRInfos::OnSelectedFileChanged )
-                                        .OnMouseButtonDoubleClick( this, &SGitHubToolsPRInfos::OnDiffAgainstRemoteStatusBranchSelected )
-                                        .SelectionMode( ESelectionMode::Single ) ] +
+                                [ SNew( SVerticalBox ) +
+                                    SVerticalBox::Slot()
+                                        .AutoHeight()
+                                        .HAlign( HAlign_Left )
+                                            [ TreeVisibilitySettingsButton.ToSharedRef() ] +
+                                    SVerticalBox::Slot()
+                                        .FillHeight( 1.0f )
+                                            [ SAssignNew( TreeView, STreeView< FGitHubToolsFileInfosTreeItemPtr > )
+                                                    .ItemHeight( 20 )
+                                                    .TreeItemsSource( &TreeItems )
+                                                    .OnGetChildren( this, &SGitHubToolsPRInfos::OnGetChildrenForTreeView )
+                                                    .OnGenerateRow( this, &SGitHubToolsPRInfos::OnGenerateRowForList )
+                                                    .OnMouseButtonClick( this, &SGitHubToolsPRInfos::OnSelectedFileChanged )
+                                                    .OnMouseButtonDoubleClick( this, &SGitHubToolsPRInfos::OnDiffAgainstRemoteStatusBranchSelected )
+                                                    .SelectionMode( ESelectionMode::Single ) ] ] +
                         SHorizontalBox::Slot()
                             .FillWidth( 0.5f )
                                 [ SAssignNew( ReviewList, SGitHubToolsPRReviewList )
@@ -134,7 +109,8 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
                                 .ErrorText( NSLOCTEXT( "GitHubTools.ReviewWindow", "EmptyToken", "You must define the GitHub Token to be able to see and add comments on assets" ) ) ] ];
 
     ReviewList->SetEnabled( false );
-    RequestSort();
+
+    OnExpandAllClicked();
 }
 
 void SGitHubToolsPRInfos::ConstructFileInfos()
@@ -215,7 +191,6 @@ void SGitHubToolsPRInfos::OnDiffAgainstRemoteStatusBranchSelected( FGitHubToolsF
         {
             const auto & asset_tools_module = FModuleManager::GetModuleChecked< FAssetToolsModule >( "AssetTools" );
             asset_tools_module.Get().OpenEditorForAssets( { asset_data.GetValue().GetAsset() } );
-            //selected_item->SetCheckBoxState( ECheckBoxState::Checked );
             return;
         }
     }
@@ -223,7 +198,6 @@ void SGitHubToolsPRInfos::OnDiffAgainstRemoteStatusBranchSelected( FGitHubToolsF
     if ( selected_item->FileInfos->ChangedState == EGitHubToolsFileChangedState::Modified )
     {
         GitHubToolsUtils::DiffFileAgainstOriginStatusBranch( *selected_item->FileInfos );
-        //selected_item->SetCheckBoxState( ECheckBoxState::Checked );
     }
 }
 
@@ -246,12 +220,141 @@ FReply SGitHubToolsPRInfos::OpenInGitHubClicked()
 
 void SGitHubToolsPRInfos::OnShowOnlyUAssetsCheckStateChanged( ECheckBoxState new_state )
 {
-    RequestSort();
+    bShowOnlyUAssets = new_state == ECheckBoxState::Checked;
+    TreeView->RequestListRefresh();
+    TreeVisibilitySettingsButton->SetIsOpen( false );
 }
 
 void SGitHubToolsPRInfos::OnHideOFPACheckStateChanged( ECheckBoxState new_state )
 {
-    RequestSort();
+    bHideOFPA = new_state == ECheckBoxState::Checked;
+    TreeView->RequestListRefresh();
+    TreeVisibilitySettingsButton->SetIsOpen( false );
+}
+
+void SGitHubToolsPRInfos::OnShowOnlyModifiedFilesCheckStateChanged( ECheckBoxState new_state )
+{
+    ShowFlags = new_state == ECheckBoxState::Checked ? EShowFlags::OnlyModified : EShowFlags::All;
+    TreeView->RequestListRefresh();
+    TreeVisibilitySettingsButton->SetIsOpen( false );
+}
+
+void SGitHubToolsPRInfos::OnShowOnlyUnViewedFilesCheckStateChanged( ECheckBoxState new_state )
+{
+    ShowFlags = new_state == ECheckBoxState::Checked ? EShowFlags::OnlyUnViewed : EShowFlags::All;
+    TreeView->RequestListRefresh();
+    TreeVisibilitySettingsButton->SetIsOpen( false );
+}
+
+TSharedRef< SWidget > SGitHubToolsPRInfos::MakeVisibilityComboMenu( TSharedPtr< SComboButton > owner_combo )
+{
+    FMenuBuilder menu_builder( false, nullptr );
+
+    menu_builder.AddMenuEntry(
+        FUIAction(),
+        SNew( SBox )
+            [ SNew( SCheckBox )
+                    .IsChecked( bShowOnlyUAssets ? ECheckBoxState::Checked : ECheckBoxState::Unchecked )
+                    .OnCheckStateChanged( this, &SGitHubToolsPRInfos::OnShowOnlyUAssetsCheckStateChanged )
+                    .Style( FAppStyle::Get(), "Menu.CheckBox" )
+                    .ToolTipText( LOCTEXT( "OnlyShowUAssetsToolTip", "Toggle whether or not to only show uasset files." ) )
+                    .Content()
+                        [ SNew( SHorizontalBox ) +
+                            SHorizontalBox::Slot()
+                                .Padding( 2.0f, 0.0f, 0.0f, 0.0f )
+                                    [ SNew( STextBlock )
+                                            .Text( LOCTEXT( "OnlyShowUAssets", "Only show uassets" ) ) ] ] ] );
+
+    menu_builder.AddMenuEntry(
+        FUIAction(),
+        SNew( SBox )
+            [ SNew( SCheckBox )
+                    .IsChecked( bHideOFPA ? ECheckBoxState::Checked : ECheckBoxState::Unchecked )
+                    .OnCheckStateChanged( this, &SGitHubToolsPRInfos::OnHideOFPACheckStateChanged )
+                    .Style( FAppStyle::Get(), "Menu.CheckBox" )
+                    .ToolTipText( LOCTEXT( "HideOFPAToolTip", "Hide OFPA assets." ) )
+                    .Content()
+                        [ SNew( SHorizontalBox ) +
+                            SHorizontalBox::Slot()
+                                .Padding( 2.0f, 0.0f, 0.0f, 0.0f )
+                                    [ SNew( STextBlock )
+                                            .Text( LOCTEXT( "HideOFPA", "Hide OFPA assets" ) ) ] ] ] );
+
+    menu_builder.AddMenuEntry(
+        FUIAction(),
+        SNew( SBox )
+            [ SNew( SCheckBox )
+                    .IsChecked( ShowFlags == EShowFlags::OnlyModified ? ECheckBoxState::Checked : ECheckBoxState::Unchecked )
+                    .OnCheckStateChanged( this, &SGitHubToolsPRInfos::OnShowOnlyModifiedFilesCheckStateChanged )
+                    .Style( FAppStyle::Get(), "Menu.CheckBox" )
+                    .ToolTipText( LOCTEXT( "ShowOnlyModifiedFilesToolTip", "Show only modified files." ) )
+                    .Content()
+                        [ SNew( SHorizontalBox ) +
+                            SHorizontalBox::Slot()
+                                .Padding( 2.0f, 0.0f, 0.0f, 0.0f )
+                                    [ SNew( STextBlock )
+                                            .Text( LOCTEXT( "ShowOnlyModifiedFiles", "Show only modified files" ) ) ] ] ] );
+
+    menu_builder.AddMenuEntry(
+        FUIAction(),
+        SNew( SBox )
+            [ SNew( SCheckBox )
+                    .IsChecked( ShowFlags == EShowFlags::OnlyUnViewed ? ECheckBoxState::Checked : ECheckBoxState::Unchecked )
+                    .OnCheckStateChanged( this, &SGitHubToolsPRInfos::OnShowOnlyUnViewedFilesCheckStateChanged )
+                    .Style( FAppStyle::Get(), "Menu.CheckBox" )
+                    .ToolTipText( LOCTEXT( "ShowOnlyUnViewedFilesToolTip", "Show only unviewed files." ) )
+                    .Content()
+                        [ SNew( SHorizontalBox ) +
+                            SHorizontalBox::Slot()
+                                .Padding( 2.0f, 0.0f, 0.0f, 0.0f )
+                                    [ SNew( STextBlock )
+                                            .Text( LOCTEXT( "ShowOnlyUnViewedFiles", "Show only unviewed files" ) ) ] ] ] );
+
+    menu_builder.AddMenuSeparator();
+
+    menu_builder.AddMenuEntry(
+        LOCTEXT( "SGitHubToolsPRInfos_ExpandAll", "Expand All" ),
+        FText::GetEmpty(),
+        FSlateIcon(),
+        FUIAction( FExecuteAction::CreateRaw( this, &SGitHubToolsPRInfos::OnExpandAllClicked ) ) );
+
+    menu_builder.AddMenuEntry(
+        LOCTEXT( "SGitHubToolsPRInfos_CollapseAll", "Collapse All" ),
+        FText::GetEmpty(),
+        FSlateIcon(),
+        FUIAction( FExecuteAction::CreateRaw( this, &SGitHubToolsPRInfos::OnCollapseAllClicked ) ) );
+
+    return menu_builder.MakeWidget();
+}
+
+void SGitHubToolsPRInfos::OnExpandAllClicked()
+{
+    for ( auto node : TreeItems )
+    {
+        SetItemExpansion( node, true );
+    }
+
+    TreeVisibilitySettingsButton->SetIsOpen( false );
+}
+
+void SGitHubToolsPRInfos::OnCollapseAllClicked()
+{
+    for ( auto node : TreeItems )
+    {
+        SetItemExpansion( node, false );
+    }
+
+    TreeVisibilitySettingsButton->SetIsOpen( false );
+}
+
+void SGitHubToolsPRInfos::SetItemExpansion( FGitHubToolsFileInfosTreeItemPtr tree_item, bool is_expanded )
+{
+    TreeView->SetItemExpansion( tree_item, is_expanded );
+
+    for ( auto child : tree_item->Children )
+    {
+        SetItemExpansion( child, is_expanded );
+    }
 }
 
 bool SGitHubToolsPRInfos::IsFileCommentsButtonEnabled() const
@@ -283,17 +386,6 @@ void SGitHubToolsPRInfos::OnGetChildrenForTreeView( FGitHubToolsFileInfosTreeIte
 
 TSharedRef< ITableRow > SGitHubToolsPRInfos::OnGenerateRowForList( FGitHubToolsFileInfosTreeItemPtr tree_item, const TSharedRef< STableViewBase > & owner_table )
 {
-    //return SNew( STableRow< FText >, owner_table )
-    //    .Style( FAppStyle::Get(), "GameplayTagTreeView" )
-    //        [ SNew( SHorizontalBox )
-
-    //            // Tag Selection (selection mode only)
-    //            + SHorizontalBox::Slot()
-    //                  .FillWidth( 1.0f )
-    //                  .HAlign( HAlign_Left )
-    //                  .VAlign( VAlign_Center )
-    //                      [ SNew( STextBlock ).Text( FText::FromString( file_infos->Path ) ) ] ];
-
     return SNew( SGitHubToolsFileInfosRow, owner_table )
         .TreeItem( tree_item )
         .Visibility( MakeAttributeLambda( [ &, tree_item ]() {
@@ -308,7 +400,7 @@ EVisibility SGitHubToolsPRInfos::GetItemRowVisibility( FGithubToolsPullRequestFi
         return EVisibility::Visible;
     }
 
-    if ( OnlyShowAssetsCheckBox->GetCheckedState() == ECheckBoxState::Checked )
+    if ( bShowOnlyUAssets )
     {
         if ( !file_infos->Path.EndsWith( TEXT( ".uasset" ) ) )
         {
@@ -316,7 +408,7 @@ EVisibility SGitHubToolsPRInfos::GetItemRowVisibility( FGithubToolsPullRequestFi
         }
     }
 
-    if ( HideOFPACheckBox->GetCheckedState() == ECheckBoxState::Checked )
+    if ( bHideOFPA )
     {
         if ( file_infos->Path.Contains( TEXT( "__ExternalActors__" ) ) ||
              file_infos->Path.Contains( TEXT( "__ExternalObjects__" ) ) )
@@ -325,86 +417,36 @@ EVisibility SGitHubToolsPRInfos::GetItemRowVisibility( FGithubToolsPullRequestFi
         }
     }
 
+    switch ( ShowFlags )
+    {
+
+        case EShowFlags::All:
+        {
+        }
+        break;
+        case EShowFlags::OnlyModified:
+        {
+            if ( file_infos->ChangedState != EGitHubToolsFileChangedState::Modified )
+            {
+                return EVisibility::Collapsed;
+            }
+        }
+        break;
+        case EShowFlags::OnlyUnViewed:
+        {
+            if ( file_infos->ViewedState != EGitHubToolsFileViewedState::Unviewed )
+            {
+                return EVisibility::Collapsed;
+            }
+        }
+        break;
+        default:
+        {
+            checkNoEntry();
+        };
+    }
+
     return EVisibility::Visible;
-}
-
-EColumnSortMode::Type SGitHubToolsPRInfos::GetColumnSortMode( const FName column_id ) const
-{
-    if ( SortByColumn != column_id )
-    {
-        return EColumnSortMode::None;
-    }
-
-    return SortMode;
-}
-
-void SGitHubToolsPRInfos::OnColumnSortModeChanged( const EColumnSortPriority::Type /*sort_priority*/, const FName & column_id, const EColumnSortMode::Type sort_mode )
-{
-    SortByColumn = column_id;
-    SortMode = sort_mode;
-
-    RequestSort();
-}
-
-void SGitHubToolsPRInfos::RequestSort()
-{
-    SortTree();
-
-    TreeView->RequestListRefresh();
-
-    for ( auto root_node : TreeItems )
-    {
-        TreeView->SetItemExpansion( root_node, true );
-    }
-}
-
-void SGitHubToolsPRInfos::SortTree()
-{
-    if ( SortByColumn == SGitSourceControlReviewFilesWidgetDefs::ColumnID_FileLabel )
-    {
-        if ( SortMode == EColumnSortMode::Ascending )
-        {
-            PRInfos->FileInfos.Sort( []( const FGithubToolsPullRequestFileInfosPtr & A, const FGithubToolsPullRequestFileInfosPtr & B ) {
-                return A->PackageName.ToString() < B->PackageName.ToString();
-            } );
-        }
-        else if ( SortMode == EColumnSortMode::Descending )
-        {
-            PRInfos->FileInfos.Sort( []( const FGithubToolsPullRequestFileInfosPtr & A, const FGithubToolsPullRequestFileInfosPtr & B ) {
-                return A->PackageName.ToString() >= B->PackageName.ToString();
-            } );
-        }
-    }
-    else if ( SortByColumn == SGitSourceControlReviewFilesWidgetDefs::ColumnID_FileChangedStateIconLabel )
-    {
-        if ( SortMode == EColumnSortMode::Ascending )
-        {
-            PRInfos->FileInfos.Sort( []( const FGithubToolsPullRequestFileInfosPtr & A, const FGithubToolsPullRequestFileInfosPtr & B ) {
-                return A->ChangedStateIconName.ToString() < B->ChangedStateIconName.ToString();
-            } );
-        }
-        else if ( SortMode == EColumnSortMode::Descending )
-        {
-            PRInfos->FileInfos.Sort( []( const FGithubToolsPullRequestFileInfosPtr & A, const FGithubToolsPullRequestFileInfosPtr & B ) {
-                return A->ChangedStateIconName.ToString() >= B->ChangedStateIconName.ToString();
-            } );
-        }
-    }
-    else if ( SortByColumn == SGitSourceControlReviewFilesWidgetDefs::ColumnID_FileViewedStateIconLabel )
-    {
-        if ( SortMode == EColumnSortMode::Ascending )
-        {
-            PRInfos->FileInfos.Sort( []( const FGithubToolsPullRequestFileInfosPtr & A, const FGithubToolsPullRequestFileInfosPtr & B ) {
-                return A->ViewedStateIconName.ToString() < B->ViewedStateIconName.ToString();
-            } );
-        }
-        else if ( SortMode == EColumnSortMode::Descending )
-        {
-            PRInfos->FileInfos.Sort( []( const FGithubToolsPullRequestFileInfosPtr & A, const FGithubToolsPullRequestFileInfosPtr & B ) {
-                return A->ViewedStateIconName.ToString() >= B->ViewedStateIconName.ToString();
-            } );
-        }
-    }
 }
 
 void SGitHubToolsPRInfos::OnSelectedFileChanged( FGitHubToolsFileInfosTreeItemPtr selected_item )
