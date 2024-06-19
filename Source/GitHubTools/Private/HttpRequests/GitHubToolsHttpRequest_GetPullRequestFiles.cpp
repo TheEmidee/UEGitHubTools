@@ -1,5 +1,7 @@
 #include "GitHubToolsHttpRequest_GetPullRequestFiles.h"
 
+#include "GitHubToolsSettings.h"
+
 #include <Interfaces/IHttpResponse.h>
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
@@ -10,14 +12,10 @@ FGitHubToolsHttpRequestData_GetPullRequestFiles::FGitHubToolsHttpRequestData_Get
 {
 }
 
-bool FGitHubToolsHttpRequestData_GetPullRequestFiles::UsesGraphQL() const
-{
-    return true;
-}
-
 FString FGitHubToolsHttpRequestData_GetPullRequestFiles::GetBody() const
 {
     TStringBuilder< 512 > string_builder;
+    const auto * settings = GetDefault< UGitHubToolsSettings >();
 
     string_builder << TEXT( "{ \"query\" : \"query ($repoOwner: String!, $repoName: String!, $pullNumber: Int!) {" );
     string_builder << TEXT( "  repository(owner: $repoOwner, name: $repoName) {" );
@@ -38,8 +36,8 @@ FString FGitHubToolsHttpRequestData_GetPullRequestFiles::GetBody() const
     string_builder << TEXT( "\"," );
     string_builder << TEXT( "\"variables\": " );
     string_builder << TEXT( "  {" );
-    string_builder << TEXT( "    \"repoOwner\": \"FishingCactus\"," );
-    string_builder << TEXT( "    \"repoName\": \"SummerCamp\"," );
+    string_builder << TEXT( "    \"repoOwner\": \"" << settings->RepositoryOwner << "\"," );
+    string_builder << TEXT( "    \"repoName\": \"" << settings->RepositoryName << "\"," );
     string_builder << TEXT( "    \"pullNumber\": " << PullRequestNumber );
     string_builder << TEXT( "  }" );
     string_builder << TEXT( "}" );

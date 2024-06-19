@@ -35,11 +35,6 @@ FGitHubToolsHttpRequestData_SubmitPRReview::FGitHubToolsHttpRequestData_SubmitPR
 {
 }
 
-bool FGitHubToolsHttpRequestData_SubmitPRReview::UsesGraphQL() const
-{
-    return true;
-}
-
 FString FGitHubToolsHttpRequestData_SubmitPRReview::GetBody() const
 {
     TStringBuilder< 512 > string_builder;

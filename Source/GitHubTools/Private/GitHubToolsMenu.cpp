@@ -4,6 +4,7 @@
 #include "GitHubToolsGitUtils.h"
 #include "GitSourceControlModule.h"
 #include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestFiles.h"
+#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestNumber.h"
 #include "Widgets/SGitHubToolsPRInfos.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools"
@@ -43,11 +44,24 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
         return;
     }
 
-    GitHubToolsUtils::GetPullRequestInfos( 730 )
-        .Then( [ & ]( const TFuture< FGithubToolsPullRequestInfosPtr > & future_result ) {
-            const auto pr_infos = future_result.Get();
+    FGitHubToolsModule::Get()
+        .GetRequestManager()
+        .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestNumber >()
+        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestNumber > & result ) {
+            const auto & result_data = result.Get();
+            const auto pr_number = result_data.GetResult().GetValue();
 
-            ShowPullRequestReviewWindow( pr_infos );
+            if ( pr_number == INDEX_NONE )
+            {
+                return;
+            }
+
+            GitHubToolsUtils::GetPullRequestInfos( pr_number )
+                .Then( [ & ]( const TFuture< FGithubToolsPullRequestInfosPtr > & future_result ) {
+                    const auto pr_infos = future_result.Get();
+
+                    ShowPullRequestReviewWindow( pr_infos );
+                } );
         } );
 }
 

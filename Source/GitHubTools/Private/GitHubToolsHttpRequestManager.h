@@ -22,24 +22,9 @@ public:
         return Result;
     }
 
-    virtual EGitHubToolsRequestType GetVerb() const
-    {
-        return EGitHubToolsRequestType::GET;
-    };
-
-    virtual FString GetEndPoint() const
-    {
-        return TEXT( "" );
-    }
-
     virtual FString GetBody() const
     {
         return TEXT( "" );
-    }
-
-    virtual bool UsesGraphQL() const
-    {
-        return false;
     }
 
     const FString & GetErrorMessage() const

@@ -11,7 +11,6 @@ public:
     explicit FGitHubToolsHttpRequestData_GetPullRequestInfos( int pull_request_number );
 
     FString GetBody() const override;
-    bool UsesGraphQL() const override;
     void ParseResponse( FHttpResponsePtr response_ptr ) override;
 
 private:

@@ -9,11 +9,6 @@ FGitHubToolsHttpRequestData_ResolveReviewThread::FGitHubToolsHttpRequestData_Res
 {
 }
 
-bool FGitHubToolsHttpRequestData_ResolveReviewThread::UsesGraphQL() const
-{
-    return true;
-}
-
 FString FGitHubToolsHttpRequestData_ResolveReviewThread::GetBody() const
 {
     TStringBuilder< 512 > string_builder;

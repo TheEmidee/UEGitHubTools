@@ -9,7 +9,6 @@ public:
     explicit FGitHubToolsHttpRequestData_AddPRReviewThreadReply( const FString & thread_id, const FString & comment );
 
     FString GetBody() const override;
-    bool UsesGraphQL() const override;
 
 private:
     void ParseResponse( FHttpResponsePtr response_ptr ) override;

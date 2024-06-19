@@ -139,8 +139,6 @@ namespace GitHubToolsUtils
 
     TFuture< FGithubToolsPullRequestInfosPtr > GetPullRequestInfos( const int pr_number )
     {
-        FGitHubToolsModule::Get().GetNotificationManager().DisplayInProgressNotification( LOCTEXT( "FetchPRInfos", "Fetching Pull Request Infos" ) );
-
         TPromise< FGithubToolsPullRequestInfosPtr > promise;
 
         RunPaginatedRequest< FGitHubToolsHttpRequestData_GetPullRequestFiles >( pr_number )

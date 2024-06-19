@@ -14,11 +14,6 @@ FGitHubToolsHttpRequestData_AddPRReviewThread::FGitHubToolsHttpRequestData_AddPR
 {
 }
 
-bool FGitHubToolsHttpRequestData_AddPRReviewThread::UsesGraphQL() const
-{
-    return true;
-}
-
 FString FGitHubToolsHttpRequestData_AddPRReviewThread::GetBody() const
 {
     TStringBuilder< 512 > string_builder;
