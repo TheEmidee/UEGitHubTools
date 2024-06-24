@@ -30,11 +30,13 @@ enum class EGitHubToolsFileViewedState : uint8
 struct FGithubToolsPullRequestComment
 {
     FGithubToolsPullRequestComment() = default;
+    explicit FGithubToolsPullRequestComment( const TSharedRef< FJsonObject > & json_object );
 
     FString Id;
     FText Author;
     FText Date;
     FText Comment;
+    FString Path;
 };
 
 typedef TSharedPtr< FGithubToolsPullRequestComment > FGithubToolsPullRequestCommentPtr;
@@ -69,6 +71,7 @@ enum class EGitHubToolsReviewState : uint8
 struct FGithubToolsPullRequestReviewThreadInfos
 {
     FGithubToolsPullRequestReviewThreadInfos() = default;
+    explicit FGithubToolsPullRequestReviewThreadInfos( const TSharedRef< FJsonObject > & json_object );
 
     FString Id;
     bool bIsResolved;
@@ -80,10 +83,19 @@ struct FGithubToolsPullRequestReviewThreadInfos
 
 typedef TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > FGithubToolsPullRequestReviewThreadInfosPtr;
 
+struct FGithubToolsPullRequestPendingReviewInfos
+{
+    FGithubToolsPullRequestPendingReviewInfos() = default;
+
+    TArray< FGithubToolsPullRequestCommentPtr > Comments;
+};
+
+typedef TSharedPtr< FGithubToolsPullRequestPendingReviewInfos > FGithubToolsPullRequestPendingReviewInfosPtr;
+
 struct FGitHubToolsPullRequestCheckInfos
 {
     FGitHubToolsPullRequestCheckInfos() = default;
-    explicit FGitHubToolsPullRequestCheckInfos( const TSharedPtr< FJsonObject > & json );
+    explicit FGitHubToolsPullRequestCheckInfos( const TSharedRef< FJsonObject > & json );
 
     FString Context;
     FString State;
@@ -95,8 +107,11 @@ typedef TSharedPtr< FGitHubToolsPullRequestCheckInfos > FGitHubToolsPullRequestC
 struct FGithubToolsPullRequestInfos
 {
     FGithubToolsPullRequestInfos() = default;
-    explicit FGithubToolsPullRequestInfos( const TSharedPtr< FJsonObject > & json );
+    explicit FGithubToolsPullRequestInfos( const TSharedRef< FJsonObject > & json );
 
+    bool HasPendingReviews() const;
+
+    FString ViewerLogin;
     int Number;
     FString Id;
     FString Title;
@@ -114,6 +129,12 @@ struct FGithubToolsPullRequestInfos
     TArray< FGithubToolsPullRequestFileInfosPtr > FileInfos;
     TArray< FGithubToolsPullRequestReviewThreadInfosPtr > Reviews;
     TArray< FGitHubToolsPullRequestCheckInfosPtr > Checks;
+    TArray< FGithubToolsPullRequestPendingReviewInfosPtr > PendingReviews;
 };
+
+FORCEINLINE bool FGithubToolsPullRequestInfos::HasPendingReviews() const
+{
+    return !PendingReviews.IsEmpty();
+}
 
 typedef TSharedPtr< FGithubToolsPullRequestInfos > FGithubToolsPullRequestInfosPtr;

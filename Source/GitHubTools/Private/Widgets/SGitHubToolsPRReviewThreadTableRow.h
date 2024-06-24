@@ -8,9 +8,11 @@
 class SGitHubToolsPRReviewThreadTableRow : public STableRow< FGithubToolsPullRequestReviewThreadInfosPtr >
 {
 public:
-    SLATE_BEGIN_ARGS( SGitHubToolsPRReviewThreadTableRow )
+    SLATE_BEGIN_ARGS( SGitHubToolsPRReviewThreadTableRow ) :
+        _EnableButtons( false )
     {}
 
+    SLATE_ATTRIBUTE( bool, EnableButtons )
     SLATE_ARGUMENT( FGithubToolsPullRequestReviewThreadInfosPtr, ThreadInfos )
     SLATE_EVENT( FOnClicked, OnAddCommentClicked )
 

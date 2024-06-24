@@ -70,7 +70,13 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
                         .GetRequestManager()
                         .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestInfos >( pr_number )
                         .Then( [ &, files = MoveTemp( files ) ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestInfos > & get_pr_infos ) {
-                            const auto optional_result = get_pr_infos.Get().GetResult();
+                            const auto request = get_pr_infos.Get();
+                            if ( request.HasErrorMessage() )
+                            {
+                                return;
+                            }
+
+                            const auto optional_result = request.GetResult();
 
                             auto pr_infos = optional_result.GetValue();
 

@@ -18,7 +18,10 @@ FString FGitHubToolsHttpRequestData_GetPullRequestInfos::GetBody() const
     TStringBuilder< 512 > string_builder;
 
     string_builder << TEXT( "{ \"query\" : \"query ($repoOwner: String!, $repoName: String!, $pullNumber: Int!) {" );
-    string_builder << TEXT( "  repository(owner: $repoOwner, name: $repoName) {" );
+    string_builder << TEXT( "  viewer {" );
+    string_builder << TEXT( "    login" );
+    string_builder << TEXT( "  }" );
+    string_builder << TEXT( "  repository( owner: $repoOwner, name: $repoName) {" );
     string_builder << TEXT( "    pullRequest( number : $pullNumber ) {" );
     string_builder << TEXT( "      number" );
     string_builder << TEXT( "      id" );
@@ -75,6 +78,29 @@ FString FGitHubToolsHttpRequestData_GetPullRequestInfos::GetBody() const
     string_builder << TEXT( "          }" );
     string_builder << TEXT( "        }" );
     string_builder << TEXT( "      }" );
+    string_builder << TEXT( "      reviews( first : 100, states : PENDING ) {" );
+    string_builder << TEXT( "        edges {" );
+    string_builder << TEXT( "          node {" );
+    string_builder << TEXT( "            author {" );
+    string_builder << TEXT( "              login" );
+    string_builder << TEXT( "            }" );
+    string_builder << TEXT( "            id" );
+    string_builder << TEXT( "            comments( first : 100 ) {" );
+    string_builder << TEXT( "              edges {" );
+    string_builder << TEXT( "                node {" );
+    string_builder << TEXT( "                  author {" );
+    string_builder << TEXT( "                    login" );
+    string_builder << TEXT( "                  }" );
+    string_builder << TEXT( "                  id" );
+    string_builder << TEXT( "                  body" );
+    string_builder << TEXT( "                  createdAt" );
+    string_builder << TEXT( "                  path" );
+    string_builder << TEXT( "                }" );
+    string_builder << TEXT( "              }" );
+    string_builder << TEXT( "            }" );
+    string_builder << TEXT( "          }" );
+    string_builder << TEXT( "        }" );
+    string_builder << TEXT( "      }" );
     string_builder << TEXT( "    }" );
     string_builder << TEXT( "  }" );
     string_builder << TEXT( "}" );
@@ -102,43 +128,28 @@ void FGitHubToolsHttpRequestData_GetPullRequestInfos::ParseResponse( FHttpRespon
     }
 
     const auto data_object = data->AsObject()->GetObjectField( TEXT( "data" ) );
+
+    const auto viewer_object = data_object->GetObjectField( TEXT( "viewer" ) );
+
     const auto repository_object = data_object->GetObjectField( TEXT( "repository" ) );
     const auto pull_request_object = repository_object->GetObjectField( TEXT( "pullRequest" ) );
 
-    auto pr_infos = MakeShared< FGithubToolsPullRequestInfos >( pull_request_object );
+    auto pr_infos = MakeShared< FGithubToolsPullRequestInfos >( pull_request_object.ToSharedRef() );
+    pr_infos->ViewerLogin = viewer_object->GetStringField( TEXT( "login" ) );
 
-    const auto reviews_object = pull_request_object->GetObjectField( TEXT( "reviewThreads" ) );
-    const auto reviews_nodes_object = reviews_object->GetArrayField( TEXT( "nodes" ) );
+    const auto review_threads_object = pull_request_object->GetObjectField( TEXT( "reviewThreads" ) );
+    const auto review_threads_nodes_object = review_threads_object->GetArrayField( TEXT( "nodes" ) );
 
-    pr_infos->Reviews.Reserve( reviews_nodes_object.Num() );
+    pr_infos->Reviews.Reserve( review_threads_nodes_object.Num() );
 
-    for ( const auto review_object : reviews_nodes_object )
+    for ( const auto review_thread_object : review_threads_nodes_object )
     {
-        const auto review_node_object = review_object->AsObject();
+        const auto review_thread_node_object = review_thread_object->AsObject();
 
-        const auto get_resolved_by_user_name = [ &review_node_object ]() {
-            FString user_name( TEXT( "" ) );
-            if ( review_node_object->HasField( TEXT( "resolvedBy" ) ) )
-            {
-                const TSharedPtr< FJsonObject > * review_author_object;
-
-                if ( review_node_object->TryGetObjectField( TEXT( "resolvedBy" ), review_author_object ) )
-                {
-                    user_name = ( *review_author_object )->GetStringField( TEXT( "login" ) );
-                }
-            }
-
-            return user_name;
-        };
-
-        auto review_thread_infos = MakeShared< FGithubToolsPullRequestReviewThreadInfos >();
-        review_thread_infos->Id = review_node_object->GetStringField( TEXT( "id" ) );
-        review_thread_infos->bIsResolved = review_node_object->GetBoolField( TEXT( "isResolved" ) );
-        review_thread_infos->FileName = review_node_object->GetStringField( TEXT( "path" ) );
-        review_thread_infos->ResolvedByUserName = get_resolved_by_user_name();
+        auto review_thread_infos = MakeShared< FGithubToolsPullRequestReviewThreadInfos >( review_thread_node_object.ToSharedRef() );
         review_thread_infos->PRNumber = pr_infos->Number;
 
-        const auto comments_object = review_node_object->GetObjectField( TEXT( "comments" ) );
+        const auto comments_object = review_thread_node_object->GetObjectField( TEXT( "comments" ) );
         const auto comments_edges_object = comments_object->GetArrayField( TEXT( "edges" ) );
 
         review_thread_infos->Comments.Reserve( comments_edges_object.Num() );
@@ -146,14 +157,8 @@ void FGitHubToolsHttpRequestData_GetPullRequestInfos::ParseResponse( FHttpRespon
         for ( const auto comment_object : comments_edges_object )
         {
             const auto comment_node_object = comment_object->AsObject()->GetObjectField( TEXT( "node" ) );
-            const auto comment_author_object = comment_node_object->GetObjectField( TEXT( "author" ) );
 
-            auto comment = MakeShared< FGithubToolsPullRequestComment >();
-
-            comment->Id = comment_node_object->GetStringField( TEXT( "id" ) );
-            comment->Author = FText::FromString( comment_author_object->GetStringField( TEXT( "login" ) ) );
-            comment->Comment = FText::FromString( comment_node_object->GetStringField( TEXT( "body" ) ) );
-            comment->Date = FText::FromString( comment_node_object->GetStringField( TEXT( "createdAt" ) ) );
+            auto comment = MakeShared< FGithubToolsPullRequestComment >( comment_node_object.ToSharedRef() );
 
             review_thread_infos->Comments.Emplace( comment );
         }
@@ -172,7 +177,42 @@ void FGitHubToolsHttpRequestData_GetPullRequestInfos::ParseResponse( FHttpRespon
 
     for ( const auto check_object : contexts_json )
     {
-        pr_infos->Checks.Emplace( MakeShared< FGitHubToolsPullRequestCheckInfos >( check_object->AsObject() ) );
+        pr_infos->Checks.Emplace( MakeShared< FGitHubToolsPullRequestCheckInfos >( check_object->AsObject().ToSharedRef() ) );
+    }
+
+    const auto reviews_object = pull_request_object->GetObjectField( TEXT( "reviews" ) );
+    const auto reviews_edges_object = reviews_object->GetArrayField( TEXT( "edges" ) );
+
+    pr_infos->PendingReviews.Reserve( reviews_edges_object.Num() );
+
+    for ( const auto review_edge_object : reviews_edges_object )
+    {
+        const auto review_node_object = review_edge_object->AsObject()->GetObjectField( TEXT( "node" ) );
+        const auto review_node_author_object = review_node_object->GetObjectField( TEXT( "author" ) );
+        const auto review_node_author_login = review_node_author_object->GetStringField( TEXT( "login" ) );
+
+        if ( review_node_author_login != pr_infos->ViewerLogin )
+        {
+            continue;
+        }
+
+        auto pending_review = MakeShared< FGithubToolsPullRequestPendingReviewInfos >();
+
+        const auto comments_object = review_node_object->GetObjectField( TEXT( "comments" ) );
+        const auto comments_edges_object = comments_object->GetArrayField( TEXT( "edges" ) );
+
+        pr_infos->PendingReviews.Emplace( pending_review );
+
+        pending_review->Comments.Reserve( comments_edges_object.Num() );
+
+        for ( const auto comment_object : comments_edges_object )
+        {
+            const auto comment_node_object = comment_object->AsObject()->GetObjectField( TEXT( "node" ) );
+
+            auto comment = MakeShared< FGithubToolsPullRequestComment >( comment_node_object.ToSharedRef() );
+
+            pending_review->Comments.Emplace( comment );
+        }
     }
 
     Result = pr_infos;

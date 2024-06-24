@@ -5,6 +5,7 @@
 #include "GitHubToolsSettings.h"
 #include "MaterialGraph/MaterialGraphSchema.h"
 #include "SGitHubToolsPRInfosHeader.h"
+#include "SGitHubToolsPRInfosPendingReviews.h"
 #include "SGitHubToolsPRReviewList.h"
 
 #include <AssetToolsModule.h>

@@ -1,24 +1,14 @@
-#include "SGitHubToolsPRInfosHeader.h"
+#include "SGitHubToolsPRInfosPendingReviews.h"
 
 #include "RevisionControlStyle/RevisionControlStyle.h"
-#include "SGitHubToolsPRInfosPendingReviews.h"
 
 #if SOURCE_CONTROL_WITH_SLATE
 
-#define LOCTEXT_NAMESPACE "SGitHubToolsPRHeader"
+#define LOCTEXT_NAMESPACE "SGitHubToolsPRInfosPendingReviews"
 
-namespace
+void SGitHubToolsPRInfosPendingReviews::Construct( const FArguments & arguments )
 {
-    FSlateIcon GetIcon( bool value )
-    {
-        return value
-                   ? FSlateIcon( FRevisionControlStyleManager::GetStyleSetName(), "RevisionControl.CheckedOut" )
-                   : FSlateIcon( FRevisionControlStyleManager::GetStyleSetName(), "RevisionControl.MarkedForDelete" );
-    }
-}
-
-void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
-{
+    ParentFrame = arguments._ParentWindow.Get();
     PRInfos = arguments._PRInfos.Get();
 
     TSharedPtr< SVerticalBox > checks_box;
@@ -33,7 +23,7 @@ void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
                                 [ SNew( SButton )
                                         .VAlign( VAlign_Center )
                                         .Text( LOCTEXT( "OpenInGitHub", "Open in GitHub" ) )
-                                        .OnClicked( this, &SGitHubToolsPRHeader::OpenInGitHubClicked ) ] +
+                                        .OnClicked( this, &SGitHubToolsPRInfosPendingReviews::OpenInGitHubClicked ) ] +
                         SHorizontalBox::Slot()
                             .AutoWidth()
                             .Padding( FMargin( 10 ) )
@@ -82,8 +72,7 @@ void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
                                                                 .Justification( ETextJustify::Type::Left ) ] +
                                                 SHorizontalBox::Slot()
                                                     .AutoWidth()
-                                                        [ SNew( SImage )
-                                                                .Image( GetIcon( PRInfos->bIsDraft ).GetIcon() ) ] ] +
+                                                        [ SNew( SImage ) ] ] +
                                     SVerticalBox::Slot()
                                         .AutoHeight()
                                             [ SNew( SHorizontalBox ) +
@@ -94,24 +83,11 @@ void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
                                                                 .Justification( ETextJustify::Type::Left ) ] +
                                                 SHorizontalBox::Slot()
                                                     .AutoWidth()
-                                                        [ SNew( SImage )
-                                                                .Image( GetIcon( PRInfos->bIsMergeable ).GetIcon() ) ] ] ] +
+                                                        [ SNew( SImage ) ] ] ] +
                         SHorizontalBox::Slot()
                             .AutoWidth()
                             .Padding( FMargin( 10 ) )
-                                [ SAssignNew( checks_box, SVerticalBox ) ] +
-                        SHorizontalBox::Slot()
-                            .AutoWidth()
-                            .Padding( FMargin( 10 ) )
-                                [ SNew( SBorder )
-                                        .Padding( FMargin( 10.0f ) )
-                                        .BorderBackgroundColor( FCoreStyle::Get().GetColor( "ErrorReporting.BackgroundColor" ) )
-                                        .Visibility( this, &SGitHubToolsPRHeader::GetPendingReviewsVisibility )
-                                            [ SNew( SButton )
-                                                    .VAlign( VAlign_Center )
-                                                    .ButtonColorAndOpacity( FCoreStyle::Get().GetColor( "ErrorReporting.BackgroundColor" ) )
-                                                    .Text( LOCTEXT( "OpenPendingReviewsButtonText", "Open Pending Reviews" ) )
-                                                    .OnClicked( this, &SGitHubToolsPRHeader::OnOpenPendingReviewsClicked ) ] ] ] ];
+                                [ SAssignNew( checks_box, SVerticalBox ) ] ] ];
 
     checks_box->AddSlot()
         [ SNew( STextBlock )
@@ -143,44 +119,9 @@ void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
     }
 }
 
-FReply SGitHubToolsPRHeader::OpenInGitHubClicked()
+FReply SGitHubToolsPRInfosPendingReviews::OpenInGitHubClicked()
 {
     FPlatformProcess::LaunchURL( *PRInfos->URL, nullptr, nullptr );
-
-    return FReply::Handled();
-}
-
-EVisibility SGitHubToolsPRHeader::GetPendingReviewsVisibility() const
-{
-    return PRInfos->HasPendingReviews()
-               ? EVisibility::Visible
-               : EVisibility::Collapsed;
-}
-
-FReply SGitHubToolsPRHeader::OnOpenPendingReviewsClicked()
-{
-    PendingReviewsWindow = SNew( SWindow )
-                               .Title( LOCTEXT( "SourceControlLoginTitle", "Pending Reviews" ) )
-                               .ClientSize( FVector2D( 1024, 768 ) )
-                               .HasCloseButton( true )
-                               .SupportsMaximize( false )
-                               .SupportsMinimize( false )
-                               .SizingRule( ESizingRule::FixedSize );
-
-    PendingReviewsWindow->SetOnWindowClosed( FOnWindowClosed::CreateLambda( [ & ]( const TSharedRef< SWindow > & /*window*/ ) {
-        PendingReviewsWindow = nullptr;
-        //ShowFileReviews( FileInfos );
-    } ) );
-
-    PendingReviewsWindow->SetContent( SNew( SGitHubToolsPRInfosPendingReviews )
-                                          .ParentWindow( PendingReviewsWindow )
-                                          .PRInfos( PRInfos ) );
-
-    if ( const TSharedPtr< SWindow > root_window = FGlobalTabmanager::Get()->GetRootWindow();
-         root_window.IsValid() )
-    {
-        FSlateApplication::Get().AddModalWindow( PendingReviewsWindow.ToSharedRef(), root_window );
-    }
 
     return FReply::Handled();
 }

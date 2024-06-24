@@ -67,7 +67,10 @@ void TGitHubToolsHttpRequest< TRequest >::OnProcessRequestComplete( FHttpRequest
     AsyncTask( ENamedThreads::GameThread, [ & ]() {
         if ( Request.HasErrorMessage() )
         {
-            FGitHubToolsModule::Get().GetNotificationManager().DisplayFailureNotification( FText::FromString( Request.GetErrorMessage() ) );
+            FGitHubToolsModule::Get()
+                .GetNotificationManager()
+                .DisplayFailureNotification(
+                    FText::FromString( FString::Printf( TEXT( "Error with the request : %s" ), *Request.GetErrorMessage() ) ) );
         }
 
         Promise.SetValue( Request );

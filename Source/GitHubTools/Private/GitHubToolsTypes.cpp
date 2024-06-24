@@ -126,6 +126,21 @@ namespace
     }
 }
 
+FGithubToolsPullRequestComment::FGithubToolsPullRequestComment( const TSharedRef< FJsonObject > & json_object )
+{
+    Id = json_object->GetStringField( TEXT( "id" ) );
+
+    const auto comment_author_object = json_object->GetObjectField( TEXT( "author" ) );
+    Author = FText::FromString( comment_author_object->GetStringField( TEXT( "login" ) ) );
+    Comment = FText::FromString( json_object->GetStringField( TEXT( "body" ) ) );
+    Date = FText::FromString( json_object->GetStringField( TEXT( "createdAt" ) ) );
+
+    if ( json_object->HasField( TEXT( "path" ) ) )
+    {
+        Path = json_object->GetStringField( TEXT( "path" ) );
+    }
+}
+
 FGithubToolsPullRequestFileInfos::FGithubToolsPullRequestFileInfos( const FString & path, const FString & change_type, const FString & viewed_state ) :
     Path( path ),
     AssetName( FText::FromString( FPaths::GetCleanFilename( path ) ) ),
@@ -141,14 +156,39 @@ FGithubToolsPullRequestFileInfos::FGithubToolsPullRequestFileInfos( const FStrin
 {
 }
 
-FGitHubToolsPullRequestCheckInfos::FGitHubToolsPullRequestCheckInfos( const TSharedPtr< FJsonObject > & json )
+FGithubToolsPullRequestReviewThreadInfos::FGithubToolsPullRequestReviewThreadInfos( const TSharedRef< FJsonObject > & json_object ) :
+    PRNumber( INDEX_NONE )
+{
+    Id = json_object->GetStringField( TEXT( "id" ) );
+    bIsResolved = json_object->GetBoolField( TEXT( "isResolved" ) );
+    FileName = json_object->GetStringField( TEXT( "path" ) );
+
+    const auto get_resolved_by_user_name = [ &json_object ]() {
+        FString user_name( TEXT( "" ) );
+        if ( json_object->HasField( TEXT( "resolvedBy" ) ) )
+        {
+            const TSharedPtr< FJsonObject > * review_author_object;
+
+            if ( json_object->TryGetObjectField( TEXT( "resolvedBy" ), review_author_object ) )
+            {
+                user_name = ( *review_author_object )->GetStringField( TEXT( "login" ) );
+            }
+        }
+
+        return user_name;
+    };
+
+    ResolvedByUserName = get_resolved_by_user_name();
+}
+
+FGitHubToolsPullRequestCheckInfos::FGitHubToolsPullRequestCheckInfos( const TSharedRef< FJsonObject > & json )
 {
     Context = json->GetStringField( TEXT( "context" ) );
     State = json->GetStringField( TEXT( "state" ) );
     Description = json->GetStringField( TEXT( "description" ) );
 }
 
-FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( const TSharedPtr< FJsonObject > & json )
+FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( const TSharedRef< FJsonObject > & json )
 {
     const auto author_object = json->GetObjectField( TEXT( "author" ) );
     const auto commits_object = json->GetObjectField( TEXT( "commits" ) );
