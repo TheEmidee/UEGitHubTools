@@ -4,6 +4,7 @@
 #include "GitHubToolsGitUtils.h"
 #include "GitSourceControlModule.h"
 #include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestFiles.h"
+#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestInfos.h"
 #include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestNumber.h"
 #include "Widgets/SGitHubToolsPRInfos.h"
 
@@ -44,6 +45,8 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
         return;
     }
 
+    FGitHubToolsModule::Get().GetNotificationManager().DisplayInProgressNotification( LOCTEXT( "FetchPRInfos", "Fecthing Pull Request informations" ) );
+
     FGitHubToolsModule::Get()
         .GetRequestManager()
         .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestNumber >()
@@ -53,14 +56,32 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
 
             if ( pr_number == INDEX_NONE )
             {
+                FGitHubToolsModule::Get().GetNotificationManager().DisplayFailureNotification( LOCTEXT( "FetchPrInfosError_NoPRNumber", "Unable to get the PR number" ) );
                 return;
             }
 
-            GitHubToolsUtils::GetPullRequestInfos( pr_number )
-                .Then( [ & ]( const TFuture< FGithubToolsPullRequestInfosPtr > & future_result ) {
-                    const auto pr_infos = future_result.Get();
+            FGitHubToolsModule::Get()
+                .GetRequestManager()
+                .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestFiles >( pr_number )
+                .Then( [ &, pr_number ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestFiles > & get_files ) {
+                    auto files = get_files.Get();
 
-                    ShowPullRequestReviewWindow( pr_infos );
+                    FGitHubToolsModule::Get()
+                        .GetRequestManager()
+                        .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestInfos >( pr_number )
+                        .Then( [ &, files = MoveTemp( files ) ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestInfos > & get_pr_infos ) {
+                            const auto optional_result = get_pr_infos.Get().GetResult();
+
+                            auto pr_infos = optional_result.GetValue();
+
+                            if ( optional_result.IsSet() )
+                            {
+                                pr_infos->FileInfos.Append( files.GetResult().GetValue() );
+                            }
+
+                            FGitHubToolsModule::Get().GetNotificationManager().RemoveInProgressNotification();
+                            ShowPullRequestReviewWindow( pr_infos );
+                        } );
                 } );
         } );
 }

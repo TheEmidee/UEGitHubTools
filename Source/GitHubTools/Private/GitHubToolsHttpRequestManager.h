@@ -27,6 +27,11 @@ public:
         return TEXT( "" );
     }
 
+    bool HasErrorMessage() const
+    {
+        return !ErrorMessage.IsEmpty();
+    }
+
     const FString & GetErrorMessage() const
     {
         return ErrorMessage;
@@ -109,6 +114,28 @@ public:
     template < typename TRequest, typename... TArgTypes >
     TFuture< TRequest > SendRequest( TArgTypes &&... args );
 
+    TFuture< bool > SendRequest2()
+    {
+        t = MakeShared< T >();
+        auto future = t->promise.GetFuture();
+
+        Async( EAsyncExecution::TaskGraph, [ & ]() {
+            FPlatformProcess::Sleep( 3.0f );
+
+            AsyncTask( ENamedThreads::GameThread, [ & ]() {
+                t->promise.SetValue( true );
+            } );
+        } );
+
+        return future;
+    }
+
 private:
+    struct T
+    {
+        TPromise< bool > promise;
+    };
+
+    TSharedPtr< T > t;
     TSharedPtr< IGitHubToolsHttpRequest > Request;
 };

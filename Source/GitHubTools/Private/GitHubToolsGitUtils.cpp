@@ -139,6 +139,37 @@ namespace GitHubToolsUtils
 
     TFuture< FGithubToolsPullRequestInfosPtr > GetPullRequestInfos( const int pr_number )
     {
+        //TPromise< FGithubToolsPullRequestInfosPtr > promise;
+
+        return FGitHubToolsModule::Get()
+            .GetRequestManager()
+            .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestFiles >( pr_number )
+            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestFiles > & get_files ) {
+                const auto files = get_files.Get();
+
+                return FGitHubToolsModule::Get()
+                    .GetRequestManager()
+                    .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestInfos >( pr_number )
+                    .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestInfos > & get_pr_infos ) {
+                        const auto optional_result = get_pr_infos.Get().GetResult();
+
+                        auto pr_infos = optional_result.GetValue();
+
+                        if ( optional_result.IsSet() )
+                        {
+                            pr_infos->FileInfos.Append( files.GetResult().GetValue() );
+                        }
+
+                        FGitHubToolsModule::Get().GetNotificationManager().RemoveInProgressNotification();
+                        //promise.SetValue( pr_infos );
+
+                        return MakeFulfilledPromise< FGithubToolsPullRequestInfosPtr >( pr_infos ).GetFuture().Get();
+                    } ).Get();
+            } );
+
+        //return promise.GetFuture();
+
+        /*
         TPromise< FGithubToolsPullRequestInfosPtr > promise;
 
         RunPaginatedRequest< FGitHubToolsHttpRequestData_GetPullRequestFiles >( pr_number )
@@ -165,6 +196,7 @@ namespace GitHubToolsUtils
             } );
 
         return promise.GetFuture();
+        */
     }
 }
 

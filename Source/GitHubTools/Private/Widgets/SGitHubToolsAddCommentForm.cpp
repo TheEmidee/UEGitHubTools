@@ -39,10 +39,18 @@ void SGitHubToolsAddCommentForm::Construct( const FArguments & arguments )
                                 [ SNew( SBox )
                                         .HeightOverride( 300 )
                                             [ SAssignNew( CommentTextBox, SMultiLineEditableTextBox )
+                                                    .OnTextChanged( this, &SGitHubToolsAddCommentForm::OnTextChanged )
                                                     .SelectAllTextWhenFocused( false )
                                                     .Text( FText::GetEmpty() )
                                                     .AutoWrapText( true )
                                                     .IsReadOnly( false ) ] ] +
+                        SVerticalBox::Slot()
+                            .AutoHeight()
+                            .Padding( FMargin( 5, 5, 5, 0 ) )
+                                [ SNew( SBorder )
+                                        .Visibility( this, &SGitHubToolsAddCommentForm::IsErrorPanelVisible )
+                                        .Padding( 5 )
+                                            [ SAssignNew( ErrorText, SErrorText ) ] ] +
                         SVerticalBox::Slot()
                             .AutoHeight()
                             .HAlign( HAlign_Right )
@@ -66,6 +74,7 @@ void SGitHubToolsAddCommentForm::Construct( const FArguments & arguments )
                                                 .Text( NSLOCTEXT( "SourceControl.SubmitPanel", "CancelButton", "Cancel" ) )
                                                 .OnClicked( this, &SGitHubToolsAddCommentForm::OnCancelButtonClicked ) ] ] ] ];
 
+    OnTextChanged( FText::GetEmpty() );
     ParentFrame.Pin()->SetWidgetToFocusOnActivate( CommentTextBox );
 }
 
@@ -93,8 +102,24 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
         FGitHubToolsModule::Get()
             .GetRequestManager()
             .SendRequest< FGitHubToolsHttpRequestData_AddPRReview >( PRInfos->Id )
-            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReview > & add_pr_review_result ) {
-                const auto review_id = add_pr_review_result.Get().GetResult().GetValue();
+            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReview > & request_future ) {
+                const auto & request = request_future.Get();
+
+                if ( request.HasErrorMessage() )
+                {
+                    RefreshErrorText( FText::FromString( request.GetErrorMessage() ) );
+                    return;
+                }
+
+                const auto result = request_future.Get().GetResult();
+
+                auto review_id = result.Get( TEXT( "" ) );
+
+                if ( review_id.IsEmpty() )
+                {
+                    RefreshErrorText( LOCTEXT( "Error_NoThreadId", "Could not get a thread ID" ) );
+                    return;
+                }
 
                 FGitHubToolsModule::Get()
                     .GetRequestManager()
@@ -131,11 +156,24 @@ FReply SGitHubToolsAddCommentForm::OnCancelButtonClicked()
 void SGitHubToolsAddCommentForm::CloseDialog()
 {
     ParentFrame.Pin()->RequestDestroyWindow();
-    if ( const auto containing_window = FSlateApplication::Get().FindWidgetWindow( AsShared() );
-         containing_window.IsValid() )
-    {
-        containing_window->RequestDestroyWindow();
-    }
+}
+
+void SGitHubToolsAddCommentForm::OnTextChanged( const FText & text )
+{
+    RefreshErrorText( text.IsEmpty()
+                          ? LOCTEXT( "NoTextError", "You must type a comment" )
+                          : FText::GetEmpty() );
+}
+
+void SGitHubToolsAddCommentForm::RefreshErrorText( const FText & error_message )
+{
+    ErrorTextMessage = error_message;
+    ErrorText->SetError( ErrorTextMessage );
+}
+
+EVisibility SGitHubToolsAddCommentForm::IsErrorPanelVisible() const
+{
+    return ErrorTextMessage.IsEmpty() ? EVisibility::Collapsed : EVisibility::Visible;
 }
 
 #undef LOCTEXT_NAMESPACE

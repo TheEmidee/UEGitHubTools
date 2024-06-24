@@ -17,7 +17,6 @@ public:
     SLATE_END_ARGS()
 
     virtual ~SGitHubToolsAddCommentForm() override;
-
     void Construct( const FArguments & arguments );
 
 private:
@@ -25,11 +24,16 @@ private:
     FReply OnSubmitButtonClicked();
     FReply OnCancelButtonClicked();
     void CloseDialog();
+    void OnTextChanged( const FText & text );
+    void RefreshErrorText(const FText& error_message);
+    EVisibility IsErrorPanelVisible() const;
 
     TSharedPtr< SMultiLineEditableTextBox > CommentTextBox;
     TSharedPtr< STextBlock > HeaderText;
+    TSharedPtr< SErrorText > ErrorText;
     TWeakPtr< SWindow > ParentFrame;
     FGithubToolsPullRequestInfosPtr PRInfos;
     FGithubToolsPullRequestReviewThreadInfosPtr ThreadInfos;
     FGithubToolsPullRequestFileInfosPtr FileInfos;
+    FText ErrorTextMessage;
 };

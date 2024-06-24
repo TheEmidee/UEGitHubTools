@@ -1,5 +1,6 @@
 #include "GitHubToolsHttpRequestManager.h"
 
+#include "GitHubTools.h"
 #include "GitHubToolsSettings.h"
 #include "Interfaces/IHttpResponse.h"
 
@@ -63,19 +64,14 @@ void TGitHubToolsHttpRequest< TRequest >::OnProcessRequestComplete( FHttpRequest
         Request.ProcessResponse( response_ptr );
     }
 
-    Promise.SetValue( Request );
-}
+    AsyncTask( ENamedThreads::GameThread, [ & ]() {
+        if ( Request.HasErrorMessage() )
+        {
+            FGitHubToolsModule::Get().GetNotificationManager().DisplayFailureNotification( FText::FromString( Request.GetErrorMessage() ) );
+        }
 
-template < typename TRequest, typename... TArgTypes >
-TFuture< TRequest > FGitHubToolsHttpRequestManager::SendRequest( TArgTypes &&... args )
-{
-    typedef TGitHubToolsHttpRequest< TRequest > HttpRequestType;
-    auto request = MakeShared< HttpRequestType >( Forward< TArgTypes >( args )... );
-
-    Request = request;
-
-    request->ProcessRequest();
-    return request->GetFuture();
+        Promise.SetValue( Request );
+    } );
 }
 
 template < typename TResultType >
@@ -150,4 +146,22 @@ void FGitHubToolsHttpRequestWithPagination< TResultType >::ParsePageInfo( const 
     const auto page_info = json_object->GetObjectField( TEXT( "pageInfo" ) );
     EndCursor = page_info->GetStringField( TEXT( "endCursor" ) );
     bHasNextPage = page_info->GetStringField( TEXT( "hasNextPage" ) ) == TEXT( "true" );
+}
+
+template < typename TRequest, typename... TArgTypes >
+TFuture< TRequest > FGitHubToolsHttpRequestManager::SendRequest( TArgTypes &&... args )
+{
+    typedef TGitHubToolsHttpRequest< TRequest > HttpRequestType;
+    auto request = MakeShared< HttpRequestType >( Forward< TArgTypes >( args )... );
+
+    Request = request;
+
+    //auto future = t->promise.GetFuture();
+
+    Async( EAsyncExecution::TaskGraph, [ &, r = request ]() {
+        //FPlatformProcess::Sleep( 3.0f );
+        r->ProcessRequest();
+    } );
+
+    return request->GetFuture();
 }

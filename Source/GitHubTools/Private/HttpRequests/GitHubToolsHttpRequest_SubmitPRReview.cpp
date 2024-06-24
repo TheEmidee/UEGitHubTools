@@ -70,7 +70,7 @@ void FGitHubToolsHttpRequestData_SubmitPRReview::ParseResponse( FHttpResponsePtr
     const auto data_object = data->AsObject()->GetObjectField( TEXT( "data" ) );
     const auto result_object = data_object->GetObjectField( TEXT( "submitPullRequestReview" ) );
     const auto thread_object = result_object->GetObjectField( TEXT( "pullRequestReview" ) );
-    PullRequestReviewId = thread_object->GetStringField( TEXT( "id" ) );
+    Result = thread_object->GetStringField( TEXT( "id" ) );
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -143,7 +143,7 @@ void SGitHubToolsPRReviewList::ShowAddCommentWindow( const FGithubToolsPullReque
     if ( const TSharedPtr< SWindow > root_window = FGlobalTabmanager::Get()->GetRootWindow();
          root_window.IsValid() )
     {
-        FSlateApplication::Get().AddWindow( AddCommentWindow.ToSharedRef() );
+        FSlateApplication::Get().AddModalWindow( AddCommentWindow.ToSharedRef(), root_window );
     }
 }
 

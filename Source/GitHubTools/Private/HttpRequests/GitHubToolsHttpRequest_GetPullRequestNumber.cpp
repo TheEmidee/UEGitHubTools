@@ -14,7 +14,7 @@ FString FGitHubToolsHttpRequestData_GetPullRequestNumber::GetBody() const
     TStringBuilder< 512 > string_builder;
 
     string_builder << TEXT( "{ \"query\" : \"query ( $repoOwner: String!, $repoName: String! ) {" );
-    string_builder << TEXT( "  repository(owner: $repoOwner, name: $repoName) {" );
+    string_builder << TEXT( "  repository( owner: $repoOwner, name: $repoName) {" );
     string_builder << TEXT( "    pullRequests( last: 100 ) {" );
     string_builder << TEXT( "      edges {" );
     string_builder << TEXT( "        node {" );
@@ -29,7 +29,7 @@ FString FGitHubToolsHttpRequestData_GetPullRequestNumber::GetBody() const
     string_builder << TEXT( "\"variables\": " );
     string_builder << TEXT( "  {" );
     string_builder << TEXT( "    \"repoOwner\": \"" << settings->RepositoryOwner << "\"," );
-    string_builder << TEXT( "    \"repoName\": \"" << settings->RepositoryName << "\"," );
+    string_builder << TEXT( "    \"repoName\": \"" << settings->RepositoryName << "\"" );
     string_builder << TEXT( "  }" );
     string_builder << TEXT( "}" );
 
