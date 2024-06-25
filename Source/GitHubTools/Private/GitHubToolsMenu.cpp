@@ -52,7 +52,7 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
         .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestNumber >()
         .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestNumber > & result ) {
             const auto & result_data = result.Get();
-            const auto pr_number = result_data.GetResult().GetValue();
+            auto pr_number = result_data.GetResult().GetValue();
 
             if ( pr_number == INDEX_NONE )
             {
@@ -60,34 +60,10 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
                 return;
             }
 
-            FGitHubToolsModule::Get()
-                .GetRequestManager()
-                .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestFiles >( pr_number )
-                .Then( [ &, pr_number ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestFiles > & get_files ) {
-                    auto files = get_files.Get();
-
-                    FGitHubToolsModule::Get()
-                        .GetRequestManager()
-                        .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestInfos >( pr_number )
-                        .Then( [ &, files = MoveTemp( files ) ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestInfos > & get_pr_infos ) {
-                            const auto request = get_pr_infos.Get();
-                            if ( request.HasErrorMessage() )
-                            {
-                                return;
-                            }
-
-                            const auto optional_result = request.GetResult();
-
-                            auto pr_infos = optional_result.GetValue();
-
-                            if ( optional_result.IsSet() )
-                            {
-                                pr_infos->FileInfos.Append( files.GetResult().GetValue() );
-                            }
-
-                            FGitHubToolsModule::Get().GetNotificationManager().RemoveInProgressNotification();
-                            ShowPullRequestReviewWindow( pr_infos );
-                        } );
+            GitHubToolsUtils::GetPullRequestInfos( pr_number )
+                .Then( [ & ]( TFuture< FGithubToolsPullRequestInfosPtr > pr_infos ) {
+                    FGitHubToolsModule::Get().GetNotificationManager().RemoveInProgressNotification();
+                    ShowPullRequestReviewWindow( pr_infos.Get() );
                 } );
         } );
 }

@@ -101,11 +101,17 @@ public:
         return Promise.GetFuture();
     }
 
+    FORCEINLINE void SetPromiseValueOnHttpThread()
+    {
+        bSetPromiseValueOnMainThread = false;
+    }
+
 protected:
     void OnProcessRequestComplete( FHttpRequestPtr request_ptr, FHttpResponsePtr response_ptr, bool success );
 
     TPromise< TRequest > Promise;
     TRequest Request;
+    bool bSetPromiseValueOnMainThread = true;
 };
 
 class FGitHubToolsHttpRequestManager : public TSharedFromThis< FGitHubToolsHttpRequestManager >
@@ -114,28 +120,43 @@ public:
     template < typename TRequest, typename... TArgTypes >
     TFuture< TRequest > SendRequest( TArgTypes &&... args );
 
-    TFuture< bool > SendRequest2()
+    template < typename TRequest, typename... TArgTypes >
+    TFuture< typename TRequest::ResponseType > SendPaginatedRequest( TArgTypes &&... args )
     {
-        t = MakeShared< T >();
-        auto future = t->promise.GetFuture();
+        typedef typename TRequest::ResponseType TResult;
 
-        Async( EAsyncExecution::TaskGraph, [ & ]() {
-            FPlatformProcess::Sleep( 3.0f );
+        return Async( EAsyncExecution::TaskGraph, [... args = Forward< TArgTypes >( args ) ]() {
+            FString cursor;
+            TResult result;
 
-            AsyncTask( ENamedThreads::GameThread, [ & ]() {
-                t->promise.SetValue( true );
-            } );
+            while ( true )
+            {
+                typedef TGitHubToolsHttpRequest< TRequest > HttpRequestType;
+                auto request = MakeShared< HttpRequestType >( args..., cursor );
+                request->SetPromiseValueOnHttpThread();
+                request->ProcessRequest();
+
+                auto request_future_result = request->GetFuture().Get();
+
+                const auto optional_result = request_future_result.GetResult();
+
+                if ( !optional_result.IsSet() )
+                {
+                    return result;
+                }
+
+                result.Append( optional_result.GetValue() );
+
+                if ( !request_future_result.HasNextPage() )
+                {
+                    return result;
+                }
+
+                cursor = request_future_result.GetEndCursor();
+            }
         } );
-
-        return future;
     }
 
 private:
-    struct T
-    {
-        TPromise< bool > promise;
-    };
-
-    TSharedPtr< T > t;
     TSharedPtr< IGitHubToolsHttpRequest > Request;
 };

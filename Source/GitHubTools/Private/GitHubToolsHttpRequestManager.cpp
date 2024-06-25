@@ -64,17 +64,24 @@ void TGitHubToolsHttpRequest< TRequest >::OnProcessRequestComplete( FHttpRequest
         Request.ProcessResponse( response_ptr );
     }
 
-    AsyncTask( ENamedThreads::GameThread, [ & ]() {
-        if ( Request.HasErrorMessage() )
-        {
-            FGitHubToolsModule::Get()
-                .GetNotificationManager()
-                .DisplayFailureNotification(
-                    FText::FromString( FString::Printf( TEXT( "Error with the request : %s" ), *Request.GetErrorMessage() ) ) );
-        }
+    if ( bSetPromiseValueOnMainThread )
+    {
+        AsyncTask( ENamedThreads::GameThread, [ & ]() {
+            if ( Request.HasErrorMessage() )
+            {
+                FGitHubToolsModule::Get()
+                    .GetNotificationManager()
+                    .DisplayFailureNotification(
+                        FText::FromString( FString::Printf( TEXT( "Error with the request : %s" ), *Request.GetErrorMessage() ) ) );
+            }
 
+            Promise.SetValue( Request );
+        } );
+    }
+    else
+    {
         Promise.SetValue( Request );
-    } );
+    }
 }
 
 template < typename TResultType >
@@ -159,10 +166,7 @@ TFuture< TRequest > FGitHubToolsHttpRequestManager::SendRequest( TArgTypes &&...
 
     Request = request;
 
-    //auto future = t->promise.GetFuture();
-
     Async( EAsyncExecution::TaskGraph, [ &, r = request ]() {
-        //FPlatformProcess::Sleep( 3.0f );
         r->ProcessRequest();
     } );
 

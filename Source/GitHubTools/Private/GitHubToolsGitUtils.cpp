@@ -137,66 +137,41 @@ namespace GitHubToolsUtils
         FModuleManager::GetModuleChecked< FAssetToolsModule >( "AssetTools" ).Get().DiffAssets( old_object, current_object, old_revision, new_revision );
     }
 
-    TFuture< FGithubToolsPullRequestInfosPtr > GetPullRequestInfos( const int pr_number )
+    TFuture< FGithubToolsPullRequestInfosPtr > GetPullRequestInfos( int pr_number )
     {
-        //TPromise< FGithubToolsPullRequestInfosPtr > promise;
+        struct FWrapper
+        {
+            TPromise< FGithubToolsPullRequestInfosPtr > Promise;
+        };
 
-        return FGitHubToolsModule::Get()
+        static TSharedPtr< FWrapper > wrapper;
+
+        wrapper = MakeShared< FWrapper >();
+
+        FGitHubToolsModule::Get()
             .GetRequestManager()
-            .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestFiles >( pr_number )
-            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestFiles > & get_files ) {
-                const auto files = get_files.Get();
+            .SendPaginatedRequest< FGitHubToolsHttpRequestData_GetPullRequestFiles >( pr_number )
+            .Then( [ &, pr_number ]( TFuture< TArray< FGithubToolsPullRequestFileInfosPtr > > pr_files ) {
+                auto files = pr_files.Get();
 
-                return FGitHubToolsModule::Get()
+                FGitHubToolsModule::Get()
                     .GetRequestManager()
                     .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestInfos >( pr_number )
-                    .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestInfos > & get_pr_infos ) {
+                    .Then( [ &, files = MoveTemp( files ) ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestInfos > & get_pr_infos ) {
                         const auto optional_result = get_pr_infos.Get().GetResult();
 
                         auto pr_infos = optional_result.GetValue();
 
                         if ( optional_result.IsSet() )
                         {
-                            pr_infos->FileInfos.Append( files.GetResult().GetValue() );
+                            pr_infos->FileInfos.Append( files );
                         }
 
-                        FGitHubToolsModule::Get().GetNotificationManager().RemoveInProgressNotification();
-                        //promise.SetValue( pr_infos );
-
-                        return MakeFulfilledPromise< FGithubToolsPullRequestInfosPtr >( pr_infos ).GetFuture().Get();
-                    } ).Get();
+                        wrapper->Promise.SetValue( pr_infos );
+                    } );
             } );
 
-        //return promise.GetFuture();
-
-        /*
-        TPromise< FGithubToolsPullRequestInfosPtr > promise;
-
-        RunPaginatedRequest< FGitHubToolsHttpRequestData_GetPullRequestFiles >( pr_number )
-            .Then( [ & ]( const TFuture< TArray< FGithubToolsPullRequestFileInfosPtr > > & result ) {
-                const auto files = result.Get();
-                const auto request = FGitHubToolsModule::Get()
-                                         .GetRequestManager()
-                                         .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestInfos >( pr_number )
-                                         .Get();
-
-                const auto optional_result = request.GetResult();
-
-                if ( !optional_result.IsSet() )
-                {
-                    promise.SetValue( MakeShared< FGithubToolsPullRequestInfos >() );
-                    return;
-                }
-
-                auto pr_infos = optional_result.GetValue();
-                pr_infos->FileInfos.Append( files );
-
-                FGitHubToolsModule::Get().GetNotificationManager().RemoveInProgressNotification();
-                promise.SetValue( pr_infos );
-            } );
-
-        return promise.GetFuture();
-        */
+        return wrapper->Promise.GetFuture();
     }
 }
 
