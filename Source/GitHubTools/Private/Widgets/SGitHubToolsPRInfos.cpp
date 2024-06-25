@@ -76,7 +76,8 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
                         SHorizontalBox::Slot()
                             .FillWidth( 0.5f )
                                 [ SAssignNew( ReviewList, SGitHubToolsPRReviewList )
-                                        .PRInfos( PRInfos ) ] ] ];
+                                        .PRInfos( PRInfos )
+                                        .Visibility( this, &SGitHubToolsPRInfos::GetPRReviewListVisibility ) ] ] ];
 
     contents->AddSlot()
         .AutoHeight()
@@ -317,6 +318,11 @@ void SGitHubToolsPRInfos::SetItemExpansion( FGitHubToolsFileInfosTreeItemPtr tre
     {
         SetItemExpansion( child, is_expanded );
     }
+}
+
+EVisibility SGitHubToolsPRInfos::GetPRReviewListVisibility() const
+{
+    return !PRInfos->HasPendingReviews() ? EVisibility::Visible : EVisibility::Collapsed;
 }
 
 bool SGitHubToolsPRInfos::IsFileCommentsButtonEnabled() const

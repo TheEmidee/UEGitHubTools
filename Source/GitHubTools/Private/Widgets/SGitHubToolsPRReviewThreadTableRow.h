@@ -8,8 +8,7 @@
 class SGitHubToolsPRReviewThreadTableRow : public STableRow< FGithubToolsPullRequestReviewThreadInfosPtr >
 {
 public:
-    SLATE_BEGIN_ARGS( SGitHubToolsPRReviewThreadTableRow ) :
-        _EnableButtons( false )
+    SLATE_BEGIN_ARGS( SGitHubToolsPRReviewThreadTableRow )
     {}
 
     SLATE_ATTRIBUTE( bool, EnableButtons )
@@ -28,7 +27,6 @@ private:
     FReply OnCollapsedButtonClicked();
 
     FGithubToolsPullRequestReviewThreadInfosPtr ThreadInfos;
-    TSharedPtr< SListView< FGithubToolsPullRequestCommentPtr > > CommentsListView;
     TSharedPtr< SVerticalBox > CommentsPanel;
     FOnClicked OnAddCommentButtonClicked;
     TSharedPtr< STableViewBase > OwnerTable;

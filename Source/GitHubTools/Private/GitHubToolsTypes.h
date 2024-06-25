@@ -87,6 +87,7 @@ struct FGithubToolsPullRequestPendingReviewInfos
 {
     FGithubToolsPullRequestPendingReviewInfos() = default;
 
+    FString Id;
     TArray< FGithubToolsPullRequestCommentPtr > Comments;
 };
 

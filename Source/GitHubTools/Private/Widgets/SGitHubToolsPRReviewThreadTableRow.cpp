@@ -35,7 +35,7 @@ void SGitHubToolsPRReviewThreadTableRow::Construct( const FArguments & arguments
                                                 .FillHeight( 1.0f )
                                                     [ SNew( SBox )
                                                             .WidthOverride( 520 )
-                                                                [ SAssignNew( CommentsListView, SListView< FGithubToolsPullRequestCommentPtr > )
+                                                                [ SNew( SListView< FGithubToolsPullRequestCommentPtr > )
                                                                         .ItemHeight( 50 )
                                                                         .ListItemsSource( &ThreadInfos->Comments )
                                                                         .OnGenerateRow( this, &SGitHubToolsPRReviewThreadTableRow::GenerateCommentRow )
@@ -55,8 +55,7 @@ void SGitHubToolsPRReviewThreadTableRow::Construct( const FArguments & arguments
         CommentsPanel->AddSlot()
             .AutoHeight()
             .Padding( FMargin( 5.0f ) )
-                [ SNew( SHorizontalBox )
-                        .IsEnabled( arguments._EnableButtons ) +
+                [ SNew( SHorizontalBox ) +
                     SHorizontalBox::Slot()
                         .AutoWidth()
                             [ SNew( SButton )

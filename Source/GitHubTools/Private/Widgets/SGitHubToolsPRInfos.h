@@ -58,6 +58,7 @@ private:
     void OnExpandAllClicked();
     void OnCollapseAllClicked();
     void SetItemExpansion( FGitHubToolsFileInfosTreeItemPtr tree_item, bool is_expanded );
+    EVisibility GetPRReviewListVisibility() const;
 
     FGithubToolsPullRequestInfosPtr PRInfos;
     TSharedPtr< STreeView< FGitHubToolsFileInfosTreeItemPtr > > TreeView;

@@ -16,6 +16,15 @@ void SGitHubToolsPRCommentTableRow::Construct( const FArguments & arguments, con
                             [ SNew( SVerticalBox ) +
                                 SVerticalBox::Slot()
                                     .AutoHeight()
+                                    .Padding( FMargin( 5.0f ) )
+                                        [ SNew( STextBlock )
+                                                .AutoWrapText( true )
+                                                .Justification( ETextJustify::Type::Center )
+                                                .Margin( FMargin( 0.0f, 0.0f, 0.0f, 10.0f ) )
+                                                .Visibility( Comment->Path.IsEmpty() ? EVisibility::Collapsed : EVisibility::Visible )
+                                                .Text( FText::FromString( Comment->Path ) ) ] +
+                                SVerticalBox::Slot()
+                                    .AutoHeight()
                                         [ SNew( SHorizontalBox ) +
                                             SHorizontalBox::Slot()
                                                 .FillWidth( 1.0f )

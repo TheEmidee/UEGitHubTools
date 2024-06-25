@@ -37,7 +37,6 @@ void SGitHubToolsPRReviewList::Construct( const FArguments & arguments )
                                         .AutoWidth()
                                         .HAlign( HAlign_Left )
                                             [ SNew( SButton )
-                                                    .IsEnabled( !PRInfos->HasPendingReviews() )
                                                     .Text( LOCTEXT( "CreateNewThread", "Create new thread" ) )
                                                     .OnClicked( this, &SGitHubToolsPRReviewList::OnCreateNewThreadButtonClicked ) ] +
                                     SHorizontalBox::Slot()
@@ -95,7 +94,6 @@ FReply SGitHubToolsPRReviewList::OnAddCommentClicked( FGithubToolsPullRequestRev
 TSharedRef< ITableRow > SGitHubToolsPRReviewList::GenerateItemRow( FGithubToolsPullRequestReviewThreadInfosPtr item, const TSharedRef< STableViewBase > & owner_table )
 {
     return SNew( SGitHubToolsPRReviewThreadTableRow, owner_table )
-        .EnableButtons( !PRInfos->HasPendingReviews() )
         .Visibility( MakeAttributeLambda( [ &, item ]() {
             return ( !item->bIsResolved || HideResolvedThreadsCheckBox->GetCheckedState() == ECheckBoxState::Unchecked )
                        ? EVisibility::Visible

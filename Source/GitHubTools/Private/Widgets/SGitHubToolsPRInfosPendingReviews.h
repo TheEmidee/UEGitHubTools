@@ -19,7 +19,8 @@ public:
     void Construct( const FArguments & arguments );
 
 private:
-    FReply OpenInGitHubClicked();
+    TSharedRef< ITableRow > GeneratePendingReviewRow( FGithubToolsPullRequestPendingReviewInfosPtr item, const TSharedRef< STableViewBase > & owner_table );
+    void OnReviewStateUpdated( FGithubToolsPullRequestPendingReviewInfosPtr review );
 
     FGithubToolsPullRequestInfosPtr PRInfos;
     TWeakPtr< SWindow > ParentFrame;

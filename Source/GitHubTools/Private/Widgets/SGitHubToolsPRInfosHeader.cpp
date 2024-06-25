@@ -169,7 +169,7 @@ FReply SGitHubToolsPRHeader::OnOpenPendingReviewsClicked()
 
     PendingReviewsWindow->SetOnWindowClosed( FOnWindowClosed::CreateLambda( [ & ]( const TSharedRef< SWindow > & /*window*/ ) {
         PendingReviewsWindow = nullptr;
-        //ShowFileReviews( FileInfos );
+        
     } ) );
 
     PendingReviewsWindow->SetContent( SNew( SGitHubToolsPRInfosPendingReviews )

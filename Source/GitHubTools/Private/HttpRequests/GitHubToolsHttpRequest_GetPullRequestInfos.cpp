@@ -197,6 +197,7 @@ void FGitHubToolsHttpRequestData_GetPullRequestInfos::ParseResponse( FHttpRespon
         }
 
         auto pending_review = MakeShared< FGithubToolsPullRequestPendingReviewInfos >();
+        pending_review->Id = review_node_object->GetStringField( TEXT( "id" ) );
 
         const auto comments_object = review_node_object->GetObjectField( TEXT( "comments" ) );
         const auto comments_edges_object = comments_object->GetArrayField( TEXT( "edges" ) );
