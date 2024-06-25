@@ -144,6 +144,7 @@ namespace GitHubToolsUtils
             TPromise< FGithubToolsPullRequestInfosPtr > Promise;
         };
 
+        // Not great to have a static member, but we need a promise that is not destroyed when the function exits
         static TSharedPtr< FWrapper > wrapper;
 
         wrapper = MakeShared< FWrapper >();
@@ -168,6 +169,7 @@ namespace GitHubToolsUtils
                         }
 
                         wrapper->Promise.SetValue( pr_infos );
+                        wrapper.Reset();
                     } );
             } );
 

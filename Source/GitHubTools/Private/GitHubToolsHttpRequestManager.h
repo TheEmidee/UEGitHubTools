@@ -121,41 +121,7 @@ public:
     TFuture< TRequest > SendRequest( TArgTypes &&... args );
 
     template < typename TRequest, typename... TArgTypes >
-    TFuture< typename TRequest::ResponseType > SendPaginatedRequest( TArgTypes &&... args )
-    {
-        typedef typename TRequest::ResponseType TResult;
-
-        return Async( EAsyncExecution::TaskGraph, [... args = Forward< TArgTypes >( args ) ]() {
-            FString cursor;
-            TResult result;
-
-            while ( true )
-            {
-                typedef TGitHubToolsHttpRequest< TRequest > HttpRequestType;
-                auto request = MakeShared< HttpRequestType >( args..., cursor );
-                request->SetPromiseValueOnHttpThread();
-                request->ProcessRequest();
-
-                auto request_future_result = request->GetFuture().Get();
-
-                const auto optional_result = request_future_result.GetResult();
-
-                if ( !optional_result.IsSet() )
-                {
-                    return result;
-                }
-
-                result.Append( optional_result.GetValue() );
-
-                if ( !request_future_result.HasNextPage() )
-                {
-                    return result;
-                }
-
-                cursor = request_future_result.GetEndCursor();
-            }
-        } );
-    }
+    TFuture< typename TRequest::ResponseType > SendPaginatedRequest( TArgTypes &&... args );
 
 private:
     TSharedPtr< IGitHubToolsHttpRequest > Request;
