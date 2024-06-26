@@ -150,6 +150,24 @@ namespace
 
         return EGitHubToolsCommitStatusState::Unknown;
     }
+
+    EGitHubToolsPullRequestsState GetPullRequestState( const FString & state )
+    {
+        if ( state == TEXT( "CLOSED" ) )
+        {
+            return EGitHubToolsPullRequestsState::Closed;
+        }
+        if ( state == TEXT( "MERGED" ) )
+        {
+            return EGitHubToolsPullRequestsState::Merged;
+        }
+        if ( state == TEXT( "OPEN" ) )
+        {
+            return EGitHubToolsPullRequestsState::Open;
+        }
+
+        return EGitHubToolsPullRequestsState::Unknown;
+    }
 }
 
 FGithubToolsPullRequestComment::FGithubToolsPullRequestComment( const TSharedRef< FJsonObject > & json_object )
@@ -233,7 +251,12 @@ FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( const TSharedRef< FJ
     bIsDraft = json->GetBoolField( TEXT( "isDraft" ) );
     bIsMergeable = json->GetBoolField( TEXT( "mergeable" ) );
     URL = json->GetStringField( TEXT( "url" ) );
-    State = json->GetStringField( TEXT( "state" ) );
+    State = GetPullRequestState( json->GetStringField( TEXT( "state" ) ) );
+}
+
+bool FGithubToolsPullRequestInfos::CanCommentFiles() const
+{
+    return !HasPendingReviews() && State == EGitHubToolsPullRequestsState::Open;
 }
 
 #undef LOCTEXT_NAMESPACE

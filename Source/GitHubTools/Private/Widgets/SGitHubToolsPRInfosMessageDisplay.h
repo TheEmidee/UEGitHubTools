@@ -4,10 +4,10 @@
 
 #include <CoreMinimal.h>
 
-class SGitHubToolsPRHeader : public SCompoundWidget
+class SGitHubToolsPRInfosMessageDisplay : public SCompoundWidget
 {
 public:
-    SLATE_BEGIN_ARGS( SGitHubToolsPRHeader ) :
+    SLATE_BEGIN_ARGS( SGitHubToolsPRInfosMessageDisplay ) :
         _PRInfos()
     {}
 
@@ -18,8 +18,8 @@ public:
     void Construct( const FArguments & arguments );
 
 private:
-    FReply OpenInGitHubClicked();
-    EVisibility GetPendingReviewsVisibility() const;
+    FReply OnOpenPendingReviewsClicked();
 
     FGithubToolsPullRequestInfosPtr PRInfos;
+    TSharedPtr< SWindow > PendingReviewsWindow;
 };

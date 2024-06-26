@@ -3,6 +3,7 @@
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
 #include "SGitHubToolsPRInfosHeader.h"
+#include "SGitHubToolsPRInfosMessageDisplay.h"
 #include "SGitHubToolsPRReviewList.h"
 
 #include <AssetToolsModule.h>
@@ -34,6 +35,13 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
         .AutoHeight()
             [ SNew( SGitHubToolsPRHeader )
                     .PRInfos( PRInfos ) ];
+
+    contents->AddSlot()
+        .Padding( FMargin( 5.0f ) )
+        .AutoHeight()
+            [ SNew( SGitHubToolsPRInfosMessageDisplay )
+                    .PRInfos( PRInfos )
+                    .Visibility( this, &SGitHubToolsPRInfos::GetMessageDisplayVisibility ) ];
 
     TreeVisibilitySettingsButton =
         SNew( SComboButton )
@@ -332,6 +340,20 @@ EVisibility SGitHubToolsPRInfos::GetPRReviewListVisibility() const
     return !PRInfos->HasPendingReviews() ? EVisibility::Visible : EVisibility::Collapsed;
 }
 
+EVisibility SGitHubToolsPRInfos::GetMessageDisplayVisibility() const
+{
+    if ( PRInfos->State != EGitHubToolsPullRequestsState::Open )
+    {
+        return EVisibility::Visible;
+    }
+    if ( PRInfos->HasPendingReviews() )
+    {
+        return EVisibility::Visible;
+    }
+
+    return EVisibility::Collapsed;
+}
+
 bool SGitHubToolsPRInfos::IsFileCommentsButtonEnabled() const
 {
     if ( auto * settings = GetDefault< UGitHubToolsSettings >() )
@@ -363,7 +385,7 @@ TSharedRef< ITableRow > SGitHubToolsPRInfos::OnGenerateRowForList( FGitHubToolsF
 {
     return SNew( SGitHubToolsFileInfosRow, owner_table )
         .TreeItem( tree_item );
-        /*.Visibility( MakeAttributeLambda( [ &, tree_item ]() {
+    /*.Visibility( MakeAttributeLambda( [ &, tree_item ]() {
             return GetItemRowVisibility( tree_item->FileInfos );
         } ) );*/
 }

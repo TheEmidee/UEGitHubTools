@@ -37,6 +37,14 @@ enum class EGitHubToolsCommitStatusState : uint8
     Unknown
 };
 
+enum class EGitHubToolsPullRequestsState : uint8
+{
+    Closed,
+    Merged,
+    Open,
+    Unknown
+};
+
 struct FGithubToolsPullRequestComment
 {
     FGithubToolsPullRequestComment() = default;
@@ -121,6 +129,7 @@ struct FGithubToolsPullRequestInfos
     FGithubToolsPullRequestInfos() = default;
     explicit FGithubToolsPullRequestInfos( const TSharedRef< FJsonObject > & json );
 
+    bool CanCommentFiles() const;
     bool HasPendingReviews() const;
 
     FString ViewerLogin;
@@ -136,7 +145,7 @@ struct FGithubToolsPullRequestInfos
     FString HeadRefName;
     bool bIsDraft;
     bool bIsMergeable;
-    FString State;
+    EGitHubToolsPullRequestsState State;
     FString URL;
     TArray< FGithubToolsPullRequestFileInfosPtr > FileInfos;
     TArray< FGithubToolsPullRequestReviewThreadInfosPtr > Reviews;

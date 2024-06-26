@@ -38,6 +38,7 @@ void SGitHubToolsPRReviewList::Construct( const FArguments & arguments )
                                         .HAlign( HAlign_Left )
                                             [ SNew( SButton )
                                                     .Text( LOCTEXT( "CreateNewThread", "Create new thread" ) )
+                                                    .IsEnabled( PRInfos->CanCommentFiles() )
                                                     .OnClicked( this, &SGitHubToolsPRReviewList::OnCreateNewThreadButtonClicked ) ] +
                                     SHorizontalBox::Slot()
                                         .AutoWidth()

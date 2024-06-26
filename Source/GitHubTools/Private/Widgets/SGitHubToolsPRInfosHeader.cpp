@@ -142,19 +142,7 @@ void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
                                                                 .Text( LOCTEXT( "ChecksText", "Checks" ) )
                                                                 .ToolTip( SNew( SToolTip )
                                                                         [ SNew( SBorder )
-                                                                                [ checks_tooltip.ToSharedRef() ] ] ) ] ] +
-                                    SHorizontalBox::Slot()
-                                        .AutoWidth()
-                                        .Padding( FMargin( 10 ) )
-                                            [ SNew( SBorder )
-                                                    .Padding( FMargin( 10.0f ) )
-                                                    .BorderBackgroundColor( FCoreStyle::Get().GetColor( "ErrorReporting.BackgroundColor" ) )
-                                                    .Visibility( this, &SGitHubToolsPRHeader::GetPendingReviewsVisibility )
-                                                        [ SNew( SButton )
-                                                                .VAlign( VAlign_Center )
-                                                                .ButtonColorAndOpacity( FCoreStyle::Get().GetColor( "ErrorReporting.BackgroundColor" ) )
-                                                                .Text( LOCTEXT( "OpenPendingReviewsButtonText", "Open Pending Reviews" ) )
-                                                                .OnClicked( this, &SGitHubToolsPRHeader::OnOpenPendingReviewsClicked ) ] ] ] ] ];
+                                                                                [ checks_tooltip.ToSharedRef() ] ] ) ] ] ] ] ];
 }
 
 FReply SGitHubToolsPRHeader::OpenInGitHubClicked()
@@ -169,33 +157,6 @@ EVisibility SGitHubToolsPRHeader::GetPendingReviewsVisibility() const
     return PRInfos->HasPendingReviews()
                ? EVisibility::Visible
                : EVisibility::Collapsed;
-}
-
-FReply SGitHubToolsPRHeader::OnOpenPendingReviewsClicked()
-{
-    PendingReviewsWindow = SNew( SWindow )
-                               .Title( LOCTEXT( "SourceControlLoginTitle", "Pending Reviews" ) )
-                               .ClientSize( FVector2D( 1024, 768 ) )
-                               .HasCloseButton( true )
-                               .SupportsMaximize( false )
-                               .SupportsMinimize( false )
-                               .SizingRule( ESizingRule::FixedSize );
-
-    PendingReviewsWindow->SetOnWindowClosed( FOnWindowClosed::CreateLambda( [ & ]( const TSharedRef< SWindow > & /*window*/ ) {
-        PendingReviewsWindow = nullptr;
-    } ) );
-
-    PendingReviewsWindow->SetContent( SNew( SGitHubToolsPRInfosPendingReviews )
-                                          .ParentWindow( PendingReviewsWindow )
-                                          .PRInfos( PRInfos ) );
-
-    if ( const TSharedPtr< SWindow > root_window = FGlobalTabmanager::Get()->GetRootWindow();
-         root_window.IsValid() )
-    {
-        FSlateApplication::Get().AddModalWindow( PendingReviewsWindow.ToSharedRef(), root_window );
-    }
-
-    return FReply::Handled();
 }
 
 #undef LOCTEXT_NAMESPACE
