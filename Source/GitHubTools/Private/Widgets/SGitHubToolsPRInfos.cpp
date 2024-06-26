@@ -2,6 +2,7 @@
 
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
+#include "HttpRequests/GitHubToolsHttpRequest_MarkFileAsViewed.h"
 #include "SGitHubToolsPRInfosHeader.h"
 #include "SGitHubToolsPRInfosMessageDisplay.h"
 #include "SGitHubToolsPRReviewList.h"
@@ -175,20 +176,43 @@ void SGitHubToolsPRInfos::ConstructFileInfos()
 
 void SGitHubToolsPRInfos::OnDiffAgainstRemoteStatusBranchSelected( FGitHubToolsFileInfosTreeItemPtr selected_item )
 {
-    if ( selected_item->FileInfos->ChangedState == EGitHubToolsFileChangedState::Added )
-    {
-        const auto asset_data = GitHubToolsUtils::GetAssetDataFromFileInfos( *selected_item->FileInfos );
-        if ( asset_data.IsSet() )
-        {
-            const auto & asset_tools_module = FModuleManager::GetModuleChecked< FAssetToolsModule >( "AssetTools" );
-            asset_tools_module.Get().OpenEditorForAssets( { asset_data.GetValue().GetAsset() } );
-            return;
-        }
-    }
+    auto * settings = GetDefault< UGitHubToolsSettings >();
 
-    if ( selected_item->FileInfos->ChangedState == EGitHubToolsFileChangedState::Modified )
+    const auto action = [ selected_item ]() {
+        if ( selected_item->FileInfos->ChangedState == EGitHubToolsFileChangedState::Added )
+        {
+            const auto asset_data = GitHubToolsUtils::GetAssetDataFromFileInfos( *selected_item->FileInfos );
+            if ( asset_data.IsSet() )
+            {
+                const auto & asset_tools_module = FModuleManager::GetModuleChecked< FAssetToolsModule >( "AssetTools" );
+                asset_tools_module.Get().OpenEditorForAssets( { asset_data.GetValue().GetAsset() } );
+                return;
+            }
+        }
+
+        if ( selected_item->FileInfos->ChangedState == EGitHubToolsFileChangedState::Modified )
+        {
+            GitHubToolsUtils::DiffFileAgainstOriginStatusBranch( *selected_item->FileInfos );
+        }
+    };
+
+    if ( settings->bMarkFileViewedAutomatically )
     {
-        GitHubToolsUtils::DiffFileAgainstOriginStatusBranch( *selected_item->FileInfos );
+        FGitHubToolsModule::Get()
+            .GetRequestManager()
+            .SendRequest< FGitHubToolsHttpRequest_MarkFileAsViewed >( PRInfos->Id, selected_item->FileInfos->Path )
+            .Then( [ selected_item, action, this ]( const TFuture< FGitHubToolsHttpRequest_MarkFileAsViewed > & request ) {
+                if ( request.Get().GetResult().Get( false ) )
+                {
+                    selected_item->FileInfos->UpdateViewedState( EGitHubToolsFileViewedState::Viewed );
+                    TreeView->RebuildList();
+                    action();
+                }
+            } );
+    }
+    else
+    {
+        action();
     }
 }
 

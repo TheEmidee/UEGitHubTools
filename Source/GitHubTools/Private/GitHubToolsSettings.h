@@ -11,6 +11,8 @@ class UGitHubToolsSettings final : public UDeveloperSettings
     GENERATED_BODY()
 
 public:
+    UGitHubToolsSettings();
+
     UPROPERTY( Config, EditDefaultsOnly )
     FString RepositoryOwner;
 
@@ -19,4 +21,7 @@ public:
 
     UPROPERTY( Config, EditDefaultsOnly )
     FString Token;
+
+    UPROPERTY( Config, EditDefaultsOnly )
+    uint8 bMarkFileViewedAutomatically : 1;
 };

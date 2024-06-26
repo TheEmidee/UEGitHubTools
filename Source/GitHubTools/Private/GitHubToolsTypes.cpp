@@ -192,12 +192,17 @@ FGithubToolsPullRequestFileInfos::FGithubToolsPullRequestFileInfos( const FStrin
     ChangedState( GetFileChangedState( change_type ) ),
     ChangedStateIcon( GetSlateIconFromFileChangeState( ChangedState ) ),
     ChangedStateIconName( ChangedStateIcon.GetStyleName() ),
-    ChangedStateToolTip( GetToolTipFromFileChangedState( ChangedState ) ),
-    ViewedState( GetFileViewedState( viewed_state ) ),
-    ViewedStateIcon( GetSlateIconFromFileViewedState( ViewedState ) ),
-    ViewedStateIconName( ViewedStateIcon.GetStyleName() ),
-    ViewedStateToolTip( GetToolTipFromFileViewedState( ViewedState ) )
+    ChangedStateToolTip( GetToolTipFromFileChangedState( ChangedState ) )
 {
+    UpdateViewedState( GetFileViewedState( viewed_state ) );
+}
+
+void FGithubToolsPullRequestFileInfos::UpdateViewedState( EGitHubToolsFileViewedState new_viewed_state )
+{
+    ViewedState = new_viewed_state;
+    ViewedStateIcon = GetSlateIconFromFileViewedState( ViewedState );
+    ViewedStateIconName = ViewedStateIcon.GetStyleName();
+    ViewedStateToolTip = GetToolTipFromFileViewedState( ViewedState );
 }
 
 FGithubToolsPullRequestReviewThreadInfos::FGithubToolsPullRequestReviewThreadInfos( const TSharedRef< FJsonObject > & json_object ) :

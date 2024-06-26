@@ -64,6 +64,8 @@ struct FGithubToolsPullRequestFileInfos
     FGithubToolsPullRequestFileInfos() = default;
     FGithubToolsPullRequestFileInfos( const FString & path, const FString & change_type, const FString & viewed_state );
 
+    void UpdateViewedState( EGitHubToolsFileViewedState new_viewed_state );
+
     FString Path;
     FText AssetName;
     FText PackageName;
