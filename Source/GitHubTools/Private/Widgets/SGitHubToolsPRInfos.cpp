@@ -173,6 +173,11 @@ void SGitHubToolsPRInfos::ConstructFileInfos()
         }
 
         add_path_to_tree( node, MakeTuple( file_infos, parts ) );
+
+        if ( node->Children.IsEmpty() )
+        {
+            node->FileInfos = file_infos;
+        }
     }
 }
 
@@ -259,6 +264,8 @@ void SGitHubToolsPRInfos::OnHideOFPACheckStateChanged( ECheckBoxState new_state 
 void SGitHubToolsPRInfos::OnShowOnlyModifiedFilesCheckStateChanged( ECheckBoxState new_state )
 {
     ShowFlags = new_state == ECheckBoxState::Checked ? EShowFlags::OnlyModified : EShowFlags::All;
+    ConstructFileInfos();
+    OnExpandAllClicked();
     TreeView->RequestListRefresh();
     TreeVisibilitySettingsButton->SetIsOpen( false );
 }
@@ -266,6 +273,8 @@ void SGitHubToolsPRInfos::OnShowOnlyModifiedFilesCheckStateChanged( ECheckBoxSta
 void SGitHubToolsPRInfos::OnShowOnlyUnViewedFilesCheckStateChanged( ECheckBoxState new_state )
 {
     ShowFlags = new_state == ECheckBoxState::Checked ? EShowFlags::OnlyUnViewed : EShowFlags::All;
+    ConstructFileInfos();
+    OnExpandAllClicked();
     TreeView->RequestListRefresh();
     TreeVisibilitySettingsButton->SetIsOpen( false );
 }

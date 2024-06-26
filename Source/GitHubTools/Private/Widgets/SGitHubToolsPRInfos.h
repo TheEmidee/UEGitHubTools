@@ -67,7 +67,7 @@ private:
     TSharedPtr< SGitHubToolsPRReviewList > ReviewList;
     TSharedPtr< SComboButton > TreeVisibilitySettingsButton;
     TArray< FGitHubToolsFileInfosTreeItemPtr > TreeItems;
-    bool bShowOnlyUAssets = true;
+    bool bShowOnlyUAssets = false;
     bool bHideOFPA = true;
     EShowFlags ShowFlags = EShowFlags::All;
 };
