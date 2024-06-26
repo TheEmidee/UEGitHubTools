@@ -14,47 +14,6 @@
 
 namespace GitHubToolsUtils
 {
-    bool GetDiffNameStatusWithBranch( const FString & path_to_git_binary, const FString & repository_root, TMap< FString, FGitSourceControlState > & updated_states, TArray< FString > & error_messages, const FString & branch_name )
-    {
-        TArray< FString > results;
-        if ( !GitSourceControlUtils::RunCommand( TEXT( "diff" ),
-                 path_to_git_binary,
-                 repository_root,
-                 { FString::Printf( TEXT( "%s..." ), *branch_name ),
-                     TEXT( "--name-status" ) },
-                 FGitSourceControlModule::GetEmptyStringArray(),
-                 results,
-                 error_messages ) )
-        {
-            return false;
-        }
-
-        TArray< FString > files;
-        TMap< FString, FString > results_map;
-
-        for ( const auto & result : results )
-        {
-            TArray< FString > split;
-            result.ParseIntoArray( split, TEXT( "\t" ) );
-
-            const FString & relative_filename = split[ 1 ];
-            const FString & file = FPaths::ConvertRelativePathToFull( repository_root, relative_filename );
-            results_map.Add( file, result );
-
-            files.Emplace( file );
-        }
-
-        GitSourceControlUtils::ParseStatusResults( path_to_git_binary, repository_root, false, files, results_map, updated_states );
-
-        // ParseStatusResults keeps TreeState to ETreeState::UnSet, which prevents the diff tool to work
-        for ( auto & [ file_name, state ] : updated_states )
-        {
-            state.State.TreeState = ETreeState::Unmodified;
-        }
-
-        return true;
-    }
-
     TOptional< FAssetData > GetAssetDataFromFileInfos( const FGithubToolsPullRequestFileInfos & file_infos )
     {
         const auto & git_source_control = FModuleManager::GetModuleChecked< FGitSourceControlModule >( "GitSourceControl" );
