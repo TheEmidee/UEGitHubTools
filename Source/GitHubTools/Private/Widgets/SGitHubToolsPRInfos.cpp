@@ -6,6 +6,7 @@
 #include "SGitHubToolsPRInfosHeader.h"
 #include "SGitHubToolsPRInfosMessageDisplay.h"
 #include "SGitHubToolsPRReviewList.h"
+#include "picosha2.h"
 
 #include <AssetToolsModule.h>
 #include <RevisionControlStyle/RevisionControlStyle.h>
@@ -177,6 +178,26 @@ void SGitHubToolsPRInfos::ConstructFileInfos()
 
 void SGitHubToolsPRInfos::OnDiffAgainstRemoteStatusBranchSelected( FGitHubToolsFileInfosTreeItemPtr selected_item )
 {
+    if ( selected_item->FileInfos == nullptr )
+    {
+        return;
+    }
+
+    if ( !selected_item->FileInfos->IsUAsset() )
+    {
+        std::string str( StringCast< ANSICHAR >( *selected_item->FileInfos->Path ).Get() );
+        const auto hash = picosha2::hash256_hex_string( str );
+
+        TStringBuilder< 512 > url;
+        url << PRInfos->URL;
+        url << TEXT( "/files#diff-" );
+        url << hash.data();
+
+        FPlatformProcess::LaunchURL( *url, nullptr, nullptr );
+
+        return;
+    }
+
     auto * settings = GetDefault< UGitHubToolsSettings >();
 
     const auto action = [ selected_item ]() {
@@ -415,9 +436,6 @@ TSharedRef< ITableRow > SGitHubToolsPRInfos::OnGenerateRowForList( FGitHubToolsF
 {
     return SNew( SGitHubToolsFileInfosRow, owner_table )
         .TreeItem( tree_item );
-    /*.Visibility( MakeAttributeLambda( [ &, tree_item ]() {
-            return GetItemRowVisibility( tree_item->FileInfos );
-        } ) );*/
 }
 
 EVisibility SGitHubToolsPRInfos::GetItemRowVisibility( FGithubToolsPullRequestFileInfosPtr file_infos ) const

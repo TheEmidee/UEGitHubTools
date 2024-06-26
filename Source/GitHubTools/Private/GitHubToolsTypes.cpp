@@ -205,6 +205,11 @@ void FGithubToolsPullRequestFileInfos::UpdateViewedState( EGitHubToolsFileViewed
     ViewedStateToolTip = GetToolTipFromFileViewedState( ViewedState );
 }
 
+bool FGithubToolsPullRequestFileInfos::IsUAsset() const
+{
+    return Path.EndsWith( TEXT( ".uasset" ) );
+}
+
 FGithubToolsPullRequestReviewThreadInfos::FGithubToolsPullRequestReviewThreadInfos( const TSharedRef< FJsonObject > & json_object ) :
     PRNumber( INDEX_NONE )
 {

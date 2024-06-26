@@ -65,6 +65,7 @@ struct FGithubToolsPullRequestFileInfos
     FGithubToolsPullRequestFileInfos( const FString & path, const FString & change_type, const FString & viewed_state );
 
     void UpdateViewedState( EGitHubToolsFileViewedState new_viewed_state );
+    bool IsUAsset() const;
 
     FString Path;
     FText AssetName;
