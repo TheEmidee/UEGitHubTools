@@ -12,43 +12,6 @@ namespace GitHubToolsUtils
 
     TFuture< FGithubToolsPullRequestInfosPtr > GetPullRequestInfos( int pr_number );
 
-    //template < typename TRequestType, typename... TArgTypes >
-    //TFuture< typename TRequestType::ResultType > RunPaginatedRequest( TArgTypes &&... args )
-    //{
-    //    return Async( EAsyncExecution::TaskGraph, [ ... args = MoveTemp( args ) ]() {
-    //        typedef typename TRequestType::ResultType TResultType;
-
-    //        FString cursor;
-    //        //TPromise< TResultType > promise;
-    //        TResultType result;
-
-    //        while ( true )
-    //        {
-    //            const auto request = FGitHubToolsModule::Get()
-    //                                     .GetRequestManager()
-    //                                     .SendRequest< TRequestType >( args ..., cursor )
-    //                                     .Get();
-
-    //            const auto optional_result = request.GetResult();
-
-    //            if ( !optional_result.IsSet() )
-    //            {
-    //                //promise.SetValue( result );
-    //                break;
-    //            }
-
-    //            result.Append( optional_result.GetValue() );
-
-    //            if ( !request.HasNextPage() )
-    //            {
-    //                //promise.SetValue( result );
-    //                break;
-    //            }
-
-    //            cursor = request.GetEndCursor();
-    //        }
-
-    //        return result;
-    //    } );
-    //}
+    FLinearColor GetCommitCheckColor( EGitHubToolsCommitStatusState state );
+    FLinearColor GetPRChecksColor( const FGithubToolsPullRequestInfos & pr_infos );
 }

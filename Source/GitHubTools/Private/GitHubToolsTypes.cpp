@@ -124,6 +124,32 @@ namespace
 
         return EGitHubToolsReviewState::Unknown;
     }
+
+    EGitHubToolsCommitStatusState GetCommitState( const FString & state )
+    {
+        if ( state == TEXT( "ERROR" ) )
+        {
+            return EGitHubToolsCommitStatusState::Error;
+        }
+        if ( state == TEXT( "EXPECTED" ) )
+        {
+            return EGitHubToolsCommitStatusState::Expected;
+        }
+        if ( state == TEXT( "FAILURE" ) )
+        {
+            return EGitHubToolsCommitStatusState::Failure;
+        }
+        if ( state == TEXT( "PENDING" ) )
+        {
+            return EGitHubToolsCommitStatusState::Pending;
+        }
+        if ( state == TEXT( "SUCCESS" ) )
+        {
+            return EGitHubToolsCommitStatusState::Success;
+        }
+
+        return EGitHubToolsCommitStatusState::Unknown;
+    }
 }
 
 FGithubToolsPullRequestComment::FGithubToolsPullRequestComment( const TSharedRef< FJsonObject > & json_object )
@@ -184,7 +210,8 @@ FGithubToolsPullRequestReviewThreadInfos::FGithubToolsPullRequestReviewThreadInf
 FGitHubToolsPullRequestCheckInfos::FGitHubToolsPullRequestCheckInfos( const TSharedRef< FJsonObject > & json )
 {
     Context = json->GetStringField( TEXT( "context" ) );
-    State = json->GetStringField( TEXT( "state" ) );
+    StateStr = json->GetStringField( TEXT( "state" ) );
+    State = GetCommitState( StateStr );
     Description = json->GetStringField( TEXT( "description" ) );
 }
 

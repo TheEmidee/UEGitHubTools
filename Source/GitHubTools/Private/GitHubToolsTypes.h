@@ -27,6 +27,16 @@ enum class EGitHubToolsFileViewedState : uint8
     Dismissed
 };
 
+enum class EGitHubToolsCommitStatusState : uint8
+{
+    Error,
+    Failure,
+    Expected,
+    Pending,
+    Success,
+    Unknown
+};
+
 struct FGithubToolsPullRequestComment
 {
     FGithubToolsPullRequestComment() = default;
@@ -99,8 +109,9 @@ struct FGitHubToolsPullRequestCheckInfos
     explicit FGitHubToolsPullRequestCheckInfos( const TSharedRef< FJsonObject > & json );
 
     FString Context;
-    FString State;
+    FString StateStr;
     FString Description;
+    EGitHubToolsCommitStatusState State;
 };
 
 typedef TSharedPtr< FGitHubToolsPullRequestCheckInfos > FGitHubToolsPullRequestCheckInfosPtr;

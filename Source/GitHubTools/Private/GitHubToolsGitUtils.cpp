@@ -175,6 +175,45 @@ namespace GitHubToolsUtils
 
         return wrapper->Promise.GetFuture();
     }
+
+    FLinearColor GetCommitCheckColor( EGitHubToolsCommitStatusState state )
+    {
+        switch ( state )
+        {
+            case EGitHubToolsCommitStatusState::Error:
+                return FLinearColor::Red;
+            case EGitHubToolsCommitStatusState::Failure:
+                return FLinearColor::Red;
+            case EGitHubToolsCommitStatusState::Expected:
+                return FLinearColor::Yellow;
+            case EGitHubToolsCommitStatusState::Pending:
+                return FLinearColor::Yellow;
+            case EGitHubToolsCommitStatusState::Success:
+                return FLinearColor::Green;
+            case EGitHubToolsCommitStatusState::Unknown:
+                return FLinearColor::Black;
+            default:
+            {
+                checkNoEntry();
+                return FLinearColor::Black;
+            };
+        }
+    }
+
+    FLinearColor GetPRChecksColor( const FGithubToolsPullRequestInfos & pr_infos )
+    {
+        EGitHubToolsCommitStatusState global_state = EGitHubToolsCommitStatusState::Unknown;
+
+        for ( auto check : pr_infos.Checks )
+        {
+            if ( check->State < global_state )
+            {
+                global_state = check->State;
+            }
+        }
+
+        return GetCommitCheckColor( global_state );
+    }
 }
 
 #undef LOCTEXT_NAMESPACE

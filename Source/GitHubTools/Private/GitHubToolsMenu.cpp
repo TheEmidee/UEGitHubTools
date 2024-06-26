@@ -53,6 +53,7 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
         .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestNumber > & result ) {
             const auto & result_data = result.Get();
             auto pr_number = result_data.GetResult().GetValue();
+            pr_number = 788;
 
             if ( pr_number == INDEX_NONE )
             {
