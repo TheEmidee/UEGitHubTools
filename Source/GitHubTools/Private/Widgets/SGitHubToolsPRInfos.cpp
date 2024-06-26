@@ -83,7 +83,8 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
                             .FillWidth( 0.5f )
                                 [ SAssignNew( ReviewList, SGitHubToolsPRReviewList )
                                         .PRInfos( PRInfos )
-                                        .Visibility( this, &SGitHubToolsPRInfos::GetPRReviewListVisibility ) ] ] ];
+                                        .Visibility( this, &SGitHubToolsPRInfos::GetPRReviewListVisibility )
+                                        .OnShouldRebuildFileTreeView( this, &SGitHubToolsPRInfos::OnShouldRebuildTree ) ] ] ];
 
     contents->AddSlot()
         .AutoHeight()
@@ -205,7 +206,7 @@ void SGitHubToolsPRInfos::OnDiffAgainstRemoteStatusBranchSelected( FGitHubToolsF
                 if ( request.Get().GetResult().Get( false ) )
                 {
                     selected_item->FileInfos->UpdateViewedState( EGitHubToolsFileViewedState::Viewed );
-                    TreeView->RebuildList();
+                    OnShouldRebuildTree();
                     action();
                 }
             } );
@@ -376,6 +377,11 @@ EVisibility SGitHubToolsPRInfos::GetMessageDisplayVisibility() const
     }
 
     return EVisibility::Collapsed;
+}
+
+void SGitHubToolsPRInfos::OnShouldRebuildTree() const
+{
+    TreeView->RebuildList();
 }
 
 bool SGitHubToolsPRInfos::IsFileCommentsButtonEnabled() const

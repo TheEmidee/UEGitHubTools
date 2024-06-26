@@ -16,6 +16,7 @@ public:
 
     SLATE_ATTRIBUTE( TSharedPtr< SWindow >, ParentWindow )
     SLATE_ATTRIBUTE( FGithubToolsPullRequestInfosPtr, PRInfos )
+    SLATE_EVENT( FSimpleDelegate, OnShouldRebuildFileTreeView )
 
     SLATE_END_ARGS()
 
@@ -31,6 +32,7 @@ private:
     bool CanSubmitComment() const;
     FReply OnCreateNewThreadButtonClicked();
     void ShowAddCommentWindow( const FGithubToolsPullRequestReviewThreadInfosPtr & thread_infos);
+    FReply OnMarkFileAsViewedButtonClicked();
 
     TWeakPtr< SWindow > ParentFrame;
     FGithubToolsPullRequestInfosPtr PRInfos;
@@ -42,4 +44,6 @@ private:
     TSharedPtr< SCheckBox > HideResolvedThreadsCheckBox;
     TSharedPtr< SGitHubToolsAddCommentForm > AddCommentForm;
     TSharedPtr< SWindow > AddCommentWindow;
+    TSharedPtr< SButton > MarkFileAsViewedButton;
+    FSimpleDelegate OnShouldRebuildFileTreeView;
 };

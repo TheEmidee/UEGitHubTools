@@ -1,5 +1,7 @@
 #include "SGitHubToolsPRReviewList.h"
 
+#include "GitHubTools.h"
+#include "HttpRequests/GitHubToolsHttpRequest_MarkFileAsViewed.h"
 #include "Widgets/Layout/SWidgetSwitcher.h"
 #include "Widgets/SGitHubToolsAddCommentForm.h"
 #include "Widgets/SGitHubToolsPRReviewThreadTableRow.h"
@@ -18,6 +20,7 @@ void SGitHubToolsPRReviewList::Construct( const FArguments & arguments )
 {
     ParentFrame = arguments._ParentWindow.Get();
     PRInfos = arguments._PRInfos.Get();
+    OnShouldRebuildFileTreeView = arguments._OnShouldRebuildFileTreeView;
 
     TSharedPtr< SVerticalBox > contents;
 
@@ -50,7 +53,15 @@ void SGitHubToolsPRReviewList::Construct( const FArguments & arguments )
                                                     .OnCheckStateChanged( this, &SGitHubToolsPRReviewList::OnHideResolvedThreadsCheckStateChanged )
                                                     .Padding( 4.f )
                                                         [ SNew( STextBlock )
-                                                                .Text( LOCTEXT( "HideResolvedThreads", "Hide resolved threads" ) ) ] ] ] +
+                                                                .Text( LOCTEXT( "HideResolvedThreads", "Hide resolved threads" ) ) ] ] +
+                                    SHorizontalBox::Slot()
+                                        .Padding( FMargin( 5.0f ) )
+                                        .AutoWidth()
+                                        .HAlign( HAlign_Left )
+                                            [ SAssignNew( MarkFileAsViewedButton, SButton )
+                                                    .Text( LOCTEXT( "MarkFileAsViewed", "Mark file as viewed" ) )
+                                                    .IsEnabled( false )
+                                                    .OnClicked( this, &SGitHubToolsPRReviewList::OnMarkFileAsViewedButtonClicked ) ] ] +
                         SVerticalBox::Slot()
                             .FillHeight( 1.0f )
                             .Padding( FMargin( 5.0f ) )
@@ -83,6 +94,8 @@ void SGitHubToolsPRReviewList::ShowFileReviews( const FGithubToolsPullRequestFil
     }
 
     ReviewThreadsListView->RequestListRefresh();
+
+    MarkFileAsViewedButton->SetEnabled( PRInfos->CanCommentFiles() && FileInfos != nullptr && file_infos->ViewedState != EGitHubToolsFileViewedState::Viewed );
 }
 
 FReply SGitHubToolsPRReviewList::OnAddCommentClicked( FGithubToolsPullRequestReviewThreadInfosPtr thread_infos )
@@ -146,6 +159,23 @@ void SGitHubToolsPRReviewList::ShowAddCommentWindow( const FGithubToolsPullReque
     {
         FSlateApplication::Get().AddModalWindow( AddCommentWindow.ToSharedRef(), root_window );
     }
+}
+
+FReply SGitHubToolsPRReviewList::OnMarkFileAsViewedButtonClicked()
+{
+    FGitHubToolsModule::Get()
+        .GetRequestManager()
+        .SendRequest< FGitHubToolsHttpRequest_MarkFileAsViewed >( PRInfos->Id, FileInfos->Path )
+        .Then( [ this ]( const TFuture< FGitHubToolsHttpRequest_MarkFileAsViewed > & request ) {
+            if ( request.Get().GetResult().Get( false ) )
+            {
+                FileInfos->UpdateViewedState( EGitHubToolsFileViewedState::Viewed );
+                MarkFileAsViewedButton->SetEnabled( false );
+                OnShouldRebuildFileTreeView.Execute();
+            }
+        } );
+
+    return FReply::Handled();
 }
 
 #undef LOCTEXT_NAMESPACE

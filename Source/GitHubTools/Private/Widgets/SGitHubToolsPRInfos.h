@@ -60,6 +60,7 @@ private:
     void SetItemExpansion( FGitHubToolsFileInfosTreeItemPtr tree_item, bool is_expanded );
     EVisibility GetPRReviewListVisibility() const;
     EVisibility GetMessageDisplayVisibility() const;
+    void OnShouldRebuildTree() const;
 
     FGithubToolsPullRequestInfosPtr PRInfos;
     TSharedPtr< STreeView< FGitHubToolsFileInfosTreeItemPtr > > TreeView;
