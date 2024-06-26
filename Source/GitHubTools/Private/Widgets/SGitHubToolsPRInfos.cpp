@@ -1,11 +1,8 @@
 #include "SGitHubToolsPRInfos.h"
 
-#include "GitHubTools.h"
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
-#include "MaterialGraph/MaterialGraphSchema.h"
 #include "SGitHubToolsPRInfosHeader.h"
-#include "SGitHubToolsPRInfosPendingReviews.h"
 #include "SGitHubToolsPRReviewList.h"
 
 #include <AssetToolsModule.h>
@@ -95,6 +92,7 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
 
 void SGitHubToolsPRInfos::ConstructFileInfos()
 {
+    TreeItems.Reset();
     TreeItems.Reserve( PRInfos->FileInfos.Num() );
 
     const auto get_path_parts = []( const FString & path ) {
@@ -127,6 +125,11 @@ void SGitHubToolsPRInfos::ConstructFileInfos()
 
             if ( !found )
             {
+                if ( GetItemRowVisibility( file_infos ) != EVisibility::Visible )
+                {
+                    continue;
+                }
+
                 auto new_node = MakeShared< FGitHubToolsFileInfosTreeItem >( part );
                 current_node->Children.Add( new_node );
                 current_node = new_node;
@@ -184,6 +187,8 @@ void SGitHubToolsPRInfos::OnDiffAgainstRemoteStatusBranchSelected( FGitHubToolsF
 void SGitHubToolsPRInfos::OnShowOnlyUAssetsCheckStateChanged( ECheckBoxState new_state )
 {
     bShowOnlyUAssets = new_state == ECheckBoxState::Checked;
+    ConstructFileInfos();
+    OnExpandAllClicked();
     TreeView->RequestListRefresh();
     TreeVisibilitySettingsButton->SetIsOpen( false );
 }
@@ -191,6 +196,8 @@ void SGitHubToolsPRInfos::OnShowOnlyUAssetsCheckStateChanged( ECheckBoxState new
 void SGitHubToolsPRInfos::OnHideOFPACheckStateChanged( ECheckBoxState new_state )
 {
     bHideOFPA = new_state == ECheckBoxState::Checked;
+    ConstructFileInfos();
+    OnExpandAllClicked();
     TreeView->RequestListRefresh();
     TreeVisibilitySettingsButton->SetIsOpen( false );
 }
@@ -355,10 +362,10 @@ void SGitHubToolsPRInfos::OnGetChildrenForTreeView( FGitHubToolsFileInfosTreeIte
 TSharedRef< ITableRow > SGitHubToolsPRInfos::OnGenerateRowForList( FGitHubToolsFileInfosTreeItemPtr tree_item, const TSharedRef< STableViewBase > & owner_table )
 {
     return SNew( SGitHubToolsFileInfosRow, owner_table )
-        .TreeItem( tree_item )
-        .Visibility( MakeAttributeLambda( [ &, tree_item ]() {
+        .TreeItem( tree_item );
+        /*.Visibility( MakeAttributeLambda( [ &, tree_item ]() {
             return GetItemRowVisibility( tree_item->FileInfos );
-        } ) );
+        } ) );*/
 }
 
 EVisibility SGitHubToolsPRInfos::GetItemRowVisibility( FGithubToolsPullRequestFileInfosPtr file_infos ) const
