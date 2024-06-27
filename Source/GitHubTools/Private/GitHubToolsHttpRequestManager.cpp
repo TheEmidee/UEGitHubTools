@@ -2,39 +2,14 @@
 
 #include "GitHubTools.h"
 #include "GitHubToolsSettings.h"
-#include "Interfaces/IHttpResponse.h"
 
 #include <HttpModule.h>
+#include <Interfaces/IHttpResponse.h>
 
 template < typename TRequest >
-bool TGitHubToolsHttpRequest< TRequest >::ProcessRequest()
+bool TGitHubToolsHttpRequestWrapper< TRequest >::ProcessRequest()
 {
-    FString token;
-    FString repository_owner;
-    FString repository_name;
-
-    if ( auto * settings = GetDefault< UGitHubToolsSettings >() )
-    {
-        token = settings->Token;
-        repository_owner = settings->RepositoryOwner;
-        repository_name = settings->RepositoryName;
-    }
-
-    if ( token.IsEmpty() )
-    {
-        return false;
-    }
-
-    if ( repository_owner.IsEmpty() )
-    {
-        return false;
-    }
-
-    if ( repository_name.IsEmpty() )
-    {
-        return false;
-    }
-
+    const auto token = GetDefault< UGitHubToolsSettings >()->Token;
     const auto request = FHttpModule::Get().CreateRequest();
 
     request->SetVerb( TEXT( "POST" ) );
@@ -50,20 +25,26 @@ bool TGitHubToolsHttpRequest< TRequest >::ProcessRequest()
 
     request->SetURL( TEXT( "https://api.github.com/graphql" ) );
     request->SetContentAsString( Request.GetBody() );
-    request->OnProcessRequestComplete().BindRaw( this, &::TGitHubToolsHttpRequest< TRequest >::OnProcessRequestComplete );
+    request->OnProcessRequestComplete().BindRaw( this, &::TGitHubToolsHttpRequestWrapper< TRequest >::OnProcessRequestComplete );
     request->SetDelegateThreadPolicy( EHttpRequestDelegateThreadPolicy::CompleteOnHttpThread );
 
     return request->ProcessRequest();
 }
 
 template < typename TRequest >
-void TGitHubToolsHttpRequest< TRequest >::OnProcessRequestComplete( FHttpRequestPtr request_ptr, FHttpResponsePtr response_ptr, bool success )
+void TGitHubToolsHttpRequestWrapper< TRequest >::OnProcessRequestComplete( FHttpRequestPtr /*request_ptr*/, FHttpResponsePtr response_ptr, bool success )
 {
     if ( success )
     {
         Request.ProcessResponse( response_ptr );
     }
 
+    SetPromiseValue();
+}
+
+template < typename TRequest >
+void TGitHubToolsHttpRequestWrapper< TRequest >::SetPromiseValue()
+{
     if ( bSetPromiseValueOnMainThread )
     {
         AsyncTask( ENamedThreads::GameThread, [ & ]() {
@@ -161,13 +142,13 @@ void FGitHubToolsHttpRequestWithPagination< TResultType >::ParsePageInfo( const 
 template < typename TRequest, typename... TArgTypes >
 TFuture< TRequest > FGitHubToolsHttpRequestManager::SendRequest( TArgTypes &&... args )
 {
-    typedef TGitHubToolsHttpRequest< TRequest > HttpRequestType;
+    typedef TGitHubToolsHttpRequestWrapper< TRequest > HttpRequestType;
     auto request = MakeShared< HttpRequestType >( Forward< TArgTypes >( args )... );
 
     Request = request;
 
     Async( EAsyncExecution::TaskGraph, [ &, r = request ]() {
-        r->ProcessRequest();
+        r->TryProcessRequest();
     } );
 
     return request->GetFuture();
@@ -184,10 +165,10 @@ TFuture< typename TRequest::ResponseType > FGitHubToolsHttpRequestManager::SendP
 
         while ( true )
         {
-            typedef TGitHubToolsHttpRequest< TRequest > HttpRequestType;
+            typedef TGitHubToolsHttpRequestWrapper< TRequest > HttpRequestType;
             auto request = MakeShared< HttpRequestType >( args..., cursor );
             request->SetPromiseValueOnHttpThread();
-            request->ProcessRequest();
+            request->TryProcessRequest();
 
             auto request_future_result = request->GetFuture().Get();
 

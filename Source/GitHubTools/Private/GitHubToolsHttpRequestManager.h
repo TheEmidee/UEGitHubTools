@@ -3,10 +3,48 @@
 #include <CoreMinimal.h>
 #include <Interfaces/IHttpRequest.h>
 
-enum class EGitHubToolsRequestType : uint8
+class IGitHubToolsHttpRequest
 {
-    GET,
-    POST
+public:
+    virtual ~IGitHubToolsHttpRequest() = default;
+};
+
+template < typename TRequest >
+class TGitHubToolsHttpRequestWrapper : public IGitHubToolsHttpRequest
+{
+public:
+    template < typename... TArgTypes >
+    TGitHubToolsHttpRequestWrapper( TArgTypes &&... args ) :
+        Request( Forward< TArgTypes >( args )... )
+    {}
+
+    virtual ~TGitHubToolsHttpRequestWrapper() override = default;
+
+    void TryProcessRequest();
+
+    FORCEINLINE const TRequest & GetRequestData()
+    {
+        return Request;
+    }
+
+    FORCEINLINE TFuture< TRequest > GetFuture()
+    {
+        return Promise.GetFuture();
+    }
+
+    FORCEINLINE void SetPromiseValueOnHttpThread()
+    {
+        bSetPromiseValueOnMainThread = false;
+    }
+
+protected:
+    bool ProcessRequest();
+    void OnProcessRequestComplete( FHttpRequestPtr request_ptr, FHttpResponsePtr response_ptr, bool success );
+    void SetPromiseValue();
+
+    TPromise< TRequest > Promise;
+    TRequest Request;
+    bool bSetPromiseValueOnMainThread = true;
 };
 
 template < typename TResultType >
@@ -14,6 +52,8 @@ class FGitHubToolsHttpRequest
 {
 public:
     using ResultType = TResultType;
+
+    template < typename > friend class TGitHubToolsHttpRequestWrapper;
 
     virtual ~FGitHubToolsHttpRequest() = default;
 
@@ -70,48 +110,6 @@ private:
     FString AfterCursor;
     bool bHasNextPage;
     FString EndCursor;
-};
-
-class IGitHubToolsHttpRequest
-{
-public:
-    virtual ~IGitHubToolsHttpRequest() = default;
-};
-
-template < typename TRequest >
-class TGitHubToolsHttpRequest : public IGitHubToolsHttpRequest
-{
-public:
-    template < typename... TArgTypes >
-    TGitHubToolsHttpRequest( TArgTypes &&... args ) :
-        Request( Forward< TArgTypes >( args )... )
-    {}
-
-    virtual ~TGitHubToolsHttpRequest() override = default;
-
-    bool ProcessRequest();
-
-    FORCEINLINE const TRequest & GetRequestData()
-    {
-        return Request;
-    }
-
-    FORCEINLINE TFuture< TRequest > GetFuture()
-    {
-        return Promise.GetFuture();
-    }
-
-    FORCEINLINE void SetPromiseValueOnHttpThread()
-    {
-        bSetPromiseValueOnMainThread = false;
-    }
-
-protected:
-    void OnProcessRequestComplete( FHttpRequestPtr request_ptr, FHttpResponsePtr response_ptr, bool success );
-
-    TPromise< TRequest > Promise;
-    TRequest Request;
-    bool bSetPromiseValueOnMainThread = true;
 };
 
 class FGitHubToolsHttpRequestManager : public TSharedFromThis< FGitHubToolsHttpRequestManager >
