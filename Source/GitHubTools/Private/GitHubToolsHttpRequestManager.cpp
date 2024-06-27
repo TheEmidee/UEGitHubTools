@@ -148,7 +148,7 @@ TFuture< TRequest > FGitHubToolsHttpRequestManager::SendRequest( TArgTypes &&...
     Request = request;
 
     Async( EAsyncExecution::TaskGraph, [ &, r = request ]() {
-        r->TryProcessRequest();
+        r->ProcessRequest();
     } );
 
     return request->GetFuture();
@@ -168,7 +168,7 @@ TFuture< typename TRequest::ResponseType > FGitHubToolsHttpRequestManager::SendP
             typedef TGitHubToolsHttpRequestWrapper< TRequest > HttpRequestType;
             auto request = MakeShared< HttpRequestType >( args..., cursor );
             request->SetPromiseValueOnHttpThread();
-            request->TryProcessRequest();
+            request->ProcessRequest();
 
             auto request_future_result = request->GetFuture().Get();
 

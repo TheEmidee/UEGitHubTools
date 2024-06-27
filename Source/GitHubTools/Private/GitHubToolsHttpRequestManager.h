@@ -20,8 +20,6 @@ public:
 
     virtual ~TGitHubToolsHttpRequestWrapper() override = default;
 
-    void TryProcessRequest();
-
     FORCEINLINE const TRequest & GetRequestData()
     {
         return Request;
@@ -37,8 +35,9 @@ public:
         bSetPromiseValueOnMainThread = false;
     }
 
-protected:
     bool ProcessRequest();
+
+protected:
     void OnProcessRequestComplete( FHttpRequestPtr request_ptr, FHttpResponsePtr response_ptr, bool success );
     void SetPromiseValue();
 
