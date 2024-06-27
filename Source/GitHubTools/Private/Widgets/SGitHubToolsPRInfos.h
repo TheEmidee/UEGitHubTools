@@ -20,9 +20,13 @@ struct FGitHubToolsFileInfosTreeItem
 
 typedef TSharedPtr< FGitHubToolsFileInfosTreeItem > FGitHubToolsFileInfosTreeItemPtr;
 
-class SGitHubToolsPRInfos final : public SCompoundWidget
+DECLARE_DELEGATE_OneParam( FGitHubToolsPRInfosOnTreeItemStateChangedDelegate, FGitHubToolsFileInfosTreeItemPtr )
+
+    class SGitHubToolsPRInfos final : public SCompoundWidget
 {
 public:
+    friend class SGitHubToolsFileInfosRow;
+
     SLATE_BEGIN_ARGS( SGitHubToolsPRInfos )
     {}
 
@@ -61,6 +65,7 @@ private:
     EVisibility GetPRReviewListVisibility() const;
     EVisibility GetMessageDisplayVisibility() const;
     void OnShouldRebuildTree() const;
+    void OnTreeItemStateChanged( TSharedPtr< FGitHubToolsFileInfosTreeItem > tree_item );
 
     FGithubToolsPullRequestInfosPtr PRInfos;
     TSharedPtr< STreeView< FGitHubToolsFileInfosTreeItemPtr > > TreeView;
@@ -79,13 +84,20 @@ public:
     {}
 
     SLATE_ARGUMENT( FGitHubToolsFileInfosTreeItemPtr, TreeItem )
+    SLATE_ARGUMENT( FString, PRId )
+    SLATE_EVENT( FGitHubToolsPRInfosOnTreeItemStateChangedDelegate, OnTreeItemStateChanged )
 
     SLATE_END_ARGS()
 
     void Construct( const FArguments & arguments, const TSharedRef< STableViewBase > & owner_table_view );
 
 private:
+    FReply OnMarkAsViewedButtonClicked();
+    FReply OnOpenAssetButtonClicked();
+
+    FString PRId;
     FGitHubToolsFileInfosTreeItemPtr TreeItem;
+    FGitHubToolsPRInfosOnTreeItemStateChangedDelegate OnTreeItemStateChanged;
 };
 
 #undef LOCTEXT_NAMESPACE
