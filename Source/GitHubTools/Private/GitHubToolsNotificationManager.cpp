@@ -56,7 +56,10 @@ void FGitHubToolsNotificationManager::DisplayFailureNotification( const FText & 
     RemoveInProgressNotification();
 
     FNotificationInfo info( error_message );
+    info.bUseSuccessFailIcons = true;
     info.ExpireDuration = 8.0f;
+    info.Image = FAppStyle::GetBrush( TEXT( "NotificationList.FailImage" ) );
+
     FSlateNotificationManager::Get().AddNotification( info );
 
     UE_LOG( LogGitHubTools, Error, TEXT( "%s" ), *error_message.ToString() );
