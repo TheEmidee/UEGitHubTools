@@ -17,7 +17,7 @@ namespace
         {
             return EGitHubToolsFileChangedState::Modified;
         }
-        if ( status == TEXT( "REMOVED" ) )
+        if ( status == TEXT( "DELETED" ) )
         {
             return EGitHubToolsFileChangedState::Removed;
         }
