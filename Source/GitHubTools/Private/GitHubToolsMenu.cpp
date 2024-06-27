@@ -2,9 +2,9 @@
 
 #include "GitHubTools.h"
 #include "GitHubToolsGitUtils.h"
+#include "GitHubToolsSettings.h"
 #include "GitSourceControlModule.h"
 #include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestFiles.h"
-#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestInfos.h"
 #include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestNumber.h"
 #include "Widgets/SGitHubToolsPRInfos.h"
 
@@ -45,6 +45,11 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
         return;
     }
 
+    if ( !ValidateSettings() )
+    {
+        return;
+    }
+
     FGitHubToolsModule::Get().GetNotificationManager().DisplayInProgressNotification( LOCTEXT( "FetchPRInfos", "Fecthing Pull Request informations" ) );
 
     FGitHubToolsModule::Get()
@@ -52,7 +57,8 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
         .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestNumber >()
         .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestNumber > & result ) {
             const auto & result_data = result.Get();
-            auto pr_number = result_data.GetResult().GetValue();
+
+            const auto pr_number = result_data.GetResult().Get( INDEX_NONE );
 
             if ( pr_number == INDEX_NONE )
             {
@@ -117,6 +123,38 @@ void FGitHubToolsMenu::ShowPullRequestReviewWindow( const FGithubToolsPullReques
     {
         FSlateApplication::Get().AddWindow( ReviewWindowPtr.ToSharedRef() );
     }
+}
+
+bool FGitHubToolsMenu::ValidateSettings() const
+{
+    if ( auto * settings = GetDefault< UGitHubToolsSettings >() )
+    {
+        if ( settings->Token.IsEmpty() )
+        {
+            FGitHubToolsModule::Get()
+                .GetNotificationManager()
+                .DisplayFailureNotification( LOCTEXT( "EmptyToken", "There's no token defined in the settings" ) );
+            return false;
+        }
+
+        if ( settings->RepositoryName.IsEmpty() )
+        {
+            FGitHubToolsModule::Get()
+                .GetNotificationManager()
+                .DisplayFailureNotification( LOCTEXT( "EmptyRepositoryName", "There's no repository name defined in the settings" ) );
+            return false;
+        }
+
+        if ( settings->RepositoryOwner.IsEmpty() )
+        {
+            FGitHubToolsModule::Get()
+                .GetNotificationManager()
+                .DisplayFailureNotification( LOCTEXT( "EmptyOwnerName", "There's no repository owner defined in the settings" ) );
+            return false;
+        }
+    }
+
+    return true;
 }
 
 #undef LOCTEXT_NAMESPACE
