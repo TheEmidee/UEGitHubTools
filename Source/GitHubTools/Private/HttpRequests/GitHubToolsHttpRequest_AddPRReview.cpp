@@ -12,6 +12,11 @@ FGitHubToolsHttpRequestData_AddPRReview::FGitHubToolsHttpRequestData_AddPRReview
 {
 }
 
+FGitHubToolsHttpRequestData_AddPRReview::FGitHubToolsHttpRequestData_AddPRReview( const FString & pull_request_id ) :
+    PullRequestId( pull_request_id )
+{
+}
+
 FString FGitHubToolsHttpRequestData_AddPRReview::GetBody() const
 {
     TStringBuilder< 512 > string_builder;
@@ -20,7 +25,12 @@ FString FGitHubToolsHttpRequestData_AddPRReview::GetBody() const
     string_builder << TEXT( "  \"mutation {" );
     string_builder << TEXT( "    addPullRequestReview( input: {" );
     string_builder << TEXT( "      pullRequestId: \\\"" ) << *PullRequestId << TEXT( "\\\", " );
-    string_builder << TEXT( "      event: " ) << *GitHubToolsUtils::GetPullRequestReviewEventStringValue( Event ) << TEXT( ", " );
+
+    if ( Event.IsSet() )
+    {
+        string_builder << TEXT( ", event: " ) << *GitHubToolsUtils::GetPullRequestReviewEventStringValue( Event.GetValue() );
+    }
+
     string_builder << TEXT( "    } ) { " );
     string_builder << TEXT( "      pullRequestReview {" );
     string_builder << TEXT( "        id" );

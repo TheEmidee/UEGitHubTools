@@ -150,7 +150,6 @@ void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
                                         .Padding( FMargin( 5.0f ) )
                                             [ SNew( SButton )
                                                     .VAlign( VAlign_Center )
-                                                    .IsEnabled( !PRInfos->bApprovedByMe )
                                                     .Text( LOCTEXT( "ApprovePR", "Approve the PR" ) )
                                                     .OnClicked( this, &SGitHubToolsPRHeader::OnApprovePRClicked ) ] ] ] ];
 }
@@ -167,8 +166,7 @@ FReply SGitHubToolsPRHeader::OnApprovePRClicked()
     FGitHubToolsModule::Get()
         .GetRequestManager()
         .SendRequest< FGitHubToolsHttpRequestData_AddPRReview >( PRInfos->Id, EGitHubToolsPullRequestReviewEvent::Approve )
-        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReview > & request_future ) {
-            ApprovePRButton->SetEnabled( false );
+        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReview > & /*request_future*/ ) {
         } );
 
     return FReply::Handled();

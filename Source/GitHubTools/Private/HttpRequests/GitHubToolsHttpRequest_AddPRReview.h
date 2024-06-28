@@ -3,10 +3,11 @@
 #include "GitHubToolsHttpRequestManager.h"
 #include "GitHubToolsTypes.h"
 
-class FGitHubToolsHttpRequestData_AddPRReview final : public FGitHubToolsHttpRequest < FString >
+class FGitHubToolsHttpRequestData_AddPRReview final : public FGitHubToolsHttpRequest< FString >
 {
 public:
-    explicit FGitHubToolsHttpRequestData_AddPRReview( const FString & pull_request_id, EGitHubToolsPullRequestReviewEvent event );
+    FGitHubToolsHttpRequestData_AddPRReview( const FString & pull_request_id, EGitHubToolsPullRequestReviewEvent event );
+    explicit FGitHubToolsHttpRequestData_AddPRReview( const FString & pull_request_id );
 
     FString GetBody() const override;
 
@@ -14,5 +15,5 @@ private:
     void ParseResponse( FHttpResponsePtr response_ptr ) override;
 
     FString PullRequestId;
-    EGitHubToolsPullRequestReviewEvent Event;
+    TOptional< EGitHubToolsPullRequestReviewEvent > Event;
 };
