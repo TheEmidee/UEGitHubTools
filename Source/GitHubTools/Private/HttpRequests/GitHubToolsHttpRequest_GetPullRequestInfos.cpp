@@ -1,5 +1,6 @@
 #include "GitHubToolsHttpRequest_GetPullRequestInfos.h"
 
+#include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
 
 #include <Interfaces/IHttpResponse.h>
@@ -78,13 +79,14 @@ FString FGitHubToolsHttpRequestData_GetPullRequestInfos::GetBody() const
     string_builder << TEXT( "          }" );
     string_builder << TEXT( "        }" );
     string_builder << TEXT( "      }" );
-    string_builder << TEXT( "      reviews( first : 100, states : PENDING ) {" );
+    string_builder << TEXT( "      reviews( first : 100 ) {" );
     string_builder << TEXT( "        edges {" );
     string_builder << TEXT( "          node {" );
     string_builder << TEXT( "            author {" );
     string_builder << TEXT( "              login" );
     string_builder << TEXT( "            }" );
     string_builder << TEXT( "            id" );
+    string_builder << TEXT( "            state" );
     string_builder << TEXT( "            comments( first : 100 ) {" );
     string_builder << TEXT( "              edges {" );
     string_builder << TEXT( "                node {" );
@@ -192,6 +194,18 @@ void FGitHubToolsHttpRequestData_GetPullRequestInfos::ParseResponse( FHttpRespon
         const auto review_node_author_login = review_node_author_object->GetStringField( TEXT( "login" ) );
 
         if ( review_node_author_login != pr_infos->ViewerLogin )
+        {
+            continue;
+        }
+
+        const auto state = GitHubToolsUtils::GetPullRequestReviewState( review_node_object->GetStringField( TEXT( "state" ) ) );
+        if ( state == EGitHubToolsPullRequestReviewState::Approved )
+        {
+            pr_infos->bApprovedByMe = true;
+            continue;
+        }
+
+        if ( state != EGitHubToolsPullRequestReviewState::Pending )
         {
             continue;
         }

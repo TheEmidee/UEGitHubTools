@@ -1,11 +1,14 @@
 #include "GitHubToolsHttpRequest_AddPRReview.h"
 
+#include "GitHubToolsGitUtils.h"
+
 #include <Interfaces/IHttpResponse.h>
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 
-FGitHubToolsHttpRequestData_AddPRReview::FGitHubToolsHttpRequestData_AddPRReview( const FString & pull_request_id ) :
-    PullRequestId( pull_request_id )
+FGitHubToolsHttpRequestData_AddPRReview::FGitHubToolsHttpRequestData_AddPRReview( const FString & pull_request_id, const EGitHubToolsPullRequestReviewEvent event ) :
+    PullRequestId( pull_request_id ),
+    Event( event )
 {
 }
 
@@ -17,6 +20,7 @@ FString FGitHubToolsHttpRequestData_AddPRReview::GetBody() const
     string_builder << TEXT( "  \"mutation {" );
     string_builder << TEXT( "    addPullRequestReview( input: {" );
     string_builder << TEXT( "      pullRequestId: \\\"" ) << *PullRequestId << TEXT( "\\\", " );
+    string_builder << TEXT( "      event: " ) << *GitHubToolsUtils::GetPullRequestReviewEventStringValue( Event ) << TEXT( ", " );
     string_builder << TEXT( "    } ) { " );
     string_builder << TEXT( "      pullRequestReview {" );
     string_builder << TEXT( "        id" );

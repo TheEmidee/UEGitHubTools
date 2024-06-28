@@ -1,8 +1,10 @@
 #include "SGitHubToolsPRInfosHeader.h"
 
+#include "GitHubTools.h"
 #include "GitHubToolsGitUtils.h"
 #include "RevisionControlStyle/RevisionControlStyle.h"
 #include "SGitHubToolsPRInfosPendingReviews.h"
+#include "HttpRequests/GitHubToolsHttpRequest_AddPRReview.h"
 
 #if SOURCE_CONTROL_WITH_SLATE
 
@@ -129,8 +131,6 @@ void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
                                                                     [ SNew( SImage )
                                                                             .Image( GetIcon( PRInfos->bIsMergeable ).GetIcon() ) ] ] ] +
                                     SHorizontalBox::Slot()
-                                        .FillWidth( 1.0f ) +
-                                    SHorizontalBox::Slot()
                                         .AutoWidth()
                                         .Padding( FMargin( 10 ) )
                                             [ SNew( SBorder )
@@ -142,12 +142,34 @@ void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
                                                                 .Text( LOCTEXT( "ChecksText", "Checks" ) )
                                                                 .ToolTip( SNew( SToolTip )
                                                                         [ SNew( SBorder )
-                                                                                [ checks_tooltip.ToSharedRef() ] ] ) ] ] ] ] ];
+                                                                                [ checks_tooltip.ToSharedRef() ] ] ) ] ] +
+                                    SHorizontalBox::Slot()
+                                        .FillWidth( 1.0f ) +
+                                    SHorizontalBox::Slot()
+                                        .AutoWidth()
+                                        .Padding( FMargin( 5.0f ) )
+                                            [ SNew( SButton )
+                                                    .VAlign( VAlign_Center )
+                                                    .IsEnabled( !PRInfos->bApprovedByMe )
+                                                    .Text( LOCTEXT( "ApprovePR", "Approve the PR" ) )
+                                                    .OnClicked( this, &SGitHubToolsPRHeader::OnApprovePRClicked ) ] ] ] ];
 }
 
 FReply SGitHubToolsPRHeader::OpenInGitHubClicked()
 {
     FPlatformProcess::LaunchURL( *PRInfos->URL, nullptr, nullptr );
+
+    return FReply::Handled();
+}
+
+FReply SGitHubToolsPRHeader::OnApprovePRClicked()
+{
+    FGitHubToolsModule::Get()
+        .GetRequestManager()
+        .SendRequest< FGitHubToolsHttpRequestData_AddPRReview >( PRInfos->Id, EGitHubToolsPullRequestReviewEvent::Approve )
+        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReview > & request_future ) {
+            ApprovePRButton->SetEnabled( false );
+        } );
 
     return FReply::Handled();
 }

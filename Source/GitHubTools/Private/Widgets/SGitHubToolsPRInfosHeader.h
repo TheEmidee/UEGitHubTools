@@ -19,7 +19,9 @@ public:
 
 private:
     FReply OpenInGitHubClicked();
+    FReply OnApprovePRClicked();
     EVisibility GetPendingReviewsVisibility() const;
 
     FGithubToolsPullRequestInfosPtr PRInfos;
+    TSharedPtr< SButton > ApprovePRButton;
 };

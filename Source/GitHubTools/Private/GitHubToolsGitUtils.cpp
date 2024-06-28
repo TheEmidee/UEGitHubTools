@@ -173,6 +173,51 @@ namespace GitHubToolsUtils
 
         return GetCommitCheckColor( global_state );
     }
+
+    FString GetPullRequestReviewEventStringValue( EGitHubToolsPullRequestReviewEvent event )
+    {
+        switch ( event )
+        {
+            case EGitHubToolsPullRequestReviewEvent::Approve:
+                return TEXT( "APPROVE" );
+            case EGitHubToolsPullRequestReviewEvent::Comment:
+                return TEXT( "COMMENT" );
+            case EGitHubToolsPullRequestReviewEvent::Dismiss:
+                return TEXT( "DISMISS" );
+            case EGitHubToolsPullRequestReviewEvent::RequestChanges:
+                return TEXT( "REQUEST_CHANGES" );
+            default:
+            {
+                checkNoEntry();
+            };
+        }
+        return TEXT( "" );
+    }
+
+    EGitHubToolsPullRequestReviewState GetPullRequestReviewState( const FString & event )
+    {
+        if ( event == TEXT( "APPROVED" ) )
+        {
+            return EGitHubToolsPullRequestReviewState::Approved;
+        }
+        if ( event == TEXT( "CHANGES_REQUESTED" ) )
+        {
+            return EGitHubToolsPullRequestReviewState::ChangesRequested;
+        }
+        if ( event == TEXT( "COMMENTED" ) )
+        {
+            return EGitHubToolsPullRequestReviewState::Commented;
+        }
+        if ( event == TEXT( "DISMISSED" ) )
+        {
+            return EGitHubToolsPullRequestReviewState::Dismissed;
+        }
+        if ( event == TEXT( "PENDING" ) )
+        {
+            return EGitHubToolsPullRequestReviewState::Pending;
+        }
+        return EGitHubToolsPullRequestReviewState::Unknown;
+    }
 }
 
 #undef LOCTEXT_NAMESPACE

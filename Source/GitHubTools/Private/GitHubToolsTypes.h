@@ -10,6 +10,16 @@ enum class EGitHubToolsPullRequestReviewEvent : uint8
     RequestChanges
 };
 
+enum class EGitHubToolsPullRequestReviewState : uint8
+{
+    Approved,
+    ChangesRequested,
+    Commented,
+    Dismissed,
+    Pending,
+    Unknown
+};
+
 enum class EGitHubToolsFileChangedState : uint8
 {
     Unknown,
@@ -150,6 +160,7 @@ struct FGithubToolsPullRequestInfos
     bool bIsMergeable;
     EGitHubToolsPullRequestsState State;
     FString URL;
+    bool bApprovedByMe;
     TArray< FGithubToolsPullRequestFileInfosPtr > FileInfos;
     TArray< FGithubToolsPullRequestReviewThreadInfosPtr > Reviews;
     TArray< FGitHubToolsPullRequestCheckInfosPtr > Checks;

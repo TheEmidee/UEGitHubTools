@@ -243,7 +243,8 @@ FGitHubToolsPullRequestCheckInfos::FGitHubToolsPullRequestCheckInfos( const TSha
     Description = json->GetStringField( TEXT( "description" ) );
 }
 
-FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( const TSharedRef< FJsonObject > & json )
+FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( const TSharedRef< FJsonObject > & json ):
+    bApprovedByMe( false )
 {
     const auto author_object = json->GetObjectField( TEXT( "author" ) );
     const auto commits_object = json->GetObjectField( TEXT( "commits" ) );

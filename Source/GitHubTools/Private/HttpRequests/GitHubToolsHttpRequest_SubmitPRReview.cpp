@@ -1,32 +1,10 @@
 #include "GitHubToolsHttpRequest_SubmitPRReview.h"
 
+#include "GitHubToolsGitUtils.h"
+
 #include <Interfaces/IHttpResponse.h>
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
-
-namespace
-{
-    FString GetPullRequestReviewEventStringValue( EGitHubToolsPullRequestReviewEvent event )
-    {
-        switch ( event )
-        {
-
-            case EGitHubToolsPullRequestReviewEvent::Approve:
-                return TEXT( "APPROVE" );
-            case EGitHubToolsPullRequestReviewEvent::Comment:
-                return TEXT( "COMMENT" );
-            case EGitHubToolsPullRequestReviewEvent::Dismiss:
-                return TEXT( "DISMISS" );
-            case EGitHubToolsPullRequestReviewEvent::RequestChanges:
-                return TEXT( "REQUEST_CHANGES" );
-            default:
-            {
-                checkNoEntry();
-            };
-        }
-        return TEXT( "" );
-    }
-}
 
 FGitHubToolsHttpRequestData_SubmitPRReview::FGitHubToolsHttpRequestData_SubmitPRReview( const FString & pull_request_id, const FString & pull_request_review_id, EGitHubToolsPullRequestReviewEvent event ) :
     PullRequestId( pull_request_id ),
@@ -44,7 +22,7 @@ FString FGitHubToolsHttpRequestData_SubmitPRReview::GetBody() const
     string_builder << TEXT( "    submitPullRequestReview( input: {" );
     string_builder << TEXT( "      pullRequestId: \\\"" ) << *PullRequestId << TEXT( "\\\", " );
     string_builder << TEXT( "      pullRequestReviewId: \\\"" ) << *PullRequestReviewId << TEXT( "\\\", " );
-    string_builder << TEXT( "      event: " ) << *GetPullRequestReviewEventStringValue( Event ) << TEXT( ", " );
+    string_builder << TEXT( "      event: " ) << *GitHubToolsUtils::GetPullRequestReviewEventStringValue( Event ) << TEXT( ", " );
     string_builder << TEXT( "    } ) { " );
     string_builder << TEXT( "      pullRequestReview {" );
     string_builder << TEXT( "        id" );

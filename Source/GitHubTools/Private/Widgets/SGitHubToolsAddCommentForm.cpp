@@ -101,7 +101,7 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
     {
         FGitHubToolsModule::Get()
             .GetRequestManager()
-            .SendRequest< FGitHubToolsHttpRequestData_AddPRReview >( PRInfos->Id )
+            .SendRequest< FGitHubToolsHttpRequestData_AddPRReview >( PRInfos->Id, EGitHubToolsPullRequestReviewEvent::Comment )
             .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReview > & request_future ) {
                 const auto & request = request_future.Get();
 
