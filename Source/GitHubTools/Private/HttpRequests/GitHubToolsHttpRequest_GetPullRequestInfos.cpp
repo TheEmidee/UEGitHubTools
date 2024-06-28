@@ -165,6 +165,11 @@ void FGitHubToolsHttpRequestData_GetPullRequestInfos::ParseResponse( FHttpRespon
             review_thread_infos->Comments.Emplace( comment );
         }
 
+        if ( !review_thread_infos->bIsResolved )
+        {
+            pr_infos->bHasUnresolvedConversations = true;
+        }
+
         pr_infos->Reviews.Emplace( review_thread_infos );
     }
 

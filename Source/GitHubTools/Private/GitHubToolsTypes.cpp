@@ -244,7 +244,8 @@ FGitHubToolsPullRequestCheckInfos::FGitHubToolsPullRequestCheckInfos( const TSha
 }
 
 FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( const TSharedRef< FJsonObject > & json ):
-    bApprovedByMe( false )
+    bApprovedByMe( false ),
+    bHasUnresolvedConversations( false )
 {
     const auto author_object = json->GetObjectField( TEXT( "author" ) );
     const auto commits_object = json->GetObjectField( TEXT( "commits" ) );

@@ -129,7 +129,19 @@ void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
                                                             SHorizontalBox::Slot()
                                                                 .AutoWidth()
                                                                     [ SNew( SImage )
-                                                                            .Image( GetIcon( PRInfos->bIsMergeable ).GetIcon() ) ] ] ] +
+                                                                            .Image( GetIcon( PRInfos->bIsMergeable ).GetIcon() ) ] ] +
+                                                SVerticalBox::Slot()
+                                                    .AutoHeight()
+                                                        [ SNew( SHorizontalBox ) +
+                                                            SHorizontalBox::Slot()
+                                                                .AutoWidth()
+                                                                    [ SNew( STextBlock )
+                                                                            .Text( FText::FromString( TEXT( "Conversations are resolved :" ) ) )
+                                                                            .Justification( ETextJustify::Type::Left ) ] +
+                                                            SHorizontalBox::Slot()
+                                                                .AutoWidth()
+                                                                    [ SNew( SImage )
+                                                                            .Image( GetIcon( !PRInfos->bHasUnresolvedConversations ).GetIcon() ) ] ] ] +
                                     SHorizontalBox::Slot()
                                         .AutoWidth()
                                         .Padding( FMargin( 10 ) )

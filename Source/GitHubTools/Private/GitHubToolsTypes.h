@@ -161,6 +161,7 @@ struct FGithubToolsPullRequestInfos
     EGitHubToolsPullRequestsState State;
     FString URL;
     bool bApprovedByMe;
+    bool bHasUnresolvedConversations;
     TArray< FGithubToolsPullRequestFileInfosPtr > FileInfos;
     TArray< FGithubToolsPullRequestReviewThreadInfosPtr > Reviews;
     TArray< FGitHubToolsPullRequestCheckInfosPtr > Checks;
