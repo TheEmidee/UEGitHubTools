@@ -176,7 +176,7 @@ FGithubToolsPullRequestComment::FGithubToolsPullRequestComment( const TSharedRef
 
     const auto comment_author_object = json_object->GetObjectField( TEXT( "author" ) );
     Author = FText::FromString( comment_author_object->GetStringField( TEXT( "login" ) ) );
-    Comment = FText::FromString( json_object->GetStringField( TEXT( "body" ) ) );
+    Comment = FText::FromString( json_object->GetStringField( TEXT( "body" ) ).Replace( TEXT( "<br />" ), TEXT( "\r\n" ) ) );
     Date = FText::FromString( json_object->GetStringField( TEXT( "createdAt" ) ) );
 
     if ( json_object->HasField( TEXT( "path" ) ) )

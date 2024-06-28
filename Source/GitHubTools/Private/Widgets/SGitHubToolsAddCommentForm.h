@@ -27,6 +27,7 @@ private:
     void OnTextChanged( const FText & text );
     void RefreshErrorText(const FText& error_message);
     EVisibility IsErrorPanelVisible() const;
+    FString GetComment() const;
 
     TSharedPtr< SMultiLineEditableTextBox > CommentTextBox;
     TSharedPtr< STextBlock > HeaderText;

@@ -89,7 +89,7 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
     {
         FGitHubToolsModule::Get()
             .GetRequestManager()
-            .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThreadReply >( ThreadInfos->Id, CommentTextBox->GetText().ToString() )
+            .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThreadReply >( ThreadInfos->Id, GetComment() )
             .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReviewThreadReply > & result ) {
                 const auto & result_data = result.Get();
                 ThreadInfos->Comments.Add( result_data.GetResult().GetValue() );
@@ -123,7 +123,7 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
 
                 FGitHubToolsModule::Get()
                     .GetRequestManager()
-                    .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThread >( PRInfos->Id, review_id, FileInfos->Path, CommentTextBox->GetText().ToString() )
+                    .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThread >( PRInfos->Id, review_id, FileInfos->Path, GetComment() )
                     .Then( [ &, review_id ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReviewThread > & add_pr_review_thread_result ) {
                         auto add_pr_review_thread_result_data = add_pr_review_thread_result.Get();
 
@@ -174,6 +174,13 @@ void SGitHubToolsAddCommentForm::RefreshErrorText( const FText & error_message )
 EVisibility SGitHubToolsAddCommentForm::IsErrorPanelVisible() const
 {
     return ErrorTextMessage.IsEmpty() ? EVisibility::Collapsed : EVisibility::Visible;
+}
+
+FString SGitHubToolsAddCommentForm::GetComment() const
+{
+    auto comment = CommentTextBox->GetText().ToString();
+    comment.ReplaceInline( TEXT( "\r\n" ), TEXT( "<br />" ) );
+    return comment;
 }
 
 #undef LOCTEXT_NAMESPACE
