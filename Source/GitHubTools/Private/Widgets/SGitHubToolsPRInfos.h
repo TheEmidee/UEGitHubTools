@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GitHubToolsTypes.h"
+#include "SGitHubToolsPRInfosTreeFilters.h"
 
 #include <CoreMinimal.h>
 
@@ -39,13 +40,6 @@ public:
     void Construct( const FArguments & arguments );
 
 private:
-    enum class EShowFlags : uint8
-    {
-        All,
-        OnlyModified,
-        OnlyUnViewed
-    };
-
     void ConstructFileInfos();
     bool IsFileCommentsButtonEnabled() const;
     EVisibility IsWarningPanelVisible() const;
@@ -54,27 +48,20 @@ private:
     EVisibility GetItemRowVisibility( FGithubToolsPullRequestFileInfosPtr file_infos ) const;
     void OnSelectedFileChanged( FGitHubToolsFileInfosTreeItemPtr selected_item );
     void OnDiffAgainstRemoteStatusBranchSelected( FGitHubToolsFileInfosTreeItemPtr selected_item );
-    void OnShowOnlyUAssetsCheckStateChanged( ECheckBoxState new_state );
-    void OnHideOFPACheckStateChanged( ECheckBoxState new_state );
-    void OnShowOnlyModifiedFilesCheckStateChanged( ECheckBoxState new_state );
-    void OnShowOnlyUnViewedFilesCheckStateChanged( ECheckBoxState new_state );
-    TSharedRef< SWidget > MakeVisibilityComboMenu( TSharedPtr< SComboButton > owner_combo );
-    void OnExpandAllClicked();
-    void OnCollapseAllClicked();
     void SetItemExpansion( FGitHubToolsFileInfosTreeItemPtr tree_item, bool is_expanded );
     EVisibility GetPRReviewListVisibility() const;
     EVisibility GetMessageDisplayVisibility() const;
     void OnShouldRebuildTree() const;
     void OnTreeItemStateChanged( TSharedPtr< FGitHubToolsFileInfosTreeItem > tree_item );
+    void OnTreeViewFiltersChanged();
+    void ExpandAllTreeItems();
+    void CollapseAllTreeItems();
 
     FGithubToolsPullRequestInfosPtr PRInfos;
     TSharedPtr< STreeView< FGitHubToolsFileInfosTreeItemPtr > > TreeView;
     TSharedPtr< SGitHubToolsPRReviewList > ReviewList;
-    TSharedPtr< SComboButton > TreeVisibilitySettingsButton;
     TArray< FGitHubToolsFileInfosTreeItemPtr > TreeItems;
-    bool bShowOnlyUAssets = false;
-    bool bHideOFPA = true;
-    EShowFlags ShowFlags = EShowFlags::All;
+    TSharedPtr< FGitHubToolsTreeViewFilters > TreeViewFilters;
 };
 
 class SGitHubToolsFileInfosRow : public STableRow< FGitHubToolsFileInfosTreeItemPtr >
