@@ -218,6 +218,24 @@ namespace GitHubToolsUtils
         }
         return EGitHubToolsPullRequestReviewState::Unknown;
     }
+
+    EGitHubToolsPullRequestsState GetPullRequestState( const FString & state )
+    {
+        if ( state == TEXT( "CLOSED" ) )
+        {
+            return EGitHubToolsPullRequestsState::Closed;
+        }
+        if ( state == TEXT( "MERGED" ) )
+        {
+            return EGitHubToolsPullRequestsState::Merged;
+        }
+        if ( state == TEXT( "OPEN" ) )
+        {
+            return EGitHubToolsPullRequestsState::Open;
+        }
+
+        return EGitHubToolsPullRequestsState::Unknown;
+    }
 }
 
 #undef LOCTEXT_NAMESPACE

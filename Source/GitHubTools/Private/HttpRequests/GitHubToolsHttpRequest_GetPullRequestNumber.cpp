@@ -1,5 +1,6 @@
 #include "GitHubToolsHttpRequest_GetPullRequestNumber.h"
 
+#include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
 #include "GitSourceControlModule.h"
 
@@ -20,6 +21,7 @@ FString FGitHubToolsHttpRequestData_GetPullRequestNumber::GetBody() const
     string_builder << TEXT( "        node {" );
     string_builder << TEXT( "          headRefName" );
     string_builder << TEXT( "          number" );
+    string_builder << TEXT( "          state" );
     string_builder << TEXT( "        }" );
     string_builder << TEXT( "      }" );
     string_builder << TEXT( "    }" );
@@ -53,6 +55,14 @@ void FGitHubToolsHttpRequestData_GetPullRequestNumber::ParseResponse( FHttpRespo
     const auto pull_requests_objects = repository_object->GetObjectField( TEXT( "pullRequests" ) );
     const auto pull_requests_edges_objects = pull_requests_objects->GetArrayField( TEXT( "edges" ) );
 
+    struct MatchingPRInfos
+    {
+        int Number;
+        FString State;
+    };
+
+    TArray< MatchingPRInfos > matching_prs;
+
     for ( const auto pull_request_infos : pull_requests_edges_objects )
     {
         const auto pr_object = pull_request_infos->AsObject();
@@ -60,15 +70,26 @@ void FGitHubToolsHttpRequestData_GetPullRequestNumber::ParseResponse( FHttpRespo
 
         const int number = node_object->GetIntegerField( TEXT( "number" ) );
         const auto ref = node_object->GetStringField( TEXT( "headRefName" ) );
+        const auto state = node_object->GetStringField( TEXT( "state" ) );
 
         if ( ref == local_branch_name )
         {
-            Result = number;
-            return;
+            matching_prs.Emplace( number, state );
         }
     }
 
-    Result = INDEX_NONE;
+    matching_prs.RemoveAll( []( const auto & pr_infos ) {
+        return GitHubToolsUtils::GetPullRequestState( pr_infos.State ) != EGitHubToolsPullRequestsState::Open;
+    } );
+
+    if ( matching_prs.Num() == 1 )
+    {
+        Result = matching_prs.Last().Number;
+    }
+    else
+    {
+        Result = INDEX_NONE;
+    }
 }
 
 #undef LOCTEXT_NAMESPACE

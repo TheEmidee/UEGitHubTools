@@ -13,4 +13,5 @@ namespace GitHubToolsUtils
     FLinearColor GetPRChecksColor( const FGithubToolsPullRequestInfos & pr_infos );
     FString GetPullRequestReviewEventStringValue( EGitHubToolsPullRequestReviewEvent event );
     EGitHubToolsPullRequestReviewState GetPullRequestReviewState( const FString & state );
+    EGitHubToolsPullRequestsState GetPullRequestState( const FString & state );
 }

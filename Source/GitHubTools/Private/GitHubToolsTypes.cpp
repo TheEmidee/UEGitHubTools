@@ -1,5 +1,6 @@
 #include "GitHubToolsTypes.h"
 
+#include "GitHubToolsGitUtils.h"
 #include "RevisionControlStyle/RevisionControlStyle.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools"
@@ -41,7 +42,7 @@ namespace
         }
         if ( status == TEXT( "UNVIEWED" ) )
         {
-            return EGitHubToolsFileViewedState::Unviewed;
+            return EGitHubToolsFileViewedState::UnViewed;
         }
 
         return EGitHubToolsFileViewedState::Unknown;
@@ -72,7 +73,7 @@ namespace
                 return GET_ICON_RETURN( OpenForAdd );
             case EGitHubToolsFileViewedState::Viewed:
                 return GET_ICON_RETURN( CheckedOut );
-            case EGitHubToolsFileViewedState::Unviewed:
+            case EGitHubToolsFileViewedState::UnViewed:
                 return GET_ICON_RETURN( MarkedForDelete );
             default:
                 return FSlateIcon();
@@ -104,7 +105,7 @@ namespace
                 return LOCTEXT( "FileAdded", "No changes since last viewed" );
             case EGitHubToolsFileViewedState::Viewed:
                 return LOCTEXT( "FileModified", "Viewed" );
-            case EGitHubToolsFileViewedState::Unviewed:
+            case EGitHubToolsFileViewedState::UnViewed:
                 return LOCTEXT( "FileRemoved", "Unviewed" );
             default:
                 return LOCTEXT( "FileRenamed", "Unknown viewed state" );
@@ -149,24 +150,6 @@ namespace
         }
 
         return EGitHubToolsCommitStatusState::Unknown;
-    }
-
-    EGitHubToolsPullRequestsState GetPullRequestState( const FString & state )
-    {
-        if ( state == TEXT( "CLOSED" ) )
-        {
-            return EGitHubToolsPullRequestsState::Closed;
-        }
-        if ( state == TEXT( "MERGED" ) )
-        {
-            return EGitHubToolsPullRequestsState::Merged;
-        }
-        if ( state == TEXT( "OPEN" ) )
-        {
-            return EGitHubToolsPullRequestsState::Open;
-        }
-
-        return EGitHubToolsPullRequestsState::Unknown;
     }
 }
 
@@ -263,7 +246,7 @@ FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( const TSharedRef< FJ
     bIsDraft = json->GetBoolField( TEXT( "isDraft" ) );
     bIsMergeable = json->GetBoolField( TEXT( "mergeable" ) );
     URL = json->GetStringField( TEXT( "url" ) );
-    State = GetPullRequestState( json->GetStringField( TEXT( "state" ) ) );
+    State = GitHubToolsUtils::GetPullRequestState( json->GetStringField( TEXT( "state" ) ) );
 }
 
 bool FGithubToolsPullRequestInfos::CanCommentFiles() const

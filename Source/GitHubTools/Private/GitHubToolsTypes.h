@@ -33,7 +33,7 @@ enum class EGitHubToolsFileViewedState : uint8
 {
     Unknown,
     Viewed,
-    Unviewed,
+    UnViewed,
     Dismissed
 };
 
