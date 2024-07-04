@@ -406,6 +406,14 @@ EVisibility SGitHubToolsPRInfos::GetItemRowVisibility( FGithubToolsPullRequestFi
         }
     }
 
+    if ( TreeViewFilters->bShowOnlyDismissed )
+    {
+        if ( file_infos->ViewedState != EGitHubToolsFileViewedState::Dismissed )
+        {
+            return EVisibility::Collapsed;
+        }
+    }
+
     if ( TreeViewFilters->bShowOnlyWithoutResolution )
     {
         auto * review = PRInfos->Reviews.FindByPredicate( [ & ]( const FGithubToolsPullRequestReviewThreadInfosPtr & review_infos ) {

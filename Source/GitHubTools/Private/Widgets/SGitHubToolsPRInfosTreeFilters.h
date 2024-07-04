@@ -8,6 +8,7 @@ struct FGitHubToolsTreeViewFilters
     bool bHideOFPA = true;
     bool bShowOnlyModified = false;
     bool bShowOnlyUnViewed = false;
+    bool bShowOnlyDismissed = false;
     bool bShowOnlyWithoutResolution = false;
 };
 
@@ -28,8 +29,11 @@ private:
     void OnHideOFPACheckStateChanged( ECheckBoxState new_state );
     void OnShowOnlyModifiedFilesCheckStateChanged( ECheckBoxState new_state );
     void OnShowOnlyUnViewedFilesCheckStateChanged( ECheckBoxState new_state );
+    void OnShowOnlyDismissedFilesCheckStateChanged( ECheckBoxState new_state );
     void OnShowOnlyWithoutResolutionCheckStateChanged( ECheckBoxState new_state );
 
     FSimpleDelegate OnFiltersChanged;
     TSharedPtr< FGitHubToolsTreeViewFilters > TreeViewFilters;
+    TSharedPtr< SCheckBox > OnlyShowUnViewedFilesCheckbox;
+    TSharedPtr< SCheckBox > OnlyShowDismissedFilesCheckbox;
 };

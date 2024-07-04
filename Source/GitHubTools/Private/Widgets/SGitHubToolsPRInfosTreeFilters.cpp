@@ -57,7 +57,7 @@ void SGitHubToolsPRInfosTreeFilters::Construct( const FArguments & arguments )
                                                                         .Text( LOCTEXT( "ShowOnlyModifiedFiles", "Only modified files" ) ) ] ] ] +
                                 SVerticalBox::Slot()
                                     .AutoHeight()
-                                        [ SNew( SCheckBox )
+                                        [ SAssignNew( OnlyShowUnViewedFilesCheckbox, SCheckBox )
                                                 .IsChecked( TreeViewFilters->bShowOnlyUnViewed ? ECheckBoxState::Checked : ECheckBoxState::Unchecked )
                                                 .OnCheckStateChanged( this, &SGitHubToolsPRInfosTreeFilters::OnShowOnlyUnViewedFilesCheckStateChanged )
                                                 .Style( FAppStyle::Get(), "Menu.CheckBox" )
@@ -67,7 +67,20 @@ void SGitHubToolsPRInfosTreeFilters::Construct( const FArguments & arguments )
                                                         SHorizontalBox::Slot()
                                                             .Padding( 2.0f, 0.0f, 0.0f, 0.0f )
                                                                 [ SNew( STextBlock )
-                                                                        .Text( LOCTEXT( "ShowOnlyUnViewedFiles", "Only unviewed files" ) ) ] ] ] ] +
+                                                                        .Text( LOCTEXT( "ShowOnlyUnViewedFiles", "Only unviewed files" ) ) ] ] ] +
+                                SVerticalBox::Slot()
+                                    .AutoHeight()
+                                        [ SAssignNew( OnlyShowDismissedFilesCheckbox, SCheckBox )
+                                                .IsChecked( TreeViewFilters->bShowOnlyDismissed ? ECheckBoxState::Checked : ECheckBoxState::Unchecked )
+                                                .OnCheckStateChanged( this, &SGitHubToolsPRInfosTreeFilters::OnShowOnlyWithoutResolutionCheckStateChanged )
+                                                .Style( FAppStyle::Get(), "Menu.CheckBox" )
+                                                .ToolTipText( LOCTEXT( "ShowOnlyDismissedFilesToolTip", "Only files that changed since last view." ) )
+                                                .Content()
+                                                    [ SNew( SHorizontalBox ) +
+                                                        SHorizontalBox::Slot()
+                                                            .Padding( 2.0f, 0.0f, 0.0f, 0.0f )
+                                                                [ SNew( STextBlock )
+                                                                        .Text( LOCTEXT( "ShowOnlyDismissedFiles", "Only files that changed since last view" ) ) ] ] ] ] +
                     SHorizontalBox::Slot()
                         .FillWidth( 1.0f )
                             [ SNew( SVerticalBox ) +
@@ -107,6 +120,26 @@ void SGitHubToolsPRInfosTreeFilters::OnShowOnlyModifiedFilesCheckStateChanged( E
 void SGitHubToolsPRInfosTreeFilters::OnShowOnlyUnViewedFilesCheckStateChanged( ECheckBoxState new_state )
 {
     TreeViewFilters->bShowOnlyUnViewed = new_state == ECheckBoxState::Checked;
+
+    if ( TreeViewFilters->bShowOnlyUnViewed )
+    {
+        TreeViewFilters->bShowOnlyDismissed = false;
+        OnlyShowDismissedFilesCheckbox->SetIsChecked( false );
+    }
+
+    OnFiltersChanged.Execute();
+}
+
+void SGitHubToolsPRInfosTreeFilters::OnShowOnlyDismissedFilesCheckStateChanged( ECheckBoxState new_state )
+{
+    TreeViewFilters->bShowOnlyDismissed = new_state == ECheckBoxState::Checked;
+
+    if ( TreeViewFilters->bShowOnlyUnViewed )
+    {
+        TreeViewFilters->bShowOnlyDismissed = false;
+        OnlyShowUnViewedFilesCheckbox->SetIsChecked( false );
+    }
+
     OnFiltersChanged.Execute();
 }
 
