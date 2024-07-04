@@ -400,7 +400,7 @@ EVisibility SGitHubToolsPRInfos::GetItemRowVisibility( FGithubToolsPullRequestFi
 
     if ( TreeViewFilters->bShowOnlyUnViewed )
     {
-        if ( file_infos->ViewedState != EGitHubToolsFileViewedState::UnViewed )
+        if ( file_infos->ViewedState == EGitHubToolsFileViewedState::Viewed )
         {
             return EVisibility::Collapsed;
         }
