@@ -50,7 +50,7 @@ void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
         return;
     }
 
-    FGitHubToolsModule::Get().GetNotificationManager().DisplayInProgressNotification( LOCTEXT( "FetchPRInfos", "Fecthing Pull Request informations" ) );
+    FGitHubToolsModule::Get().GetNotificationManager().DisplayInProgressNotification( LOCTEXT( "FetchPRInfos", "Fetching Pull Request informations" ) );
 
     FGitHubToolsModule::Get()
         .GetRequestManager()
