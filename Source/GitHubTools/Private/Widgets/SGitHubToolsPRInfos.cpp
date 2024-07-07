@@ -49,51 +49,50 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
         .Padding( FMargin( 5, 0 ) )
         .FillHeight( 1.0f )
             [ SNew( SBorder )
-                    [ SNew( SHorizontalBox ) +
-                        SHorizontalBox::Slot()
-                            .FillWidth( 0.5f )
-                                [ SNew( SVerticalBox ) +
-                                    SVerticalBox::Slot()
-                                        .AutoHeight()
-                                        .Padding( FMargin( 10.0f ) )
-                                        .HAlign( HAlign_Fill )
-                                            [ SNew( SGitHubToolsPRInfosTreeFilters )
-                                                    .TreeViewFilters( TreeViewFilters )
-                                                    .OnFiltersChanged( this, &SGitHubToolsPRInfos::OnTreeViewFiltersChanged ) ] +
-                                    SVerticalBox::Slot()
-                                        .AutoHeight()
-                                        .Padding( FMargin( 10.0f ) )
-                                        .HAlign( HAlign_Left )
-                                            [ SNew( SHorizontalBox ) +
-                                                SHorizontalBox::Slot()
-                                                    [ SNew( SButton )
-                                                            .Text( LOCTEXT( "ExpandAll", "Expand All" ) )
-                                                            .OnClicked_Lambda( [ & ]() {
-                                                                ExpandAllTreeItems();
-                                                                return FReply::Handled();
-                                                            } ) ] +
-                                                SHorizontalBox::Slot()
-                                                    [ SNew( SButton )
-                                                            .Text( LOCTEXT( "CollaspeAll", "Collapse All" ) )
-                                                            .OnClicked_Lambda( [ & ]() {
-                                                                CollapseAllTreeItems();
-                                                                return FReply::Handled();
-                                                            } ) ] ] +
-                                    SVerticalBox::Slot()
-                                        .FillHeight( 1.0f )
-                                            [ SAssignNew( TreeView, STreeView< FGitHubToolsFileInfosTreeItemPtr > )
-                                                    .ItemHeight( 20 )
-                                                    .TreeItemsSource( &TreeItems )
-                                                    .OnGetChildren( this, &SGitHubToolsPRInfos::OnGetChildrenForTreeView )
-                                                    .OnGenerateRow( this, &SGitHubToolsPRInfos::OnGenerateRowForList )
-                                                    .OnMouseButtonClick( this, &SGitHubToolsPRInfos::OnSelectedFileChanged )
-                                                    .SelectionMode( ESelectionMode::Single ) ] ] +
-                        SHorizontalBox::Slot()
-                            .FillWidth( 0.5f )
-                                [ SAssignNew( ReviewList, SGitHubToolsPRReviewList )
-                                        .PRInfos( PRInfos )
-                                        .Visibility( this, &SGitHubToolsPRInfos::GetPRReviewListVisibility )
-                                        .OnShouldRebuildFileTreeView( this, &SGitHubToolsPRInfos::OnShouldRebuildTree ) ] ] ];
+                    [ SNew( SSplitter )
+                            .Orientation( Orient_Horizontal ) +
+                        SSplitter::Slot()
+                            [ SNew( SVerticalBox ) +
+                                SVerticalBox::Slot()
+                                    .AutoHeight()
+                                    .Padding( FMargin( 10.0f ) )
+                                    .HAlign( HAlign_Fill )
+                                        [ SNew( SGitHubToolsPRInfosTreeFilters )
+                                                .TreeViewFilters( TreeViewFilters )
+                                                .OnFiltersChanged( this, &SGitHubToolsPRInfos::OnTreeViewFiltersChanged ) ] +
+                                SVerticalBox::Slot()
+                                    .AutoHeight()
+                                    .Padding( FMargin( 10.0f ) )
+                                    .HAlign( HAlign_Left )
+                                        [ SNew( SHorizontalBox ) +
+                                            SHorizontalBox::Slot()
+                                                [ SNew( SButton )
+                                                        .Text( LOCTEXT( "ExpandAll", "Expand All" ) )
+                                                        .OnClicked_Lambda( [ & ]() {
+                                                            ExpandAllTreeItems();
+                                                            return FReply::Handled();
+                                                        } ) ] +
+                                            SHorizontalBox::Slot()
+                                                [ SNew( SButton )
+                                                        .Text( LOCTEXT( "CollaspeAll", "Collapse All" ) )
+                                                        .OnClicked_Lambda( [ & ]() {
+                                                            CollapseAllTreeItems();
+                                                            return FReply::Handled();
+                                                        } ) ] ] +
+                                SVerticalBox::Slot()
+                                    .FillHeight( 1.0f )
+                                        [ SAssignNew( TreeView, STreeView< FGitHubToolsFileInfosTreeItemPtr > )
+                                                .ItemHeight( 20 )
+                                                .TreeItemsSource( &TreeItems )
+                                                .OnGetChildren( this, &SGitHubToolsPRInfos::OnGetChildrenForTreeView )
+                                                .OnGenerateRow( this, &SGitHubToolsPRInfos::OnGenerateRowForList )
+                                                .OnMouseButtonClick( this, &SGitHubToolsPRInfos::OnSelectedFileChanged )
+                                                .SelectionMode( ESelectionMode::Single ) ] ] +
+                        SSplitter::Slot()
+                            [ SAssignNew( ReviewList, SGitHubToolsPRReviewList )
+                                    .PRInfos( PRInfos )
+                                    .Visibility( this, &SGitHubToolsPRInfos::GetPRReviewListVisibility )
+                                    .OnShouldRebuildFileTreeView( this, &SGitHubToolsPRInfos::OnShouldRebuildTree ) ] ] ];
 
     contents->AddSlot()
         .AutoHeight()
