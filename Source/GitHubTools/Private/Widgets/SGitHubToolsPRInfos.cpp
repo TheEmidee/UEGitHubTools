@@ -118,7 +118,6 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
                                                     .OnGetChildren( this, &SGitHubToolsPRInfos::OnGetChildrenForTreeView )
                                                     .OnGenerateRow( this, &SGitHubToolsPRInfos::OnGenerateRowForList )
                                                     .OnMouseButtonClick( this, &SGitHubToolsPRInfos::OnSelectedFileChanged )
-                                                    .OnMouseButtonDoubleClick( this, &SGitHubToolsPRInfos::OnDiffAgainstRemoteStatusBranchSelected )
                                                     .SelectionMode( ESelectionMode::Single ) ] ] +
                         SHorizontalBox::Slot()
                             .FillWidth( 0.5f )
@@ -218,54 +217,6 @@ void SGitHubToolsPRInfos::ConstructFileInfos()
         {
             node->FileInfos = file_infos;
         }
-    }
-}
-
-void SGitHubToolsPRInfos::OnDiffAgainstRemoteStatusBranchSelected( FGitHubToolsFileInfosTreeItemPtr selected_item )
-{
-    if ( selected_item->FileInfos == nullptr )
-    {
-        return;
-    }
-
-    if ( !selected_item->FileInfos->IsUAsset() )
-    {
-        std::string str( StringCast< ANSICHAR >( *selected_item->FileInfos->Path ).Get() );
-        const auto hash = picosha2::hash256_hex_string( str );
-
-        TStringBuilder< 512 > url;
-        url << PRInfos->URL;
-        url << TEXT( "/files#diff-" );
-        url << hash.data();
-
-        FPlatformProcess::LaunchURL( *url, nullptr, nullptr );
-
-        return;
-    }
-
-    auto * settings = GetDefault< UGitHubToolsSettings >();
-
-    const auto action = [ & ]( FGitHubToolsFileInfosTreeItemPtr item ) {
-        if ( item->FileInfos->ChangedState == EGitHubToolsFileChangedState::Added )
-        {
-            OpenTreeItemAsset( item );
-        }
-
-        if ( item->FileInfos->ChangedState == EGitHubToolsFileChangedState::Modified )
-        {
-            GitHubToolsUtils::DiffFileAgainstOriginStatusBranch( *item->FileInfos );
-        }
-
-        OnShouldRebuildTree();
-    };
-
-    if ( settings->bMarkFileViewedAutomatically && selected_item->FileInfos->ViewedState != EGitHubToolsFileViewedState::Viewed )
-    {
-        MarkFileAsViewedAndExecuteCallback( PRInfos->Id, selected_item, action );
-    }
-    else
-    {
-        action( selected_item );
     }
 }
 
