@@ -64,27 +64,4 @@ private:
     TSharedPtr< FGitHubToolsTreeViewFilters > TreeViewFilters;
 };
 
-class SGitHubToolsFileInfosRow : public STableRow< FGitHubToolsFileInfosTreeItemPtr >
-{
-public:
-    SLATE_BEGIN_ARGS( SGitHubToolsFileInfosRow )
-    {}
-
-    SLATE_ARGUMENT( FGitHubToolsFileInfosTreeItemPtr, TreeItem )
-    SLATE_ARGUMENT( FString, PRId )
-    SLATE_EVENT( FGitHubToolsPRInfosOnTreeItemStateChangedDelegate, OnTreeItemStateChanged )
-
-    SLATE_END_ARGS()
-
-    void Construct( const FArguments & arguments, const TSharedRef< STableViewBase > & owner_table_view );
-
-private:
-    FReply OnMarkAsViewedButtonClicked();
-    FReply OnOpenAssetButtonClicked();
-
-    FString PRId;
-    FGitHubToolsFileInfosTreeItemPtr TreeItem;
-    FGitHubToolsPRInfosOnTreeItemStateChangedDelegate OnTreeItemStateChanged;
-};
-
 #undef LOCTEXT_NAMESPACE

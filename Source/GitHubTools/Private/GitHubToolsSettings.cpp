@@ -1,7 +1,6 @@
 #include "GitHubToolsSettings.h"
 
-UGitHubToolsSettings::UGitHubToolsSettings():
+UGitHubToolsSettings::UGitHubToolsSettings() :
     bMarkFileViewedAutomatically( true )
 {
-
 }

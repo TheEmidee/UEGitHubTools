@@ -3,7 +3,7 @@
 #include "GitHubToolsHttpRequestManager.h"
 #include "GitHubToolsTypes.h"
 
-class FGitHubToolsHttpRequestData_AddPRReviewThread : public FGitHubToolsHttpRequest< FGithubToolsPullRequestReviewThreadInfosPtr >
+class FGitHubToolsHttpRequestData_AddPRReviewThread final : public FGitHubToolsHttpRequest< FGithubToolsPullRequestReviewThreadInfosPtr >
 {
 public:
     explicit FGitHubToolsHttpRequestData_AddPRReviewThread( const FString & pull_request_id, const FString & pull_request_review_id, const FString & file_path, const FString & comment );

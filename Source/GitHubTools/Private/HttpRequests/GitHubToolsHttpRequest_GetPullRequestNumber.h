@@ -2,7 +2,7 @@
 
 #include "GitHubToolsHttpRequestManager.h"
 
-class FGitHubToolsHttpRequestData_GetPullRequestNumber : public FGitHubToolsHttpRequest< int >
+class FGitHubToolsHttpRequestData_GetPullRequestNumber final : public FGitHubToolsHttpRequest< int >
 {
 public:
     FString GetBody() const override;

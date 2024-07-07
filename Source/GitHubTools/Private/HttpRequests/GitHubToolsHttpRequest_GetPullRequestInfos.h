@@ -3,7 +3,7 @@
 #include "GitHubToolsHttpRequestManager.h"
 #include "GitHubToolsTypes.h"
 
-class FGitHubToolsHttpRequestData_GetPullRequestInfos : public FGitHubToolsHttpRequest < FGithubToolsPullRequestInfosPtr >
+class FGitHubToolsHttpRequestData_GetPullRequestInfos final : public FGitHubToolsHttpRequest< FGithubToolsPullRequestInfosPtr >
 {
 public:
     typedef FGithubToolsPullRequestInfosPtr ResponseType;
