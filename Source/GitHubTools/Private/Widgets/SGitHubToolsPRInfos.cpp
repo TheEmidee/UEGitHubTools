@@ -1,17 +1,38 @@
 #include "SGitHubToolsPRInfos.h"
 
-#include "GitHubTools.h"
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
-#include "HttpRequests/GitHubToolsHttpRequest_MarkFileAsViewed.h"
 #include "SGitHubToolsFileInfosRow.h"
 #include "SGitHubToolsPRInfosHeader.h"
 #include "SGitHubToolsPRInfosMessageDisplay.h"
 #include "SGitHubToolsPRInfosTreeFilters.h"
 #include "SGitHubToolsPRReviewList.h"
-#include "picosha2.h"
 
 #define LOCTEXT_NAMESPACE "GitHubToolsPullRequestReviewWidget"
+
+namespace
+{
+    class FTreeItemFilterExpressionContext : public ITextFilterExpressionContext
+    {
+    public:
+        explicit FTreeItemFilterExpressionContext( const FGithubToolsPullRequestFileInfosPtr & InSetting ) :
+            FileInfos( InSetting )
+        {}
+
+        bool TestBasicStringExpression( const FTextFilterString & InValue, const ETextFilterTextComparisonMode InTextComparisonMode ) const override
+        {
+            return TextFilterUtils::TestBasicStringExpression( FileInfos->Path, InValue, InTextComparisonMode );
+        }
+
+        bool TestComplexExpression( const FName & InKey, const FTextFilterString & InValue, const ETextFilterComparisonOperation InComparisonOperation, const ETextFilterTextComparisonMode InTextComparisonMode ) const override
+        {
+            return false;
+        }
+
+    private:
+        FGithubToolsPullRequestFileInfosPtr FileInfos;
+    };
+}
 
 SGitHubToolsPRInfos::~SGitHubToolsPRInfos()
 {
@@ -188,6 +209,28 @@ void SGitHubToolsPRInfos::ConstructFileInfos()
     }
 }
 
+bool SGitHubToolsPRInfos::IsFileCommentsButtonEnabled() const
+{
+    if ( auto * settings = GetDefault< UGitHubToolsSettings >() )
+    {
+        return !settings->Token.IsEmpty();
+    }
+
+    return false;
+}
+
+EVisibility SGitHubToolsPRInfos::IsWarningPanelVisible() const
+{
+    if ( auto * settings = GetDefault< UGitHubToolsSettings >() )
+    {
+        return settings->Token.IsEmpty()
+                   ? EVisibility::Visible
+                   : EVisibility::Collapsed;
+    }
+
+    return EVisibility::Visible;
+}
+
 void SGitHubToolsPRInfos::SetItemExpansion( FGitHubToolsFileInfosTreeItemPtr tree_item, bool is_expanded )
 {
     TreeView->SetItemExpansion( tree_item, is_expanded );
@@ -248,28 +291,6 @@ void SGitHubToolsPRInfos::CollapseAllTreeItems()
     {
         SetItemExpansion( node, false );
     }
-}
-
-bool SGitHubToolsPRInfos::IsFileCommentsButtonEnabled() const
-{
-    if ( auto * settings = GetDefault< UGitHubToolsSettings >() )
-    {
-        return !settings->Token.IsEmpty();
-    }
-
-    return false;
-}
-
-EVisibility SGitHubToolsPRInfos::IsWarningPanelVisible() const
-{
-    if ( auto * settings = GetDefault< UGitHubToolsSettings >() )
-    {
-        return settings->Token.IsEmpty()
-                   ? EVisibility::Visible
-                   : EVisibility::Collapsed;
-    }
-
-    return EVisibility::Visible;
 }
 
 void SGitHubToolsPRInfos::OnGetChildrenForTreeView( FGitHubToolsFileInfosTreeItemPtr tree_item, TArray< FGitHubToolsFileInfosTreeItemPtr > & children )
@@ -343,6 +364,11 @@ EVisibility SGitHubToolsPRInfos::GetItemRowVisibility( FGithubToolsPullRequestFi
         {
             return EVisibility::Collapsed;
         }
+    }
+
+    if ( !TreeViewFilters->SearchTextEvaluator.TestTextFilter( FTreeItemFilterExpressionContext( file_infos ) ) )
+    {
+        return EVisibility::Collapsed;
     }
 
     return EVisibility::Visible;
