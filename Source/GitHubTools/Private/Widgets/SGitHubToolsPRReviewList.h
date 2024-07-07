@@ -6,7 +6,7 @@
 #include <CoreMinimal.h>
 #include <Widgets/Input/SMultiLineEditableTextBox.h>
 
-class SGitHubToolsPRReviewList : public SCompoundWidget
+class SGitHubToolsPRReviewList final : public SCompoundWidget
 {
 public:
     SLATE_BEGIN_ARGS( SGitHubToolsPRReviewList ) :
@@ -31,7 +31,7 @@ private:
     void OnHideResolvedThreadsCheckStateChanged( ECheckBoxState new_state );
     bool CanSubmitComment() const;
     FReply OnCreateNewThreadButtonClicked();
-    void ShowAddCommentWindow( const FGithubToolsPullRequestReviewThreadInfosPtr & thread_infos);
+    void ShowAddCommentWindow( const FGithubToolsPullRequestReviewThreadInfosPtr & thread_infos );
     FReply OnMarkFileAsViewedButtonClicked();
 
     TWeakPtr< SWindow > ParentFrame;
