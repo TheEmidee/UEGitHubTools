@@ -67,19 +67,28 @@ void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TS
                                     SHorizontalBox::Slot()
                                         .AutoWidth()
                                             [ SNew( SButton )
-                                                    .Text( LOCTEXT( "MarkAsViewed", "V" ) )
+                                                    .Content()
+                                                        [ SNew( SImage )
+                                                                .Image( FSlateIcon( FAppStyle::GetAppStyleSetName(), "Icons.Localization" ).GetIcon() ) ]
+                                                    .ToolTipText( LOCTEXT( "MarkAsViewed", "Mark as Viewed" ) )
                                                     .IsEnabled( this, &SGitHubToolsFileInfosRow::IsDiffButtonEnabled )
                                                     .OnClicked( this, &SGitHubToolsFileInfosRow::OnMarkAsViewedButtonClicked ) ] +
                                     SHorizontalBox::Slot()
                                         .AutoWidth()
                                             [ SNew( SButton )
-                                                    .Text( LOCTEXT( "Open", "O" ) )
+                                                    .Content()
+                                                        [ SNew( SImage )
+                                                                .Image( FSlateIcon( FAppStyle::GetAppStyleSetName(), "ContentBrowser.ShowInExplorer" ).GetIcon() ) ]
+                                                    .ToolTipText( LOCTEXT( "OpenAsset", "Open the asset" ) )
                                                     .IsEnabled( &SGitHubToolsFileInfosRow::IsOpenButtonEnabled )
                                                     .OnClicked( this, &SGitHubToolsFileInfosRow::OnOpenAssetButtonClicked ) ] +
                                     SHorizontalBox::Slot()
                                         .AutoWidth()
                                             [ SNew( SButton )
-                                                    .Text( LOCTEXT( "Diff", "D" ) )
+                                                    .Content()
+                                                        [ SNew( SImage )
+                                                                .Image( FSlateIcon( FRevisionControlStyleManager::GetStyleSetName(), "RevisionControl.Actions.Diff" ).GetIcon() ) ]
+                                                    .ToolTipText( LOCTEXT( "DiffAsset", "Open the diff tool" ) )
                                                     .IsEnabled( this, &SGitHubToolsFileInfosRow::IsDiffButtonEnabled )
                                                     .OnClicked( this, &SGitHubToolsFileInfosRow::OnDiffAssetButtonClicked ) ] ] ],
             owner_table_view );
