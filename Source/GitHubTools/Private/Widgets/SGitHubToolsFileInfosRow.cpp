@@ -4,9 +4,9 @@
 #include "GitHubTools.h"
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
-#include "picosha2.h"
-#include "SGitHubToolsPRInfos.h"
 #include "HttpRequests/GitHubToolsHttpRequest_MarkFileAsViewed.h"
+#include "SGitHubToolsPRInfos.h"
+#include "picosha2.h"
 
 #include <RevisionControlStyle/RevisionControlStyle.h>
 
@@ -68,19 +68,19 @@ void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TS
                                         .AutoWidth()
                                             [ SNew( SButton )
                                                     .Text( LOCTEXT( "MarkAsViewed", "V" ) )
-                                                    .IsEnabled( TreeItem->FileInfos->ViewedState != EGitHubToolsFileViewedState::Viewed )
+                                                    .IsEnabled( this, &SGitHubToolsFileInfosRow::IsDiffButtonEnabled )
                                                     .OnClicked( this, &SGitHubToolsFileInfosRow::OnMarkAsViewedButtonClicked ) ] +
                                     SHorizontalBox::Slot()
                                         .AutoWidth()
                                             [ SNew( SButton )
                                                     .Text( LOCTEXT( "Open", "O" ) )
-                                                    .IsEnabled( TreeItem->FileInfos->ChangedState != EGitHubToolsFileChangedState::Removed )
+                                                    .IsEnabled( &SGitHubToolsFileInfosRow::IsOpenButtonEnabled )
                                                     .OnClicked( this, &SGitHubToolsFileInfosRow::OnOpenAssetButtonClicked ) ] +
                                     SHorizontalBox::Slot()
                                         .AutoWidth()
                                             [ SNew( SButton )
                                                     .Text( LOCTEXT( "Diff", "D" ) )
-                                                    .IsEnabled( TreeItem->FileInfos->ChangedState == EGitHubToolsFileChangedState::Modified )
+                                                    .IsEnabled( this, &SGitHubToolsFileInfosRow::IsDiffButtonEnabled )
                                                     .OnClicked( this, &SGitHubToolsFileInfosRow::OnDiffAssetButtonClicked ) ] ] ],
             owner_table_view );
     }
@@ -125,7 +125,7 @@ FReply SGitHubToolsFileInfosRow::OnOpenAssetButtonClicked()
 
         const auto action = [ this, callback = OnTreeItemStateChanged ]( FGitHubToolsFileInfosTreeItemPtr item ) {
             callback.Execute( TreeItem );
-            OpenTreeItemAsset( item );
+            OpenTreeItemAsset();
         };
 
         if ( settings->bMarkFileViewedAutomatically && TreeItem->FileInfos->ViewedState != EGitHubToolsFileViewedState::Viewed )
@@ -177,16 +177,16 @@ FReply SGitHubToolsFileInfosRow::OnDiffAssetButtonClicked()
     return FReply::Handled();
 }
 
-void SGitHubToolsFileInfosRow::OpenTreeItemAsset( FGitHubToolsFileInfosTreeItemPtr tree_item )
+void SGitHubToolsFileInfosRow::OpenTreeItemAsset()
 {
-    if ( tree_item->FileInfos == nullptr )
+    if ( TreeItem->FileInfos == nullptr )
     {
         return;
     }
 
-    if ( !tree_item->FileInfos->IsUAsset() )
+    if ( !TreeItem->FileInfos->IsUAsset() )
     {
-        std::string str( StringCast< ANSICHAR >( *tree_item->FileInfos->Path ).Get() );
+        std::string str( StringCast< ANSICHAR >( *TreeItem->FileInfos->Path ).Get() );
         const auto hash = picosha2::hash256_hex_string( str );
 
         TStringBuilder< 512 > url;
@@ -199,12 +199,28 @@ void SGitHubToolsFileInfosRow::OpenTreeItemAsset( FGitHubToolsFileInfosTreeItemP
         return;
     }
 
-    const auto asset_data = GitHubToolsUtils::GetAssetDataFromFileInfos( *tree_item->FileInfos );
+    const auto asset_data = GitHubToolsUtils::GetAssetDataFromFileInfos( *TreeItem->FileInfos );
     if ( asset_data.IsSet() )
     {
         const auto & asset_tools_module = FModuleManager::GetModuleChecked< FAssetToolsModule >( "AssetTools" );
         asset_tools_module.Get().OpenEditorForAssets( { asset_data.GetValue().GetAsset() } );
     }
+}
+
+bool SGitHubToolsFileInfosRow::IsMarkedAsViewedButtonEnabled() const
+{
+    return TreeItem->FileInfos->ViewedState != EGitHubToolsFileViewedState::Viewed;
+}
+
+bool SGitHubToolsFileInfosRow::IsOpenButtonEnabled() const
+{
+    return TreeItem->FileInfos->ChangedState != EGitHubToolsFileChangedState::Removed;
+}
+
+bool SGitHubToolsFileInfosRow::IsDiffButtonEnabled() const
+{
+    return TreeItem->FileInfos->IsUAsset() &&
+           TreeItem->FileInfos->ChangedState == EGitHubToolsFileChangedState::Modified;
 }
 
 #undef LOCTEXT_NAMESPACE

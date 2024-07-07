@@ -22,7 +22,10 @@ private:
     FReply OnMarkAsViewedButtonClicked();
     FReply OnOpenAssetButtonClicked();
     FReply OnDiffAssetButtonClicked();
-    void OpenTreeItemAsset( FGitHubToolsFileInfosTreeItemPtr tree_item );
+    void OpenTreeItemAsset();
+    bool IsMarkedAsViewedButtonEnabled() const;
+    bool IsOpenButtonEnabled() const;
+    bool IsDiffButtonEnabled() const;
 
     FGithubToolsPullRequestInfosPtr PRInfos;
     FString PRId;
