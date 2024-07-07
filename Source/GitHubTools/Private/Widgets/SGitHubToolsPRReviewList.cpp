@@ -8,8 +8,6 @@
 
 #include <Widgets/Input/SMultiLineEditableTextBox.h>
 
-#if SOURCE_CONTROL_WITH_SLATE
-
 #define LOCTEXT_NAMESPACE "SGitHubToolsAddCommentToFile"
 
 SGitHubToolsPRReviewList::~SGitHubToolsPRReviewList()
@@ -33,45 +31,57 @@ void SGitHubToolsPRReviewList::Construct( const FArguments & arguments )
                                 [ SNew( STextBlock )
                                         .Text( LOCTEXT( "CommentsTitle", "Reviews" ) ) ] +
                         SVerticalBox::Slot()
-                            .AutoHeight()
-                                [ SNew( SHorizontalBox ) +
-                                    SHorizontalBox::Slot()
-                                        .Padding( FMargin( 5.0f ) )
-                                        .AutoWidth()
-                                        .HAlign( HAlign_Left )
-                                            [ SNew( SButton )
-                                                    .Text( LOCTEXT( "CreateNewThread", "Create new thread" ) )
-                                                    .IsEnabled( PRInfos->CanCommentFiles() )
-                                                    .OnClicked( this, &SGitHubToolsPRReviewList::OnCreateNewThreadButtonClicked ) ] +
-                                    SHorizontalBox::Slot()
-                                        .AutoWidth()
-                                        .Padding( FMargin( 5 ) )
-                                            [ SAssignNew( HideResolvedThreadsCheckBox, SCheckBox )
-                                                    .ToolTipText( LOCTEXT( "HideResolvedThreads", "Toggle whether or not to hide resolved threads." ) )
-                                                    .Type( ESlateCheckBoxType::CheckBox )
-                                                    .IsChecked( ECheckBoxState::Checked )
-                                                    .OnCheckStateChanged( this, &SGitHubToolsPRReviewList::OnHideResolvedThreadsCheckStateChanged )
-                                                    .Padding( 4.f )
-                                                        [ SNew( STextBlock )
-                                                                .Text( LOCTEXT( "HideResolvedThreads", "Hide resolved threads" ) ) ] ] +
-                                    SHorizontalBox::Slot()
-                                        .Padding( FMargin( 5.0f ) )
-                                        .AutoWidth()
-                                        .HAlign( HAlign_Left )
-                                            [ SAssignNew( MarkFileAsViewedButton, SButton )
-                                                    .Text( LOCTEXT( "MarkFileAsViewed", "Mark file as viewed" ) )
-                                                    .IsEnabled( false )
-                                                    .OnClicked( this, &SGitHubToolsPRReviewList::OnMarkFileAsViewedButtonClicked ) ] ] +
-                        SVerticalBox::Slot()
                             .FillHeight( 1.0f )
-                            .Padding( FMargin( 5.0f ) )
-                                [ SNew( SBox )
-                                        .WidthOverride( 520 )
-                                            [ SAssignNew( ReviewThreadsListView, SListView< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > > )
-                                                    .ItemHeight( 50 )
-                                                    .ListItemsSource( &ReviewThreads )
-                                                    .OnGenerateRow( this, &SGitHubToolsPRReviewList::GenerateItemRow )
-                                                    .SelectionMode( ESelectionMode::None ) ] ] ] ];
+                                [ SAssignNew( WidgetSwitcher, SWidgetSwitcher ) +
+                                    SWidgetSwitcher::Slot()
+                                        [ SNew( SVerticalBox ) +
+                                            SVerticalBox::Slot()
+                                                .AutoHeight()
+                                                    [ SNew( SHorizontalBox ) +
+                                                        SHorizontalBox::Slot()
+                                                            .Padding( FMargin( 5.0f ) )
+                                                            .AutoWidth()
+                                                            .HAlign( HAlign_Left )
+                                                                [ SNew( SButton )
+                                                                        .Text( LOCTEXT( "CreateNewThread", "Create new thread" ) )
+                                                                        .IsEnabled( PRInfos->CanCommentFiles() )
+                                                                        .OnClicked( this, &SGitHubToolsPRReviewList::OnCreateNewThreadButtonClicked ) ] +
+                                                        SHorizontalBox::Slot()
+                                                            .AutoWidth()
+                                                            .Padding( FMargin( 5 ) )
+                                                                [ SAssignNew( HideResolvedThreadsCheckBox, SCheckBox )
+                                                                        .ToolTipText( LOCTEXT( "HideResolvedThreads", "Toggle whether or not to hide resolved threads." ) )
+                                                                        .Type( ESlateCheckBoxType::CheckBox )
+                                                                        .IsChecked( ECheckBoxState::Checked )
+                                                                        .OnCheckStateChanged( this, &SGitHubToolsPRReviewList::OnHideResolvedThreadsCheckStateChanged )
+                                                                        .Padding( 4.f )
+                                                                            [ SNew( STextBlock )
+                                                                                    .Text( LOCTEXT( "HideResolvedThreads", "Hide resolved threads" ) ) ] ] +
+                                                        SHorizontalBox::Slot()
+                                                            .Padding( FMargin( 5.0f ) )
+                                                            .AutoWidth()
+                                                            .HAlign( HAlign_Left )
+                                                                [ SAssignNew( MarkFileAsViewedButton, SButton )
+                                                                        .Text( LOCTEXT( "MarkFileAsViewed", "Mark file as viewed" ) )
+                                                                        .IsEnabled( false )
+                                                                        .OnClicked( this, &SGitHubToolsPRReviewList::OnMarkFileAsViewedButtonClicked ) ] ] +
+                                            SVerticalBox::Slot()
+                                                .FillHeight( 1.0f )
+                                                .Padding( FMargin( 5.0f ) )
+                                                    [ SNew( SBox )
+                                                            .WidthOverride( 520 )
+                                                                [ SAssignNew( ReviewThreadsListView, SListView< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > > )
+                                                                        .ItemHeight( 50 )
+                                                                        .ListItemsSource( &ReviewThreads )
+                                                                        .OnGenerateRow( this, &SGitHubToolsPRReviewList::GenerateItemRow )
+                                                                        .SelectionMode( ESelectionMode::None ) ] ] ] +
+                                    SWidgetSwitcher::Slot()
+                                        .VAlign( VAlign_Top )
+                                            [ SAssignNew( AddCommentForm, SGitHubToolsAddCommentForm )
+                                                    .OnAddCommentDone_Lambda( [ & ]() {
+                                                        ShowFileReviews( FileInfos );
+                                                    } )
+                                                    .PRInfos( PRInfos ) ] ] ] ];
 }
 
 void SGitHubToolsPRReviewList::ShowFileReviews( const FGithubToolsPullRequestFileInfosPtr & file_infos )
@@ -96,6 +106,8 @@ void SGitHubToolsPRReviewList::ShowFileReviews( const FGithubToolsPullRequestFil
     ReviewThreadsListView->RequestListRefresh();
 
     MarkFileAsViewedButton->SetEnabled( PRInfos->CanCommentFiles() && FileInfos != nullptr && file_infos->ViewedState != EGitHubToolsFileViewedState::Viewed );
+
+    WidgetSwitcher->SetActiveWidgetIndex( 0 );
 }
 
 FReply SGitHubToolsPRReviewList::OnAddCommentClicked( FGithubToolsPullRequestReviewThreadInfosPtr thread_infos )
@@ -135,30 +147,8 @@ FReply SGitHubToolsPRReviewList::OnCreateNewThreadButtonClicked()
 
 void SGitHubToolsPRReviewList::ShowAddCommentWindow( const FGithubToolsPullRequestReviewThreadInfosPtr & thread_infos )
 {
-    AddCommentWindow = SNew( SWindow )
-                           .Title( LOCTEXT( "SourceControlLoginTitle", "Add comment" ) )
-                           .ClientSize( FVector2D( 640, 200 ) )
-                           .HasCloseButton( true )
-                           .SupportsMaximize( false )
-                           .SupportsMinimize( false )
-                           .SizingRule( ESizingRule::FixedSize );
-
-    AddCommentWindow->SetOnWindowClosed( FOnWindowClosed::CreateLambda( [ & ]( const TSharedRef< SWindow > & /*window*/ ) {
-        AddCommentWindow = nullptr;
-        ShowFileReviews( FileInfos );
-    } ) );
-
-    AddCommentWindow->SetContent( SNew( SGitHubToolsAddCommentForm )
-                                      .ParentWindow( AddCommentWindow )
-                                      .PRInfos( PRInfos )
-                                      .FileInfos( FileInfos )
-                                      .ThreadInfos( thread_infos ) );
-
-    if ( const TSharedPtr< SWindow > root_window = FGlobalTabmanager::Get()->GetRootWindow();
-         root_window.IsValid() )
-    {
-        FSlateApplication::Get().AddModalWindow( AddCommentWindow.ToSharedRef(), root_window );
-    }
+    AddCommentForm->Update( FileInfos, thread_infos );
+    WidgetSwitcher->SetActiveWidgetIndex( 1 );
 }
 
 FReply SGitHubToolsPRReviewList::OnMarkFileAsViewedButtonClicked()
@@ -179,5 +169,3 @@ FReply SGitHubToolsPRReviewList::OnMarkFileAsViewedButtonClicked()
 }
 
 #undef LOCTEXT_NAMESPACE
-
-#endif // SOURCE_CONTROL_WITH_SLATE
