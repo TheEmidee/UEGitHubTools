@@ -2,7 +2,7 @@
 
 #include "GitHubToolsHttpRequestManager.h"
 
-class FGitHubToolsHttpRequest_MarkFileAsViewed : public FGitHubToolsHttpRequest< bool >
+class FGitHubToolsHttpRequest_MarkFileAsViewed final : public FGitHubToolsHttpRequest< bool >
 {
 public:
     FGitHubToolsHttpRequest_MarkFileAsViewed( const FString & pull_request_id, const FString & path );

@@ -2,9 +2,9 @@
 
 #include "GitHubTools.h"
 #include "GitHubToolsGitUtils.h"
+#include "HttpRequests/GitHubToolsHttpRequest_AddPRReview.h"
 #include "RevisionControlStyle/RevisionControlStyle.h"
 #include "SGitHubToolsPRInfosPendingReviews.h"
-#include "HttpRequests/GitHubToolsHttpRequest_AddPRReview.h"
 
 #if SOURCE_CONTROL_WITH_SLATE
 

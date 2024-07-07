@@ -5,7 +5,7 @@
 #include <CoreMinimal.h>
 #include <Widgets/Input/SMultiLineEditableTextBox.h>
 
-class SGitHubToolsAddCommentForm : public SCompoundWidget
+class SGitHubToolsAddCommentForm final : public SCompoundWidget
 {
 public:
     SLATE_BEGIN_ARGS( SGitHubToolsAddCommentForm )
@@ -25,7 +25,7 @@ private:
     FReply OnCancelButtonClicked();
     void CloseDialog();
     void OnTextChanged( const FText & text );
-    void RefreshErrorText(const FText& error_message);
+    void RefreshErrorText( const FText & error_message );
     EVisibility IsErrorPanelVisible() const;
     FString GetComment() const;
 

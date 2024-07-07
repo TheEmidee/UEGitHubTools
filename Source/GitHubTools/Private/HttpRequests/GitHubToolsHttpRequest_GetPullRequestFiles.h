@@ -3,7 +3,7 @@
 #include "GitHubToolsHttpRequestManager.h"
 #include "GitHubToolsTypes.h"
 
-class FGitHubToolsHttpRequestData_GetPullRequestFiles : public FGitHubToolsHttpRequestWithPagination< TArray< FGithubToolsPullRequestFileInfosPtr > >
+class FGitHubToolsHttpRequestData_GetPullRequestFiles final : public FGitHubToolsHttpRequestWithPagination< TArray< FGithubToolsPullRequestFileInfosPtr > >
 {
 public:
     typedef TArray< FGithubToolsPullRequestFileInfosPtr > ResponseType;

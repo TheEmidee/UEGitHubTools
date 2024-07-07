@@ -10,7 +10,7 @@ public:
 };
 
 template < typename TRequest >
-class TGitHubToolsHttpRequestWrapper : public IGitHubToolsHttpRequest
+class TGitHubToolsHttpRequestWrapper final : public IGitHubToolsHttpRequest
 {
 public:
     template < typename... TArgTypes >
@@ -52,7 +52,8 @@ class FGitHubToolsHttpRequest
 public:
     using ResultType = TResultType;
 
-    template < typename > friend class TGitHubToolsHttpRequestWrapper;
+    template < typename >
+    friend class TGitHubToolsHttpRequestWrapper;
 
     virtual ~FGitHubToolsHttpRequest() = default;
 
@@ -111,7 +112,7 @@ private:
     FString EndCursor;
 };
 
-class FGitHubToolsHttpRequestManager : public TSharedFromThis< FGitHubToolsHttpRequestManager >
+class FGitHubToolsHttpRequestManager final : public TSharedFromThis< FGitHubToolsHttpRequestManager >
 {
 public:
     template < typename TRequest, typename... TArgTypes >

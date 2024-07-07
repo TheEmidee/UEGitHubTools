@@ -2,7 +2,7 @@
 
 #include "GitHubToolsHttpRequestManager.h"
 
-class FGitHubToolsHttpRequest_DeletePullRequestReview : public FGitHubToolsHttpRequest< bool >
+class FGitHubToolsHttpRequest_DeletePullRequestReview final : public FGitHubToolsHttpRequest< bool >
 {
 public:
     explicit FGitHubToolsHttpRequest_DeletePullRequestReview( const FString & review_id );

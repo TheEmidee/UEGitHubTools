@@ -226,7 +226,7 @@ FGitHubToolsPullRequestCheckInfos::FGitHubToolsPullRequestCheckInfos( const TSha
     Description = json->GetStringField( TEXT( "description" ) );
 }
 
-FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( const TSharedRef< FJsonObject > & json ):
+FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( const TSharedRef< FJsonObject > & json ) :
     bApprovedByMe( false ),
     bHasUnresolvedConversations( false )
 {

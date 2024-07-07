@@ -5,9 +5,9 @@
 #include <CoreMinimal.h>
 #include <Widgets/Views/STableRow.h>
 
-DECLARE_DELEGATE_OneParam( FGitHubToolsOnPendingReviewUpdated, FGithubToolsPullRequestPendingReviewInfosPtr )
+DECLARE_DELEGATE_OneParam( FGitHubToolsOnPendingReviewUpdated, FGithubToolsPullRequestPendingReviewInfosPtr );
 
-class SGitHubToolsPRPendingReviewTableRow : public STableRow< FGithubToolsPullRequestPendingReviewInfosPtr >
+class SGitHubToolsPRPendingReviewTableRow final : public STableRow< FGithubToolsPullRequestPendingReviewInfosPtr >
 {
 public:
     SLATE_BEGIN_ARGS( SGitHubToolsPRPendingReviewTableRow )
