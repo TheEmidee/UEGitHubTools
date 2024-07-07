@@ -4,45 +4,14 @@
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
 #include "HttpRequests/GitHubToolsHttpRequest_MarkFileAsViewed.h"
+#include "SGitHubToolsFileInfosRow.h"
 #include "SGitHubToolsPRInfosHeader.h"
 #include "SGitHubToolsPRInfosMessageDisplay.h"
 #include "SGitHubToolsPRInfosTreeFilters.h"
 #include "SGitHubToolsPRReviewList.h"
 #include "picosha2.h"
 
-#include <AssetToolsModule.h>
-#include <RevisionControlStyle/RevisionControlStyle.h>
-
-#if SOURCE_CONTROL_WITH_SLATE
-
 #define LOCTEXT_NAMESPACE "GitHubToolsPullRequestReviewWidget"
-
-namespace
-{
-    void OpenTreeItemAsset( FGitHubToolsFileInfosTreeItemPtr tree_item )
-    {
-        const auto asset_data = GitHubToolsUtils::GetAssetDataFromFileInfos( *tree_item->FileInfos );
-        if ( asset_data.IsSet() )
-        {
-            const auto & asset_tools_module = FModuleManager::GetModuleChecked< FAssetToolsModule >( "AssetTools" );
-            asset_tools_module.Get().OpenEditorForAssets( { asset_data.GetValue().GetAsset() } );
-        }
-    }
-
-    void MarkFileAsViewedAndExecuteCallback( const FString & pr_id, FGitHubToolsFileInfosTreeItemPtr tree_item, TFunction< void( FGitHubToolsFileInfosTreeItemPtr ) > callback )
-    {
-        FGitHubToolsModule::Get()
-            .GetRequestManager()
-            .SendRequest< FGitHubToolsHttpRequest_MarkFileAsViewed >( pr_id, tree_item->FileInfos->Path )
-            .Then( [ item = MoveTemp( tree_item ), callback = MoveTemp( callback ) ]( const TFuture< FGitHubToolsHttpRequest_MarkFileAsViewed > & request ) {
-                if ( request.Get().GetResult().Get( false ) )
-                {
-                    item->FileInfos->UpdateViewedState( EGitHubToolsFileViewedState::Viewed );
-                    callback( item );
-                }
-            } );
-    }
-}
 
 SGitHubToolsPRInfos::~SGitHubToolsPRInfos()
 {
@@ -313,7 +282,7 @@ TSharedRef< ITableRow > SGitHubToolsPRInfos::OnGenerateRowForList( FGitHubToolsF
 {
     return SNew( SGitHubToolsFileInfosRow, owner_table )
         .TreeItem( tree_item )
-        .PRId( PRInfos->Id )
+        .PRInfos( PRInfos )
         .OnTreeItemStateChanged( this, &SGitHubToolsPRInfos::OnTreeItemStateChanged );
 }
 
@@ -392,114 +361,4 @@ void SGitHubToolsPRInfos::OnSelectedFileChanged( FGitHubToolsFileInfosTreeItemPt
     }
 }
 
-void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TSharedRef< STableViewBase > & owner_table_view )
-{
-    TreeItem = arguments._TreeItem;
-    PRId = arguments._PRId;
-    OnTreeItemStateChanged = arguments._OnTreeItemStateChanged;
-
-    if ( TreeItem->FileInfos != nullptr )
-    {
-        STableRow< FGitHubToolsFileInfosTreeItemPtr >::Construct(
-            STableRow< FGitHubToolsFileInfosTreeItemPtr >::FArguments()
-                .Content()
-                    [ SNew( SHorizontalBox ) +
-                        SHorizontalBox::Slot()
-                            .AutoWidth()
-                            .HAlign( HAlign_Center )
-                            .VAlign( VAlign_Center )
-                                [ SNew( SImage )
-                                        .Image( FRevisionControlStyleManager::Get().GetBrush( TreeItem->FileInfos->ChangedStateIconName ) )
-                                        .ToolTipText( TreeItem->FileInfos->ChangedStateToolTip ) ] +
-                        SHorizontalBox::Slot()
-                            .AutoWidth()
-                            .HAlign( HAlign_Center )
-                            .VAlign( VAlign_Center )
-                                [ SNew( SImage )
-                                        .Image( FRevisionControlStyleManager::Get().GetBrush( TreeItem->FileInfos->ViewedStateIconName ) )
-                                        .ToolTipText( TreeItem->FileInfos->ViewedStateToolTip ) ] +
-                        SHorizontalBox::Slot()
-                            .FillWidth( 1.0f )
-                                [ SNew( STextBlock )
-                                        .Text( FText::FromString( TreeItem->Path ) ) ] +
-                        SHorizontalBox::Slot()
-                            .AutoWidth()
-                                [ SNew( SHorizontalBox ) +
-                                    SHorizontalBox::Slot()
-                                        .AutoWidth()
-                                            [ SNew( SButton )
-                                                    .Text( LOCTEXT( "MarkAsViewed", "V" ) )
-                                                    .IsEnabled( TreeItem->FileInfos->ViewedState != EGitHubToolsFileViewedState::Viewed )
-                                                    .OnClicked( this, &SGitHubToolsFileInfosRow::OnMarkAsViewedButtonClicked ) ] +
-                                    SHorizontalBox::Slot()
-                                        .AutoWidth()
-                                            [ SNew( SButton )
-                                                    .Text( LOCTEXT( "Open", "O" ) )
-                                                    .IsEnabled( TreeItem->FileInfos->ChangedState != EGitHubToolsFileChangedState::Removed )
-                                                    .OnClicked( this, &SGitHubToolsFileInfosRow::OnOpenAssetButtonClicked ) ] ] ],
-            owner_table_view );
-    }
-    else
-    {
-        STableRow< FGitHubToolsFileInfosTreeItemPtr >::Construct(
-            STableRow< FGitHubToolsFileInfosTreeItemPtr >::FArguments()
-                .Content()[ SNew( STextBlock ).Text( FText::FromString( TreeItem->Path ) ) ],
-            owner_table_view );
-    }
-}
-
-FReply SGitHubToolsFileInfosRow::OnMarkAsViewedButtonClicked()
-{
-    FGitHubToolsModule::Get()
-        .GetNotificationManager()
-        .DisplayInProgressNotification( LOCTEXT( "MarkSelectedAssetsAsViewed", "Marking selected assets as viewed... " ) );
-
-    if ( TreeItem->FileInfos != nullptr )
-    {
-        MarkFileAsViewedAndExecuteCallback( PRId, TreeItem, [ &, callback = OnTreeItemStateChanged ]( FGitHubToolsFileInfosTreeItemPtr /*tree_item*/ ) {
-            callback.Execute( TreeItem );
-        } );
-    }
-
-    FGitHubToolsModule::Get()
-        .GetNotificationManager()
-        .RemoveInProgressNotification();
-
-    return FReply::Handled();
-}
-
-FReply SGitHubToolsFileInfosRow::OnOpenAssetButtonClicked()
-{
-    if ( TreeItem->FileInfos != nullptr )
-    {
-        FGitHubToolsModule::Get()
-            .GetNotificationManager()
-            .DisplayInProgressNotification( LOCTEXT( "OpenSelectedAssets", "Opening Selected Asset... " ) );
-
-        const auto * settings = GetDefault< UGitHubToolsSettings >();
-
-        const auto action = [ this, callback = OnTreeItemStateChanged ]( FGitHubToolsFileInfosTreeItemPtr item ) {
-            callback.Execute( TreeItem );
-            OpenTreeItemAsset( item );
-        };
-
-        if ( settings->bMarkFileViewedAutomatically && TreeItem->FileInfos->ViewedState != EGitHubToolsFileViewedState::Viewed )
-        {
-            MarkFileAsViewedAndExecuteCallback( PRId, TreeItem, action );
-        }
-        else
-        {
-            action( TreeItem );
-        }
-
-        FGitHubToolsModule::Get()
-            .GetNotificationManager()
-            .RemoveInProgressNotification();
-    }
-
-    return FReply::Handled();
-}
-
 #undef LOCTEXT_NAMESPACE
-
-#endif // SOURCE_CONTROL_WITH_SLATE
