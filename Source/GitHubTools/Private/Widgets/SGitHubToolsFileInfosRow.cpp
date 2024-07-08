@@ -71,7 +71,7 @@ void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TS
                                                         [ SNew( SImage )
                                                                 .Image( FSlateIcon( FAppStyle::GetAppStyleSetName(), "Icons.Localization" ).GetIcon() ) ]
                                                     .ToolTipText( LOCTEXT( "MarkAsViewed", "Mark as Viewed" ) )
-                                                    .IsEnabled( this, &SGitHubToolsFileInfosRow::IsDiffButtonEnabled )
+                                                    .IsEnabled( this, &SGitHubToolsFileInfosRow::IsMarkedAsViewedButtonEnabled )
                                                     .OnClicked( this, &SGitHubToolsFileInfosRow::OnMarkAsViewedButtonClicked ) ] +
                                     SHorizontalBox::Slot()
                                         .AutoWidth()
