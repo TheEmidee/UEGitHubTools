@@ -10,6 +10,7 @@ class SGitHubToolsPRReviewList;
 class SGitSourceControlReviewFilesListRow;
 
 DECLARE_DELEGATE_OneParam( FGitHubToolsPRInfosOnFileInfosStateChangedDelegate, FGithubToolsPullRequestFileInfosPtr );
+DECLARE_DELEGATE_OneParam( FGitHubToolsPRInfosOnMultipleFileInfosStateChangedDelegate, const TArray< FGithubToolsPullRequestFileInfosPtr > & );
 
 class SGitHubToolsPRInfos final : public SCompoundWidget
 {
@@ -43,6 +44,7 @@ private:
     EVisibility GetMessageDisplayVisibility() const;
     void OnShouldRebuildTree() const;
     void OnFileInfosStateChanged( FGithubToolsPullRequestFileInfosPtr file_infos );
+    void OnMultipleFileInfosStateChanged( const TArray< FGithubToolsPullRequestFileInfosPtr > & file_infos );
     void OnTreeViewFiltersChanged();
     void ExpandAllTreeItems();
     void CollapseAllTreeItems();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GitHubToolsTypes.h"
+#include "SGitHubToolsPRInfos.h"
 
 #include <CoreMinimal.h>
 
@@ -10,6 +11,8 @@ public:
     SLATE_BEGIN_ARGS( SGitHubToolsMultipleAssetActions )
     {}
     SLATE_ARGUMENT( TSharedPtr< STreeView< FGitHubToolsFileInfosTreeItemPtr > >, TreeView )
+    SLATE_ARGUMENT( FGithubToolsPullRequestInfosPtr, PRInfos )
+    SLATE_EVENT( FGitHubToolsPRInfosOnMultipleFileInfosStateChangedDelegate, OnFileInfosStateChanged )
 
     SLATE_END_ARGS()
 
@@ -25,4 +28,6 @@ private:
     FReply OnDiffAssetButtonClicked();
 
     TSharedPtr< STreeView< FGitHubToolsFileInfosTreeItemPtr > > TreeView;
+    FGithubToolsPullRequestInfosPtr PRInfos;
+    FGitHubToolsPRInfosOnMultipleFileInfosStateChangedDelegate OnFileInfosStateChanged;
 };

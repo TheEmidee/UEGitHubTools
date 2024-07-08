@@ -118,7 +118,9 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
                                                 .FillWidth( 1.0f )
                                                 .HAlign( HAlign_Right )
                                                     [ SNew( SGitHubToolsMultipleAssetActions )
-                                                            .TreeView( TreeView ) ] ] +
+                                                            .TreeView( TreeView )
+                                                            .PRInfos( PRInfos )
+                                                            .OnFileInfosStateChanged( this, &SGitHubToolsPRInfos::OnMultipleFileInfosStateChanged ) ] ] +
                                 SVerticalBox::Slot()
                                     .FillHeight( 1.0f )
                                         [ TreeView->AsShared() ] ] +
@@ -284,6 +286,11 @@ void SGitHubToolsPRInfos::OnShouldRebuildTree() const
 }
 
 void SGitHubToolsPRInfos::OnFileInfosStateChanged( FGithubToolsPullRequestFileInfosPtr /*file_infos*/ )
+{
+    OnShouldRebuildTree();
+}
+
+void SGitHubToolsPRInfos::OnMultipleFileInfosStateChanged( const TArray<FGithubToolsPullRequestFileInfosPtr> & /*file_infos*/ )
 {
     OnShouldRebuildTree();
 }

@@ -98,7 +98,7 @@ FReply SGitHubToolsFileInfosRow::OnOpenAssetButtonClicked()
 
         const auto action = [ this, callback = OnFileInfosStateChanged ]( FGithubToolsPullRequestFileInfosPtr file_infos ) {
             callback.Execute( file_infos );
-            OpenTreeItemAsset();
+            GitHubToolsUtils::OpenAssets( { file_infos } );
         };
 
         if ( settings->bMarkFileViewedAutomatically && TreeItem->FileInfos->ViewedState != EGitHubToolsFileViewedState::Viewed )
@@ -130,7 +130,7 @@ FReply SGitHubToolsFileInfosRow::OnDiffAssetButtonClicked()
 
         const auto action = [ this, callback = OnFileInfosStateChanged ]( FGithubToolsPullRequestFileInfosPtr file_infos ) {
             callback.Execute( file_infos );
-            GitHubToolsUtils::DiffFileAgainstOriginStatusBranch( *file_infos );
+            GitHubToolsUtils::DiffFileAgainstOriginStatusBranch( file_infos );
         };
 
         if ( settings->bMarkFileViewedAutomatically && TreeItem->FileInfos->ViewedState != EGitHubToolsFileViewedState::Viewed )
@@ -148,36 +148,6 @@ FReply SGitHubToolsFileInfosRow::OnDiffAssetButtonClicked()
     }
 
     return FReply::Handled();
-}
-
-void SGitHubToolsFileInfosRow::OpenTreeItemAsset()
-{
-    if ( TreeItem->FileInfos == nullptr )
-    {
-        return;
-    }
-
-    if ( !TreeItem->FileInfos->IsUAsset() )
-    {
-        std::string str( StringCast< ANSICHAR >( *TreeItem->FileInfos->Path ).Get() );
-        const auto hash = picosha2::hash256_hex_string( str );
-
-        TStringBuilder< 512 > url;
-        url << PRInfos->URL;
-        url << TEXT( "/files#diff-" );
-        url << hash.data();
-
-        FPlatformProcess::LaunchURL( *url, nullptr, nullptr );
-
-        return;
-    }
-
-    const auto asset_data = GitHubToolsUtils::GetAssetDataFromFileInfos( *TreeItem->FileInfos );
-    if ( asset_data.IsSet() )
-    {
-        const auto & asset_tools_module = FModuleManager::GetModuleChecked< FAssetToolsModule >( "AssetTools" );
-        asset_tools_module.Get().OpenEditorForAssets( { asset_data.GetValue().GetAsset() } );
-    }
 }
 
 bool SGitHubToolsFileInfosRow::IsMarkedAsViewedButtonEnabled() const
