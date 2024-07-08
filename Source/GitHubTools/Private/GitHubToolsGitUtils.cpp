@@ -274,7 +274,7 @@ namespace GitHubToolsUtils
     void MarkFilesAsViewedAndExecuteCallback( FString pr_id, TArray< FGithubToolsPullRequestFileInfosPtr > && files, TFunction< void( const TArray< FGithubToolsPullRequestFileInfosPtr > & ) > && callback )
     {
         if ( files.FindByPredicate( []( const FGithubToolsPullRequestFileInfosPtr & file_infos ) {
-                 return file_infos->ViewedState != EGitHubToolsFileViewedState::Viewed;
+                 return file_infos != nullptr && file_infos->ViewedState != EGitHubToolsFileViewedState::Viewed;
              } ) == nullptr )
         {
             callback( files );
@@ -284,6 +284,11 @@ namespace GitHubToolsUtils
         Async( EAsyncExecution::TaskGraph, [ pr_id = MoveTemp( pr_id ), callback = MoveTemp( callback ), files = MoveTemp( files ) ]() mutable {
             for ( auto file_infos : files )
             {
+                if ( file_infos == nullptr )
+                {
+                    continue;
+                }
+
                 if ( file_infos->ViewedState == EGitHubToolsFileViewedState::Viewed )
                 {
                     continue;

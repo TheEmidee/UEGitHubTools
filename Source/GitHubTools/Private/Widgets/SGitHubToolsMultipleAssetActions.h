@@ -27,6 +27,8 @@ private:
     FReply OnMarkAsViewedButtonClicked();
     FReply OnDiffAssetButtonClicked();
 
+    void AssetsAction( const FText & in_progress_notification_text, TFunction< void( const TArray< FGithubToolsPullRequestFileInfosPtr > & ) > && callback ) const;
+
     TSharedPtr< STreeView< FGitHubToolsFileInfosTreeItemPtr > > TreeView;
     FGithubToolsPullRequestInfosPtr PRInfos;
     FGitHubToolsPRInfosOnMultipleFileInfosStateChangedDelegate OnFileInfosStateChanged;
