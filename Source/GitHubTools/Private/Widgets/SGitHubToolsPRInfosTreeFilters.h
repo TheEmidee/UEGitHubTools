@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Misc/TextFilterExpressionEvaluator.h"
+
 #include <CoreMinimal.h>
 
 struct FGitHubToolsTreeViewFilters
@@ -10,6 +12,7 @@ struct FGitHubToolsTreeViewFilters
     bool bShowOnlyUnViewed = false;
     bool bShowOnlyDismissed = false;
     bool bShowOnlyWithoutResolution = false;
+    FTextFilterExpressionEvaluator SearchTextEvaluator = { ETextFilterExpressionEvaluatorMode::BasicString };
 };
 
 class SGitHubToolsPRInfosTreeFilters : public SCompoundWidget
@@ -31,6 +34,7 @@ private:
     void OnShowOnlyUnViewedFilesCheckStateChanged( ECheckBoxState new_state );
     void OnShowOnlyDismissedFilesCheckStateChanged( ECheckBoxState new_state );
     void OnShowOnlyWithoutResolutionCheckStateChanged( ECheckBoxState new_state );
+    void OnFilterTextChanged( const FText & text );
 
     FSimpleDelegate OnFiltersChanged;
     TSharedPtr< FGitHubToolsTreeViewFilters > TreeViewFilters;
