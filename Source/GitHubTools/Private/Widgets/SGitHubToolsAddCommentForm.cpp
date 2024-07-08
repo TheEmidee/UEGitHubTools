@@ -73,7 +73,7 @@ void SGitHubToolsAddCommentForm::Construct( const FArguments & arguments )
                                                 .OnClicked( this, &SGitHubToolsAddCommentForm::OnCancelButtonClicked ) ] ] ] ];
 
     OnTextChanged( FText::GetEmpty() );
-    //ParentFrame.Pin()->SetWidgetToFocusOnActivate( CommentTextBox );
+    // ParentFrame.Pin()->SetWidgetToFocusOnActivate( CommentTextBox );
 }
 
 void SGitHubToolsAddCommentForm::Update( FGithubToolsPullRequestFileInfosPtr file_infos, FGithubToolsPullRequestReviewThreadInfosPtr thread_infos )
