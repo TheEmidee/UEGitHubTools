@@ -28,7 +28,6 @@ private:
     bool IsDiffButtonEnabled() const;
 
     FGithubToolsPullRequestInfosPtr PRInfos;
-    FString PRId;
     FGitHubToolsFileInfosTreeItemPtr TreeItem;
     FGitHubToolsPRInfosOnTreeItemStateChangedDelegate OnTreeItemStateChanged;
 };

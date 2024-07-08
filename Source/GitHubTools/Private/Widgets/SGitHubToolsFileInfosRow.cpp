@@ -110,7 +110,7 @@ FReply SGitHubToolsFileInfosRow::OnMarkAsViewedButtonClicked()
 
     if ( TreeItem->FileInfos != nullptr )
     {
-        MarkFileAsViewedAndExecuteCallback( PRId, TreeItem, [ &, callback = OnTreeItemStateChanged ]( FGitHubToolsFileInfosTreeItemPtr /*tree_item*/ ) {
+        MarkFileAsViewedAndExecuteCallback( PRInfos->Id, TreeItem, [ &, callback = OnTreeItemStateChanged ]( FGitHubToolsFileInfosTreeItemPtr /*tree_item*/ ) {
             callback.Execute( TreeItem );
         } );
     }
@@ -139,7 +139,7 @@ FReply SGitHubToolsFileInfosRow::OnOpenAssetButtonClicked()
 
         if ( settings->bMarkFileViewedAutomatically && TreeItem->FileInfos->ViewedState != EGitHubToolsFileViewedState::Viewed )
         {
-            MarkFileAsViewedAndExecuteCallback( PRId, TreeItem, action );
+            MarkFileAsViewedAndExecuteCallback( PRInfos->Id, TreeItem, action );
         }
         else
         {
@@ -171,7 +171,7 @@ FReply SGitHubToolsFileInfosRow::OnDiffAssetButtonClicked()
 
         if ( settings->bMarkFileViewedAutomatically && TreeItem->FileInfos->ViewedState != EGitHubToolsFileViewedState::Viewed )
         {
-            MarkFileAsViewedAndExecuteCallback( PRId, TreeItem, action );
+            MarkFileAsViewedAndExecuteCallback( PRInfos->Id, TreeItem, action );
         }
         else
         {
