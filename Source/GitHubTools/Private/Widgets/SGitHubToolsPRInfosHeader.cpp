@@ -81,7 +81,8 @@ void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
                                                     .AutoHeight()
                                                         [ SNew( STextBlock )
                                                                 .Text( PRInfos->Author )
-                                                                .Justification( ETextJustify::Type::Left ) ] +
+                                                                .Justification( ETextJustify::Type::Left )
+                                                                .Font( FAppStyle::GetFontStyle( "BoldFont" ) ) ] +
                                                 SVerticalBox::Slot()
                                                     .AutoHeight()
                                                         [ SNew( STextBlock )
