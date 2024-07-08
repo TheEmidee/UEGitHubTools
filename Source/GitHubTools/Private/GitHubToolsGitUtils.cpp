@@ -4,6 +4,7 @@
 #include "GitSourceControlModule.h"
 #include "GitSourceControlUtils.h"
 #include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestInfos.h"
+#include "HttpRequests/GitHubToolsHttpRequest_MarkFileAsViewed.h"
 
 #include <AssetDefinition.h>
 #include <AssetRegistry/AssetRegistryModule.h>
@@ -235,6 +236,26 @@ namespace GitHubToolsUtils
         }
 
         return EGitHubToolsPullRequestsState::Unknown;
+    }
+
+    void MarkFileAsViewedAndExecuteCallback( const FString & pr_id, FGithubToolsPullRequestFileInfosPtr file_infos, TFunction< void( FGithubToolsPullRequestFileInfosPtr ) > callback )
+    {
+        if ( file_infos->ViewedState == EGitHubToolsFileViewedState::Viewed )
+        {
+            callback( file_infos );
+            return;
+        }
+
+        FGitHubToolsModule::Get()
+            .GetRequestManager()
+            .SendRequest< FGitHubToolsHttpRequest_MarkFileAsViewed >( pr_id, file_infos->Path )
+            .Then( [ file = MoveTemp( file_infos ), callback = MoveTemp( callback ) ]( const TFuture< FGitHubToolsHttpRequest_MarkFileAsViewed > & request ) {
+                if ( request.Get().GetResult().Get( false ) )
+                {
+                    file->UpdateViewedState( EGitHubToolsFileViewedState::Viewed );
+                    callback( file );
+                }
+            } );
     }
 }
 

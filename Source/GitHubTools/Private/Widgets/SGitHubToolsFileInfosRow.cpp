@@ -4,7 +4,6 @@
 #include "GitHubTools.h"
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
-#include "HttpRequests/GitHubToolsHttpRequest_MarkFileAsViewed.h"
 #include "SGitHubToolsAssetActions.h"
 #include "SGitHubToolsPRInfos.h"
 #include "picosha2.h"
@@ -15,29 +14,12 @@
 
 #define LOCTEXT_NAMESPACE "GitHubToolsPullRequestReviewWidget"
 
-namespace
-{
-    void MarkFileAsViewedAndExecuteCallback( const FString & pr_id, FGitHubToolsFileInfosTreeItemPtr tree_item, TFunction< void( FGitHubToolsFileInfosTreeItemPtr ) > callback )
-    {
-        FGitHubToolsModule::Get()
-            .GetRequestManager()
-            .SendRequest< FGitHubToolsHttpRequest_MarkFileAsViewed >( pr_id, tree_item->FileInfos->Path )
-            .Then( [ item = MoveTemp( tree_item ), callback = MoveTemp( callback ) ]( const TFuture< FGitHubToolsHttpRequest_MarkFileAsViewed > & request ) {
-                if ( request.Get().GetResult().Get( false ) )
-                {
-                    item->FileInfos->UpdateViewedState( EGitHubToolsFileViewedState::Viewed );
-                    callback( item );
-                }
-            } );
-    }
-}
-
 void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TSharedRef< STableViewBase > & owner_table_view )
 {
     OwningPRInfosWidget = arguments._OwningPRInfosWidget;
     TreeItem = arguments._TreeItem;
     PRInfos = arguments._PRInfos;
-    OnTreeItemStateChanged = arguments._OnTreeItemStateChanged;
+    OnFileInfosStateChanged = arguments._OnFileInfosStateChanged;
 
     if ( TreeItem->FileInfos != nullptr )
     {
@@ -92,8 +74,8 @@ FReply SGitHubToolsFileInfosRow::OnMarkAsViewedButtonClicked()
 
     if ( TreeItem->FileInfos != nullptr )
     {
-        MarkFileAsViewedAndExecuteCallback( PRInfos->Id, TreeItem, [ &, callback = OnTreeItemStateChanged ]( FGitHubToolsFileInfosTreeItemPtr /*tree_item*/ ) {
-            callback.Execute( TreeItem );
+        GitHubToolsUtils::MarkFileAsViewedAndExecuteCallback( PRInfos->Id, TreeItem->FileInfos, [ &, callback = OnFileInfosStateChanged ]( FGithubToolsPullRequestFileInfosPtr file_infos ) {
+            callback.Execute( file_infos );
         } );
     }
 
@@ -114,18 +96,18 @@ FReply SGitHubToolsFileInfosRow::OnOpenAssetButtonClicked()
 
         const auto * settings = GetDefault< UGitHubToolsSettings >();
 
-        const auto action = [ this, callback = OnTreeItemStateChanged ]( FGitHubToolsFileInfosTreeItemPtr item ) {
-            callback.Execute( TreeItem );
+        const auto action = [ this, callback = OnFileInfosStateChanged ]( FGithubToolsPullRequestFileInfosPtr file_infos ) {
+            callback.Execute( file_infos );
             OpenTreeItemAsset();
         };
 
         if ( settings->bMarkFileViewedAutomatically && TreeItem->FileInfos->ViewedState != EGitHubToolsFileViewedState::Viewed )
         {
-            MarkFileAsViewedAndExecuteCallback( PRInfos->Id, TreeItem, action );
+            GitHubToolsUtils::MarkFileAsViewedAndExecuteCallback( PRInfos->Id, TreeItem->FileInfos, action );
         }
         else
         {
-            action( TreeItem );
+            action( TreeItem->FileInfos );
         }
 
         FGitHubToolsModule::Get()
@@ -146,18 +128,18 @@ FReply SGitHubToolsFileInfosRow::OnDiffAssetButtonClicked()
 
         const auto * settings = GetDefault< UGitHubToolsSettings >();
 
-        const auto action = [ this, callback = OnTreeItemStateChanged ]( FGitHubToolsFileInfosTreeItemPtr item ) {
-            callback.Execute( TreeItem );
-            GitHubToolsUtils::DiffFileAgainstOriginStatusBranch( *item->FileInfos );
+        const auto action = [ this, callback = OnFileInfosStateChanged ]( FGithubToolsPullRequestFileInfosPtr file_infos ) {
+            callback.Execute( file_infos );
+            GitHubToolsUtils::DiffFileAgainstOriginStatusBranch( *file_infos );
         };
 
         if ( settings->bMarkFileViewedAutomatically && TreeItem->FileInfos->ViewedState != EGitHubToolsFileViewedState::Viewed )
         {
-            MarkFileAsViewedAndExecuteCallback( PRInfos->Id, TreeItem, action );
+            GitHubToolsUtils::MarkFileAsViewedAndExecuteCallback( PRInfos->Id, TreeItem->FileInfos, action );
         }
         else
         {
-            action( TreeItem );
+            action( TreeItem->FileInfos );
         }
 
         FGitHubToolsModule::Get()

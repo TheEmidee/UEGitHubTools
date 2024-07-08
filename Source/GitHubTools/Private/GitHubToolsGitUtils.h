@@ -14,4 +14,5 @@ namespace GitHubToolsUtils
     FString GetPullRequestReviewEventStringValue( EGitHubToolsPullRequestReviewEvent event );
     EGitHubToolsPullRequestReviewState GetPullRequestReviewState( const FString & state );
     EGitHubToolsPullRequestsState GetPullRequestState( const FString & state );
+    void MarkFileAsViewedAndExecuteCallback( const FString & pr_id, FGithubToolsPullRequestFileInfosPtr file_infos, TFunction< void( FGithubToolsPullRequestFileInfosPtr ) > callback );
 }

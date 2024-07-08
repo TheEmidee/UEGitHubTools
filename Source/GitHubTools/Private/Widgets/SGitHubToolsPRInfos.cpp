@@ -95,7 +95,6 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
                                 SVerticalBox::Slot()
                                     .AutoHeight()
                                     .Padding( FMargin( 10.0f ) )
-                                    //.HAlign( HAlign_Left )
                                         [ SNew( SHorizontalBox ) +
                                             SHorizontalBox::Slot()
                                                 .AutoWidth()
@@ -284,7 +283,7 @@ void SGitHubToolsPRInfos::OnShouldRebuildTree() const
     TreeView->RebuildList();
 }
 
-void SGitHubToolsPRInfos::OnTreeItemStateChanged( TSharedPtr< FGitHubToolsFileInfosTreeItem > tree_item )
+void SGitHubToolsPRInfos::OnFileInfosStateChanged( FGithubToolsPullRequestFileInfosPtr /*file_infos*/ )
 {
     OnShouldRebuildTree();
 }
@@ -323,7 +322,7 @@ TSharedRef< ITableRow > SGitHubToolsPRInfos::OnGenerateRowForList( FGitHubToolsF
         .OwningPRInfosWidget( StaticCastSharedPtr< SGitHubToolsPRInfos >( AsShared().ToSharedPtr() ) )
         .TreeItem( tree_item )
         .PRInfos( PRInfos )
-        .OnTreeItemStateChanged( this, &SGitHubToolsPRInfos::OnTreeItemStateChanged );
+        .OnFileInfosStateChanged( this, &SGitHubToolsPRInfos::OnFileInfosStateChanged );
 }
 
 EVisibility SGitHubToolsPRInfos::GetItemRowVisibility( FGithubToolsPullRequestFileInfosPtr file_infos ) const

@@ -41,6 +41,8 @@ bool SGitHubToolsMultipleAssetActions::IsMarkedAsViewedButtonEnabled() const
 
 FReply SGitHubToolsMultipleAssetActions::OnOpenAssetButtonClicked()
 {
+
+
     return FReply::Handled();
 }
 

@@ -9,7 +9,7 @@ class SGitHubToolsMultipleAssetActions;
 class SGitHubToolsPRReviewList;
 class SGitSourceControlReviewFilesListRow;
 
-DECLARE_DELEGATE_OneParam( FGitHubToolsPRInfosOnTreeItemStateChangedDelegate, FGitHubToolsFileInfosTreeItemPtr );
+DECLARE_DELEGATE_OneParam( FGitHubToolsPRInfosOnFileInfosStateChangedDelegate, FGithubToolsPullRequestFileInfosPtr );
 
 class SGitHubToolsPRInfos final : public SCompoundWidget
 {
@@ -37,12 +37,12 @@ private:
     TSharedRef< ITableRow > OnGenerateRowForList( FGitHubToolsFileInfosTreeItemPtr tree_item, const TSharedRef< STableViewBase > & owner_table );
     EVisibility GetItemRowVisibility( FGithubToolsPullRequestFileInfosPtr file_infos ) const;
     void OnSelectedFileChanged( FGitHubToolsFileInfosTreeItemPtr selected_item );
-    void OnSelectionChanged( TSharedPtr<FGitHubToolsFileInfosTreeItem> tree_item, ESelectInfo::Type select_info );
+    void OnSelectionChanged( TSharedPtr< FGitHubToolsFileInfosTreeItem > tree_item, ESelectInfo::Type select_info );
     void SetItemExpansion( FGitHubToolsFileInfosTreeItemPtr tree_item, bool is_expanded );
     EVisibility GetPRReviewListVisibility() const;
     EVisibility GetMessageDisplayVisibility() const;
     void OnShouldRebuildTree() const;
-    void OnTreeItemStateChanged( TSharedPtr< FGitHubToolsFileInfosTreeItem > tree_item );
+    void OnFileInfosStateChanged( FGithubToolsPullRequestFileInfosPtr file_infos );
     void OnTreeViewFiltersChanged();
     void ExpandAllTreeItems();
     void CollapseAllTreeItems();
