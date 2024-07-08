@@ -19,10 +19,8 @@ SGitHubToolsAddCommentForm::~SGitHubToolsAddCommentForm()
 
 void SGitHubToolsAddCommentForm::Construct( const FArguments & arguments )
 {
-    ParentFrame = arguments._ParentWindow.Get();
     PRInfos = arguments._PRInfos.Get();
-    FileInfos = arguments._FileInfos.Get();
-    ThreadInfos = arguments._ThreadInfos.Get();
+    OnAddCommentDone = arguments._OnAddCommentDone;
 
     ChildSlot
         [ SNew( SBorder )
@@ -75,7 +73,14 @@ void SGitHubToolsAddCommentForm::Construct( const FArguments & arguments )
                                                 .OnClicked( this, &SGitHubToolsAddCommentForm::OnCancelButtonClicked ) ] ] ] ];
 
     OnTextChanged( FText::GetEmpty() );
-    ParentFrame.Pin()->SetWidgetToFocusOnActivate( CommentTextBox );
+    // ParentFrame.Pin()->SetWidgetToFocusOnActivate( CommentTextBox );
+}
+
+void SGitHubToolsAddCommentForm::Update( FGithubToolsPullRequestFileInfosPtr file_infos, FGithubToolsPullRequestReviewThreadInfosPtr thread_infos )
+{
+    FileInfos = file_infos;
+    ThreadInfos = thread_infos;
+    CommentTextBox->SetText( FText::GetEmpty() );
 }
 
 bool SGitHubToolsAddCommentForm::CanSubmitComment() const
@@ -94,7 +99,7 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
                 const auto & result_data = result.Get();
                 ThreadInfos->Comments.Add( result_data.GetResult().GetValue() );
 
-                CloseDialog();
+                Close();
             } );
     }
     else
@@ -137,7 +142,7 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
                                 {
                                     PRInfos->Reviews.Add( add_pr_review_thread_result_data.GetResult().GetValue() );
 
-                                    CloseDialog();
+                                    Close();
                                 }
                             } );
                     } );
@@ -149,13 +154,13 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
 
 FReply SGitHubToolsAddCommentForm::OnCancelButtonClicked()
 {
-    CloseDialog();
+    Close();
     return FReply::Handled();
 }
 
-void SGitHubToolsAddCommentForm::CloseDialog()
+void SGitHubToolsAddCommentForm::Close()
 {
-    ParentFrame.Pin()->RequestDestroyWindow();
+    OnAddCommentDone.Execute();
 }
 
 void SGitHubToolsAddCommentForm::OnTextChanged( const FText & text )

@@ -43,7 +43,7 @@ private:
     TArray< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > > ReviewThreads;
     TSharedPtr< SCheckBox > HideResolvedThreadsCheckBox;
     TSharedPtr< SGitHubToolsAddCommentForm > AddCommentForm;
-    TSharedPtr< SWindow > AddCommentWindow;
     TSharedPtr< SButton > MarkFileAsViewedButton;
+    TSharedPtr< SWidgetSwitcher > WidgetSwitcher;
     FSimpleDelegate OnShouldRebuildFileTreeView;
 };

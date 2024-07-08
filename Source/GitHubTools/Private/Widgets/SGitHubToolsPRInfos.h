@@ -21,9 +21,9 @@ struct FGitHubToolsFileInfosTreeItem
 
 typedef TSharedPtr< FGitHubToolsFileInfosTreeItem > FGitHubToolsFileInfosTreeItemPtr;
 
-DECLARE_DELEGATE_OneParam( FGitHubToolsPRInfosOnTreeItemStateChangedDelegate, FGitHubToolsFileInfosTreeItemPtr )
+DECLARE_DELEGATE_OneParam( FGitHubToolsPRInfosOnTreeItemStateChangedDelegate, FGitHubToolsFileInfosTreeItemPtr );
 
-    class SGitHubToolsPRInfos final : public SCompoundWidget
+class SGitHubToolsPRInfos final : public SCompoundWidget
 {
 public:
     friend class SGitHubToolsFileInfosRow;
