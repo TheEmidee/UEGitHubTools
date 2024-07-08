@@ -10,6 +10,7 @@ public:
     SLATE_BEGIN_ARGS( SGitHubToolsFileInfosRow )
     {}
 
+    SLATE_ARGUMENT( TSharedPtr< SGitHubToolsPRInfos >, OwningPRInfosWidget );
     SLATE_ARGUMENT( FGitHubToolsFileInfosTreeItemPtr, TreeItem )
     SLATE_ARGUMENT( FGithubToolsPullRequestInfosPtr, PRInfos )
     SLATE_EVENT( FGitHubToolsPRInfosOnTreeItemStateChangedDelegate, OnTreeItemStateChanged )
@@ -26,10 +27,12 @@ private:
     bool IsMarkedAsViewedButtonEnabled() const;
     bool IsOpenButtonEnabled() const;
     bool IsDiffButtonEnabled() const;
+    bool GetButtonContainerEnable() const;
 
     FGithubToolsPullRequestInfosPtr PRInfos;
     FGitHubToolsFileInfosTreeItemPtr TreeItem;
     FGitHubToolsPRInfosOnTreeItemStateChangedDelegate OnTreeItemStateChanged;
+    TSharedPtr< SGitHubToolsPRInfos > OwningPRInfosWidget;
 };
 
 #undef LOCTEXT_NAMESPACE

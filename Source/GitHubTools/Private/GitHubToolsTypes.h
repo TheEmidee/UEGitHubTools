@@ -174,3 +174,16 @@ FORCEINLINE bool FGithubToolsPullRequestInfos::HasPendingReviews() const
 }
 
 typedef TSharedPtr< FGithubToolsPullRequestInfos > FGithubToolsPullRequestInfosPtr;
+
+struct FGitHubToolsFileInfosTreeItem
+{
+    explicit FGitHubToolsFileInfosTreeItem( const FString & path ) :
+        Path( path )
+    {}
+
+    FString Path;
+    FGithubToolsPullRequestFileInfosPtr FileInfos;
+    TArray< TSharedPtr< FGitHubToolsFileInfosTreeItem > > Children;
+};
+
+typedef TSharedPtr< FGitHubToolsFileInfosTreeItem > FGitHubToolsFileInfosTreeItemPtr;

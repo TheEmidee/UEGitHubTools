@@ -2,7 +2,9 @@
 
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
+#include "SGitHubToolsAssetActions.h"
 #include "SGitHubToolsFileInfosRow.h"
+#include "SGitHubToolsMultipleAssetActions.h"
 #include "SGitHubToolsPRInfosHeader.h"
 #include "SGitHubToolsPRInfosMessageDisplay.h"
 #include "SGitHubToolsPRInfosTreeFilters.h"
@@ -66,6 +68,15 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
                     .PRInfos( PRInfos )
                     .Visibility( this, &SGitHubToolsPRInfos::GetMessageDisplayVisibility ) ];
 
+    TreeView = SNew( STreeView< FGitHubToolsFileInfosTreeItemPtr > )
+                   .ItemHeight( 20 )
+                   .TreeItemsSource( &TreeItems )
+                   .OnGetChildren( this, &SGitHubToolsPRInfos::OnGetChildrenForTreeView )
+                   .OnGenerateRow( this, &SGitHubToolsPRInfos::OnGenerateRowForList )
+                   .OnMouseButtonClick( this, &SGitHubToolsPRInfos::OnSelectedFileChanged )
+                   .OnSelectionChanged( this, &SGitHubToolsPRInfos::OnSelectionChanged )
+                   .SelectionMode( ESelectionMode::Multi );
+
     contents->AddSlot()
         .Padding( FMargin( 5, 0 ) )
         .FillHeight( 1.0f )
@@ -84,31 +95,34 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
                                 SVerticalBox::Slot()
                                     .AutoHeight()
                                     .Padding( FMargin( 10.0f ) )
-                                    .HAlign( HAlign_Left )
+                                    //.HAlign( HAlign_Left )
                                         [ SNew( SHorizontalBox ) +
                                             SHorizontalBox::Slot()
-                                                [ SNew( SButton )
-                                                        .Text( LOCTEXT( "ExpandAll", "Expand All" ) )
-                                                        .OnClicked_Lambda( [ & ]() {
-                                                            ExpandAllTreeItems();
-                                                            return FReply::Handled();
-                                                        } ) ] +
+                                                .AutoWidth()
+                                                    [ SNew( SButton )
+                                                            .Text( LOCTEXT( "ExpandAll", "Expand All" ) )
+                                                            .HAlign( HAlign_Center )
+                                                            .OnClicked_Lambda( [ & ]() {
+                                                                ExpandAllTreeItems();
+                                                                return FReply::Handled();
+                                                            } ) ] +
                                             SHorizontalBox::Slot()
-                                                [ SNew( SButton )
-                                                        .Text( LOCTEXT( "CollaspeAll", "Collapse All" ) )
-                                                        .OnClicked_Lambda( [ & ]() {
-                                                            CollapseAllTreeItems();
-                                                            return FReply::Handled();
-                                                        } ) ] ] +
+                                                .AutoWidth()
+                                                    [ SNew( SButton )
+                                                            .Text( LOCTEXT( "CollaspeAll", "Collapse All" ) )
+                                                            .HAlign( HAlign_Center )
+                                                            .OnClicked_Lambda( [ & ]() {
+                                                                CollapseAllTreeItems();
+                                                                return FReply::Handled();
+                                                            } ) ] +
+                                            SHorizontalBox::Slot()
+                                                .FillWidth( 1.0f )
+                                                .HAlign( HAlign_Right )
+                                                    [ SNew( SGitHubToolsMultipleAssetActions )
+                                                            .TreeView( TreeView ) ] ] +
                                 SVerticalBox::Slot()
                                     .FillHeight( 1.0f )
-                                        [ SAssignNew( TreeView, STreeView< FGitHubToolsFileInfosTreeItemPtr > )
-                                                .ItemHeight( 20 )
-                                                .TreeItemsSource( &TreeItems )
-                                                .OnGetChildren( this, &SGitHubToolsPRInfos::OnGetChildrenForTreeView )
-                                                .OnGenerateRow( this, &SGitHubToolsPRInfos::OnGenerateRowForList )
-                                                .OnMouseButtonClick( this, &SGitHubToolsPRInfos::OnSelectedFileChanged )
-                                                .SelectionMode( ESelectionMode::Single ) ] ] +
+                                        [ TreeView->AsShared() ] ] +
                         SSplitter::Slot()
                             [ SAssignNew( ReviewList, SGitHubToolsPRReviewList )
                                     .PRInfos( PRInfos )
@@ -127,6 +141,11 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
     ReviewList->SetEnabled( false );
 
     ExpandAllTreeItems();
+}
+
+int SGitHubToolsPRInfos::GetSelectedFilesCount() const
+{
+    return TreeView->GetNumItemsSelected();
 }
 
 void SGitHubToolsPRInfos::ConstructFileInfos()
@@ -301,6 +320,7 @@ void SGitHubToolsPRInfos::OnGetChildrenForTreeView( FGitHubToolsFileInfosTreeIte
 TSharedRef< ITableRow > SGitHubToolsPRInfos::OnGenerateRowForList( FGitHubToolsFileInfosTreeItemPtr tree_item, const TSharedRef< STableViewBase > & owner_table )
 {
     return SNew( SGitHubToolsFileInfosRow, owner_table )
+        .OwningPRInfosWidget( StaticCastSharedPtr< SGitHubToolsPRInfos >( AsShared().ToSharedPtr() ) )
         .TreeItem( tree_item )
         .PRInfos( PRInfos )
         .OnTreeItemStateChanged( this, &SGitHubToolsPRInfos::OnTreeItemStateChanged );
@@ -384,6 +404,11 @@ void SGitHubToolsPRInfos::OnSelectedFileChanged( FGitHubToolsFileInfosTreeItemPt
     {
         ReviewList->ShowFileReviews( nullptr );
     }
+}
+
+void SGitHubToolsPRInfos::OnSelectionChanged( TSharedPtr< FGitHubToolsFileInfosTreeItem > tree_item, ESelectInfo::Type select_info )
+{
+    //TreeView->GetSelectedItems()
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -5,6 +5,7 @@
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
 #include "HttpRequests/GitHubToolsHttpRequest_MarkFileAsViewed.h"
+#include "SGitHubToolsAssetActions.h"
 #include "SGitHubToolsPRInfos.h"
 #include "picosha2.h"
 
@@ -33,6 +34,7 @@ namespace
 
 void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TSharedRef< STableViewBase > & owner_table_view )
 {
+    OwningPRInfosWidget = arguments._OwningPRInfosWidget;
     TreeItem = arguments._TreeItem;
     PRInfos = arguments._PRInfos;
     OnTreeItemStateChanged = arguments._OnTreeItemStateChanged;
@@ -63,34 +65,14 @@ void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TS
                                         .Text( FText::FromString( TreeItem->Path ) ) ] +
                         SHorizontalBox::Slot()
                             .AutoWidth()
-                                [ SNew( SHorizontalBox ) +
-                                    SHorizontalBox::Slot()
-                                        .AutoWidth()
-                                            [ SNew( SButton )
-                                                    .Content()
-                                                        [ SNew( SImage )
-                                                                .Image( FSlateIcon( FAppStyle::GetAppStyleSetName(), "Icons.Localization" ).GetIcon() ) ]
-                                                    .ToolTipText( LOCTEXT( "MarkAsViewed", "Mark as Viewed" ) )
-                                                    .IsEnabled( this, &SGitHubToolsFileInfosRow::IsMarkedAsViewedButtonEnabled )
-                                                    .OnClicked( this, &SGitHubToolsFileInfosRow::OnMarkAsViewedButtonClicked ) ] +
-                                    SHorizontalBox::Slot()
-                                        .AutoWidth()
-                                            [ SNew( SButton )
-                                                    .Content()
-                                                        [ SNew( SImage )
-                                                                .Image( FSlateIcon( FAppStyle::GetAppStyleSetName(), "ContentBrowser.ShowInExplorer" ).GetIcon() ) ]
-                                                    .ToolTipText( LOCTEXT( "OpenAsset", "Open the asset" ) )
-                                                    .IsEnabled( &SGitHubToolsFileInfosRow::IsOpenButtonEnabled )
-                                                    .OnClicked( this, &SGitHubToolsFileInfosRow::OnOpenAssetButtonClicked ) ] +
-                                    SHorizontalBox::Slot()
-                                        .AutoWidth()
-                                            [ SNew( SButton )
-                                                    .Content()
-                                                        [ SNew( SImage )
-                                                                .Image( FSlateIcon( FRevisionControlStyleManager::GetStyleSetName(), "RevisionControl.Actions.Diff" ).GetIcon() ) ]
-                                                    .ToolTipText( LOCTEXT( "DiffAsset", "Open the diff tool" ) )
-                                                    .IsEnabled( this, &SGitHubToolsFileInfosRow::IsDiffButtonEnabled )
-                                                    .OnClicked( this, &SGitHubToolsFileInfosRow::OnDiffAssetButtonClicked ) ] ] ],
+                                [ SNew( SGitHubToolsAssetActions )
+                                        .AreAssetActionsEnabled( this, &SGitHubToolsFileInfosRow::GetButtonContainerEnable )
+                                        .IsOpenButtonEnabled( this, &SGitHubToolsFileInfosRow::IsOpenButtonEnabled )
+                                        .IsDiffButtonEnabled( this, &SGitHubToolsFileInfosRow::IsDiffButtonEnabled )
+                                        .IsMarkedAsViewedButtonEnabled( this, &SGitHubToolsFileInfosRow::IsMarkedAsViewedButtonEnabled )
+                                        .OnOpenButtonClicked( this, &SGitHubToolsFileInfosRow::OnOpenAssetButtonClicked )
+                                        .OnMarkedAsViewedButtonClicked( this, &SGitHubToolsFileInfosRow::OnMarkAsViewedButtonClicked )
+                                        .OnDiffButtonClicked( this, &SGitHubToolsFileInfosRow::OnDiffAssetButtonClicked ) ] ],
             owner_table_view );
     }
     else
@@ -230,6 +212,11 @@ bool SGitHubToolsFileInfosRow::IsDiffButtonEnabled() const
 {
     return TreeItem->FileInfos->IsUAsset() &&
            TreeItem->FileInfos->ChangedState == EGitHubToolsFileChangedState::Modified;
+}
+
+bool SGitHubToolsFileInfosRow::GetButtonContainerEnable() const
+{
+    return OwningPRInfosWidget->GetSelectedFilesCount() == 1;
 }
 
 #undef LOCTEXT_NAMESPACE
