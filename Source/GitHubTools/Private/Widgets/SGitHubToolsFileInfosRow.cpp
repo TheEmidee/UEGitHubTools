@@ -168,7 +168,7 @@ bool SGitHubToolsFileInfosRow::IsDiffButtonEnabled() const
 
 bool SGitHubToolsFileInfosRow::GetButtonContainerEnable() const
 {
-    return OwningPRInfosWidget->GetSelectedFilesCount() == 1;
+    return true;
 }
 
 #undef LOCTEXT_NAMESPACE
