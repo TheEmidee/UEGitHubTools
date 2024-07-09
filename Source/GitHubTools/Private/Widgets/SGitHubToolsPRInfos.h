@@ -38,7 +38,6 @@ private:
     TSharedRef< ITableRow > OnGenerateRowForList( FGitHubToolsFileInfosTreeItemPtr tree_item, const TSharedRef< STableViewBase > & owner_table );
     EVisibility GetItemRowVisibility( FGithubToolsPullRequestFileInfosPtr file_infos ) const;
     void OnSelectedFileChanged( FGitHubToolsFileInfosTreeItemPtr selected_item );
-    void OnSelectionChanged( TSharedPtr< FGitHubToolsFileInfosTreeItem > tree_item, ESelectInfo::Type select_info );
     void SetItemExpansion( FGitHubToolsFileInfosTreeItemPtr tree_item, bool is_expanded );
     EVisibility GetPRReviewListVisibility() const;
     EVisibility GetMessageDisplayVisibility() const;

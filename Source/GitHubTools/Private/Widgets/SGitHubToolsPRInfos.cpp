@@ -74,7 +74,6 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
                    .OnGetChildren( this, &SGitHubToolsPRInfos::OnGetChildrenForTreeView )
                    .OnGenerateRow( this, &SGitHubToolsPRInfos::OnGenerateRowForList )
                    .OnMouseButtonClick( this, &SGitHubToolsPRInfos::OnSelectedFileChanged )
-                   .OnSelectionChanged( this, &SGitHubToolsPRInfos::OnSelectionChanged )
                    .SelectionMode( ESelectionMode::Multi );
 
     contents->AddSlot()
@@ -290,7 +289,7 @@ void SGitHubToolsPRInfos::OnFileInfosStateChanged( FGithubToolsPullRequestFileIn
     OnShouldRebuildTree();
 }
 
-void SGitHubToolsPRInfos::OnMultipleFileInfosStateChanged( const TArray<FGithubToolsPullRequestFileInfosPtr> & /*file_infos*/ )
+void SGitHubToolsPRInfos::OnMultipleFileInfosStateChanged( const TArray< FGithubToolsPullRequestFileInfosPtr > & /*file_infos*/ )
 {
     OnShouldRebuildTree();
 }
@@ -410,11 +409,6 @@ void SGitHubToolsPRInfos::OnSelectedFileChanged( FGitHubToolsFileInfosTreeItemPt
     {
         ReviewList->ShowFileReviews( nullptr );
     }
-}
-
-void SGitHubToolsPRInfos::OnSelectionChanged( TSharedPtr< FGitHubToolsFileInfosTreeItem > tree_item, ESelectInfo::Type select_info )
-{
-    //TreeView->GetSelectedItems()
 }
 
 #undef LOCTEXT_NAMESPACE
