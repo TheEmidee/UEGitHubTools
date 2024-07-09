@@ -93,6 +93,10 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
     if ( ThreadInfos != nullptr )
     {
         FGitHubToolsModule::Get()
+            .GetNotificationManager()
+            .DisplayModalNotification( LOCTEXT( "SubmitComment", "Submit comment..." ) );
+
+        FGitHubToolsModule::Get()
             .GetRequestManager()
             .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThreadReply >( ThreadInfos->Id, GetComment() )
             .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReviewThreadReply > & result ) {
@@ -104,6 +108,10 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
     }
     else
     {
+        FGitHubToolsModule::Get()
+            .GetNotificationManager()
+            .DisplayModalNotification( LOCTEXT( "SubmitComment", "Submit comment..." ) );
+
         FGitHubToolsModule::Get()
             .GetRequestManager()
             .SendRequest< FGitHubToolsHttpRequestData_AddPRReview >( PRInfos->Id )
@@ -161,6 +169,8 @@ FReply SGitHubToolsAddCommentForm::OnCancelButtonClicked()
 void SGitHubToolsAddCommentForm::Close()
 {
     OnAddCommentDone.Execute();
+
+    FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
 }
 
 void SGitHubToolsAddCommentForm::OnTextChanged( const FText & text )

@@ -176,10 +176,13 @@ FReply SGitHubToolsPRHeader::OpenInGitHubClicked()
 
 FReply SGitHubToolsPRHeader::OnApprovePRClicked()
 {
+    FGitHubToolsModule::Get().GetNotificationManager().DisplayModalNotification( LOCTEXT( "ApprovePR", "Approving the PR" ) );
+
     FGitHubToolsModule::Get()
         .GetRequestManager()
         .SendRequest< FGitHubToolsHttpRequestData_AddPRReview >( PRInfos->Id, EGitHubToolsPullRequestReviewEvent::Approve )
         .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReview > & /*request_future*/ ) {
+            FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
         } );
 
     return FReply::Handled();

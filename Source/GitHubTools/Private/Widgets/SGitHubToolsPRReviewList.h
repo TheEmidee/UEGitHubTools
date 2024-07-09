@@ -32,7 +32,6 @@ private:
     bool CanSubmitComment() const;
     FReply OnCreateNewThreadButtonClicked();
     void ShowAddCommentWindow( const FGithubToolsPullRequestReviewThreadInfosPtr & thread_infos );
-    FReply OnMarkFileAsViewedButtonClicked();
 
     TWeakPtr< SWindow > ParentFrame;
     FGithubToolsPullRequestInfosPtr PRInfos;
@@ -43,7 +42,6 @@ private:
     TArray< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > > ReviewThreads;
     TSharedPtr< SCheckBox > HideResolvedThreadsCheckBox;
     TSharedPtr< SGitHubToolsAddCommentForm > AddCommentForm;
-    TSharedPtr< SButton > MarkFileAsViewedButton;
     TSharedPtr< SWidgetSwitcher > WidgetSwitcher;
     FSimpleDelegate OnShouldRebuildFileTreeView;
 };
