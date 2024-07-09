@@ -4,6 +4,7 @@
 #include "GitSourceControlModule.h"
 #include "GitSourceControlUtils.h"
 #include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestInfos.h"
+#include "HttpRequests/GitHubToolsHttpRequest_MarkFileAsViewed.h"
 
 #include <AssetDefinition.h>
 #include <AssetRegistry/AssetRegistryModule.h>
@@ -35,9 +36,14 @@ namespace GitHubToolsUtils
         return TOptional< FAssetData >();
     }
 
-    void DiffFileAgainstOriginStatusBranch( const FGithubToolsPullRequestFileInfos & file_infos )
+    void DiffFileAgainstOriginStatusBranch( const FGithubToolsPullRequestFileInfosPtr & file_infos )
     {
-        auto optional_asset_data = GetAssetDataFromFileInfos( file_infos );
+        if ( file_infos == nullptr )
+        {
+            return;
+        }
+
+        auto optional_asset_data = GetAssetDataFromFileInfos( *file_infos );
         if ( !optional_asset_data.IsSet() )
         {
             return;
@@ -94,6 +100,14 @@ namespace GitHubToolsUtils
         new_revision.Revision = TEXT( "" );
 
         FModuleManager::GetModuleChecked< FAssetToolsModule >( "AssetTools" ).Get().DiffAssets( old_object, current_object, old_revision, new_revision );
+    }
+
+    void DiffFilesAgainstOriginStatusBranch( const TArray< FGithubToolsPullRequestFileInfosPtr > & file_infos )
+    {
+        for ( auto file : file_infos )
+        {
+            DiffFileAgainstOriginStatusBranch( file );
+        }
     }
 
     TFuture< FGithubToolsPullRequestInfosPtr > GetPullRequestInfos( int pr_number )
@@ -235,6 +249,100 @@ namespace GitHubToolsUtils
         }
 
         return EGitHubToolsPullRequestsState::Unknown;
+    }
+
+    void MarkFileAsViewedAndExecuteCallback( const FString & pr_id, FGithubToolsPullRequestFileInfosPtr file_infos, TFunction< void( FGithubToolsPullRequestFileInfosPtr ) > callback )
+    {
+        if ( file_infos->ViewedState == EGitHubToolsFileViewedState::Viewed )
+        {
+            callback( file_infos );
+            return;
+        }
+
+        FGitHubToolsModule::Get()
+            .GetRequestManager()
+            .SendRequest< FGitHubToolsHttpRequest_MarkFileAsViewed >( pr_id, file_infos->Path )
+            .Then( [ file = MoveTemp( file_infos ), callback = MoveTemp( callback ) ]( const TFuture< FGitHubToolsHttpRequest_MarkFileAsViewed > & request ) {
+                if ( request.Get().GetResult().Get( false ) )
+                {
+                    file->UpdateViewedState( EGitHubToolsFileViewedState::Viewed );
+                    callback( file );
+                }
+            } );
+    }
+
+    void MarkFilesAsViewedAndExecuteCallback( FString pr_id, TArray< FGithubToolsPullRequestFileInfosPtr > && files, TFunction< void( const TArray< FGithubToolsPullRequestFileInfosPtr > & ) > && callback )
+    {
+        if ( files.FindByPredicate( []( const FGithubToolsPullRequestFileInfosPtr & file_infos ) {
+                 return file_infos != nullptr && file_infos->ViewedState != EGitHubToolsFileViewedState::Viewed;
+             } ) == nullptr )
+        {
+            callback( files );
+            return;
+        }
+
+        Async( EAsyncExecution::TaskGraph, [ pr_id = MoveTemp( pr_id ), callback = MoveTemp( callback ), files = MoveTemp( files ) ]() mutable {
+            for ( auto file_infos : files )
+            {
+                if ( file_infos == nullptr )
+                {
+                    continue;
+                }
+
+                if ( file_infos->ViewedState == EGitHubToolsFileViewedState::Viewed )
+                {
+                    continue;
+                }
+
+                typedef TGitHubToolsHttpRequestWrapper< FGitHubToolsHttpRequest_MarkFileAsViewed > HttpRequestType;
+                auto request = MakeShared< HttpRequestType >( pr_id, file_infos->Path );
+                request->SetPromiseValueOnHttpThread();
+                request->ProcessRequest();
+
+                auto request_future_result = request->GetFuture().Get();
+                if ( request_future_result.GetResult().Get( false ) )
+                {
+                    file_infos->UpdateViewedState( EGitHubToolsFileViewedState::Viewed );
+                }
+            }
+
+            AsyncTask( ENamedThreads::GameThread, [ files = MoveTemp( files ), callback = MoveTemp( callback ) ]() {
+                callback( files );
+            } );
+        } );
+    }
+
+    void OpenAssets( const TArray< FGithubToolsPullRequestFileInfosPtr > & files )
+    {
+        for ( auto file : files )
+        {
+            if ( file == nullptr )
+            {
+                continue;
+            }
+
+            if ( !file->IsUAsset() )
+            {
+                // :TODO: Should be removed when we can display text patches in the UI
+                /* std::string str( StringCast< ANSICHAR >( *file->Path ).Get() );
+                const auto hash = picosha2::hash256_hex_string( str );
+
+                TStringBuilder< 512 > url;
+                url << file->PRUrl;
+                url << TEXT( "/files#diff-" );
+                url << hash.data();
+
+                FPlatformProcess::LaunchURL( *url, nullptr, nullptr );*/
+                continue;
+            }
+
+            const auto asset_data = GitHubToolsUtils::GetAssetDataFromFileInfos( *file );
+            if ( asset_data.IsSet() )
+            {
+                const auto & asset_tools_module = FModuleManager::GetModuleChecked< FAssetToolsModule >( "AssetTools" );
+                asset_tools_module.Get().OpenEditorForAssets( { asset_data.GetValue().GetAsset() } );
+            }
+        }
     }
 }
 

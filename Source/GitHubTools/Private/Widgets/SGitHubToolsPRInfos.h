@@ -5,23 +5,12 @@
 
 #include <CoreMinimal.h>
 
+class SGitHubToolsMultipleAssetActions;
 class SGitHubToolsPRReviewList;
 class SGitSourceControlReviewFilesListRow;
 
-struct FGitHubToolsFileInfosTreeItem
-{
-    explicit FGitHubToolsFileInfosTreeItem( const FString & path ) :
-        Path( path )
-    {}
-
-    FString Path;
-    FGithubToolsPullRequestFileInfosPtr FileInfos;
-    TArray< TSharedPtr< FGitHubToolsFileInfosTreeItem > > Children;
-};
-
-typedef TSharedPtr< FGitHubToolsFileInfosTreeItem > FGitHubToolsFileInfosTreeItemPtr;
-
-DECLARE_DELEGATE_OneParam( FGitHubToolsPRInfosOnTreeItemStateChangedDelegate, FGitHubToolsFileInfosTreeItemPtr );
+DECLARE_DELEGATE_OneParam( FGitHubToolsPRInfosOnFileInfosStateChangedDelegate, FGithubToolsPullRequestFileInfosPtr );
+DECLARE_DELEGATE_OneParam( FGitHubToolsPRInfosOnMultipleFileInfosStateChangedDelegate, const TArray< FGithubToolsPullRequestFileInfosPtr > & );
 
 class SGitHubToolsPRInfos final : public SCompoundWidget
 {
@@ -39,6 +28,8 @@ public:
 
     void Construct( const FArguments & arguments );
 
+    int GetSelectedFilesCount() const;
+
 private:
     void ConstructFileInfos();
     bool IsFileCommentsButtonEnabled() const;
@@ -51,7 +42,8 @@ private:
     EVisibility GetPRReviewListVisibility() const;
     EVisibility GetMessageDisplayVisibility() const;
     void OnShouldRebuildTree() const;
-    void OnTreeItemStateChanged( TSharedPtr< FGitHubToolsFileInfosTreeItem > tree_item );
+    void OnFileInfosStateChanged( FGithubToolsPullRequestFileInfosPtr file_infos );
+    void OnMultipleFileInfosStateChanged( const TArray< FGithubToolsPullRequestFileInfosPtr > & file_infos );
     void OnTreeViewFiltersChanged();
     void ExpandAllTreeItems();
     void CollapseAllTreeItems();

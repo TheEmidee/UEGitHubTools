@@ -4,7 +4,7 @@
 #include "GitHubTools.h"
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
-#include "HttpRequests/GitHubToolsHttpRequest_MarkFileAsViewed.h"
+#include "SGitHubToolsAssetActions.h"
 #include "SGitHubToolsPRInfos.h"
 #include "picosha2.h"
 
@@ -14,28 +14,12 @@
 
 #define LOCTEXT_NAMESPACE "GitHubToolsPullRequestReviewWidget"
 
-namespace
-{
-    void MarkFileAsViewedAndExecuteCallback( const FString & pr_id, FGitHubToolsFileInfosTreeItemPtr tree_item, TFunction< void( FGitHubToolsFileInfosTreeItemPtr ) > callback )
-    {
-        FGitHubToolsModule::Get()
-            .GetRequestManager()
-            .SendRequest< FGitHubToolsHttpRequest_MarkFileAsViewed >( pr_id, tree_item->FileInfos->Path )
-            .Then( [ item = MoveTemp( tree_item ), callback = MoveTemp( callback ) ]( const TFuture< FGitHubToolsHttpRequest_MarkFileAsViewed > & request ) {
-                if ( request.Get().GetResult().Get( false ) )
-                {
-                    item->FileInfos->UpdateViewedState( EGitHubToolsFileViewedState::Viewed );
-                    callback( item );
-                }
-            } );
-    }
-}
-
 void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TSharedRef< STableViewBase > & owner_table_view )
 {
+    OwningPRInfosWidget = arguments._OwningPRInfosWidget;
     TreeItem = arguments._TreeItem;
     PRInfos = arguments._PRInfos;
-    OnTreeItemStateChanged = arguments._OnTreeItemStateChanged;
+    OnFileInfosStateChanged = arguments._OnFileInfosStateChanged;
 
     if ( TreeItem->FileInfos != nullptr )
     {
@@ -63,34 +47,14 @@ void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TS
                                         .Text( FText::FromString( TreeItem->Path ) ) ] +
                         SHorizontalBox::Slot()
                             .AutoWidth()
-                                [ SNew( SHorizontalBox ) +
-                                    SHorizontalBox::Slot()
-                                        .AutoWidth()
-                                            [ SNew( SButton )
-                                                    .Content()
-                                                        [ SNew( SImage )
-                                                                .Image( FSlateIcon( FAppStyle::GetAppStyleSetName(), "Icons.Localization" ).GetIcon() ) ]
-                                                    .ToolTipText( LOCTEXT( "MarkAsViewed", "Mark as Viewed" ) )
-                                                    .IsEnabled( this, &SGitHubToolsFileInfosRow::IsMarkedAsViewedButtonEnabled )
-                                                    .OnClicked( this, &SGitHubToolsFileInfosRow::OnMarkAsViewedButtonClicked ) ] +
-                                    SHorizontalBox::Slot()
-                                        .AutoWidth()
-                                            [ SNew( SButton )
-                                                    .Content()
-                                                        [ SNew( SImage )
-                                                                .Image( FSlateIcon( FAppStyle::GetAppStyleSetName(), "ContentBrowser.ShowInExplorer" ).GetIcon() ) ]
-                                                    .ToolTipText( LOCTEXT( "OpenAsset", "Open the asset" ) )
-                                                    .IsEnabled( &SGitHubToolsFileInfosRow::IsOpenButtonEnabled )
-                                                    .OnClicked( this, &SGitHubToolsFileInfosRow::OnOpenAssetButtonClicked ) ] +
-                                    SHorizontalBox::Slot()
-                                        .AutoWidth()
-                                            [ SNew( SButton )
-                                                    .Content()
-                                                        [ SNew( SImage )
-                                                                .Image( FSlateIcon( FRevisionControlStyleManager::GetStyleSetName(), "RevisionControl.Actions.Diff" ).GetIcon() ) ]
-                                                    .ToolTipText( LOCTEXT( "DiffAsset", "Open the diff tool" ) )
-                                                    .IsEnabled( this, &SGitHubToolsFileInfosRow::IsDiffButtonEnabled )
-                                                    .OnClicked( this, &SGitHubToolsFileInfosRow::OnDiffAssetButtonClicked ) ] ] ],
+                                [ SNew( SGitHubToolsAssetActions )
+                                        .AreAssetActionsEnabled( this, &SGitHubToolsFileInfosRow::GetButtonContainerEnable )
+                                        .IsOpenButtonEnabled( this, &SGitHubToolsFileInfosRow::IsOpenButtonEnabled )
+                                        .IsDiffButtonEnabled( this, &SGitHubToolsFileInfosRow::IsDiffButtonEnabled )
+                                        .IsMarkedAsViewedButtonEnabled( this, &SGitHubToolsFileInfosRow::IsMarkedAsViewedButtonEnabled )
+                                        .OnOpenButtonClicked( this, &SGitHubToolsFileInfosRow::OnOpenAssetButtonClicked )
+                                        .OnMarkedAsViewedButtonClicked( this, &SGitHubToolsFileInfosRow::OnMarkAsViewedButtonClicked )
+                                        .OnDiffButtonClicked( this, &SGitHubToolsFileInfosRow::OnDiffAssetButtonClicked ) ] ],
             owner_table_view );
     }
     else
@@ -110,8 +74,8 @@ FReply SGitHubToolsFileInfosRow::OnMarkAsViewedButtonClicked()
 
     if ( TreeItem->FileInfos != nullptr )
     {
-        MarkFileAsViewedAndExecuteCallback( PRInfos->Id, TreeItem, [ &, callback = OnTreeItemStateChanged ]( FGitHubToolsFileInfosTreeItemPtr /*tree_item*/ ) {
-            callback.Execute( TreeItem );
+        GitHubToolsUtils::MarkFileAsViewedAndExecuteCallback( PRInfos->Id, TreeItem->FileInfos, [ &, callback = OnFileInfosStateChanged ]( FGithubToolsPullRequestFileInfosPtr file_infos ) {
+            callback.Execute( file_infos );
         } );
     }
 
@@ -132,18 +96,18 @@ FReply SGitHubToolsFileInfosRow::OnOpenAssetButtonClicked()
 
         const auto * settings = GetDefault< UGitHubToolsSettings >();
 
-        const auto action = [ this, callback = OnTreeItemStateChanged ]( FGitHubToolsFileInfosTreeItemPtr item ) {
-            callback.Execute( TreeItem );
-            OpenTreeItemAsset();
+        const auto action = [ this, callback = OnFileInfosStateChanged ]( FGithubToolsPullRequestFileInfosPtr file_infos ) {
+            callback.Execute( file_infos );
+            GitHubToolsUtils::OpenAssets( { file_infos } );
         };
 
         if ( settings->bMarkFileViewedAutomatically && TreeItem->FileInfos->ViewedState != EGitHubToolsFileViewedState::Viewed )
         {
-            MarkFileAsViewedAndExecuteCallback( PRInfos->Id, TreeItem, action );
+            GitHubToolsUtils::MarkFileAsViewedAndExecuteCallback( PRInfos->Id, TreeItem->FileInfos, action );
         }
         else
         {
-            action( TreeItem );
+            action( TreeItem->FileInfos );
         }
 
         FGitHubToolsModule::Get()
@@ -164,18 +128,18 @@ FReply SGitHubToolsFileInfosRow::OnDiffAssetButtonClicked()
 
         const auto * settings = GetDefault< UGitHubToolsSettings >();
 
-        const auto action = [ this, callback = OnTreeItemStateChanged ]( FGitHubToolsFileInfosTreeItemPtr item ) {
-            callback.Execute( TreeItem );
-            GitHubToolsUtils::DiffFileAgainstOriginStatusBranch( *item->FileInfos );
+        const auto action = [ this, callback = OnFileInfosStateChanged ]( FGithubToolsPullRequestFileInfosPtr file_infos ) {
+            callback.Execute( file_infos );
+            GitHubToolsUtils::DiffFileAgainstOriginStatusBranch( file_infos );
         };
 
         if ( settings->bMarkFileViewedAutomatically && TreeItem->FileInfos->ViewedState != EGitHubToolsFileViewedState::Viewed )
         {
-            MarkFileAsViewedAndExecuteCallback( PRInfos->Id, TreeItem, action );
+            GitHubToolsUtils::MarkFileAsViewedAndExecuteCallback( PRInfos->Id, TreeItem->FileInfos, action );
         }
         else
         {
-            action( TreeItem );
+            action( TreeItem->FileInfos );
         }
 
         FGitHubToolsModule::Get()
@@ -184,36 +148,6 @@ FReply SGitHubToolsFileInfosRow::OnDiffAssetButtonClicked()
     }
 
     return FReply::Handled();
-}
-
-void SGitHubToolsFileInfosRow::OpenTreeItemAsset()
-{
-    if ( TreeItem->FileInfos == nullptr )
-    {
-        return;
-    }
-
-    if ( !TreeItem->FileInfos->IsUAsset() )
-    {
-        std::string str( StringCast< ANSICHAR >( *TreeItem->FileInfos->Path ).Get() );
-        const auto hash = picosha2::hash256_hex_string( str );
-
-        TStringBuilder< 512 > url;
-        url << PRInfos->URL;
-        url << TEXT( "/files#diff-" );
-        url << hash.data();
-
-        FPlatformProcess::LaunchURL( *url, nullptr, nullptr );
-
-        return;
-    }
-
-    const auto asset_data = GitHubToolsUtils::GetAssetDataFromFileInfos( *TreeItem->FileInfos );
-    if ( asset_data.IsSet() )
-    {
-        const auto & asset_tools_module = FModuleManager::GetModuleChecked< FAssetToolsModule >( "AssetTools" );
-        asset_tools_module.Get().OpenEditorForAssets( { asset_data.GetValue().GetAsset() } );
-    }
 }
 
 bool SGitHubToolsFileInfosRow::IsMarkedAsViewedButtonEnabled() const
@@ -230,6 +164,11 @@ bool SGitHubToolsFileInfosRow::IsDiffButtonEnabled() const
 {
     return TreeItem->FileInfos->IsUAsset() &&
            TreeItem->FileInfos->ChangedState == EGitHubToolsFileChangedState::Modified;
+}
+
+bool SGitHubToolsFileInfosRow::GetButtonContainerEnable() const
+{
+    return true;
 }
 
 #undef LOCTEXT_NAMESPACE
