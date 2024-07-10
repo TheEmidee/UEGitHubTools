@@ -59,6 +59,8 @@ TSharedRef< ITableRow > SGitHubToolsPRPendingReviewTableRow::GenerateCommentRow(
 
 FReply SGitHubToolsPRPendingReviewTableRow::OnApproveReviewButtonClicked()
 {
+    FGitHubToolsModule::Get().GetNotificationManager().DisplayModalNotification( LOCTEXT( "ApproveReview", "Approving the review" ) );
+
     FGitHubToolsModule::Get()
         .GetRequestManager()
         .SendRequest< FGitHubToolsHttpRequestData_SubmitPRReview >( PRInfos->Id, PendingReview->Id, EGitHubToolsPullRequestReviewEvent::RequestChanges )
@@ -67,6 +69,8 @@ FReply SGitHubToolsPRPendingReviewTableRow::OnApproveReviewButtonClicked()
             {
                 OnReviewStateUpdated.Execute( PendingReview );
             }
+
+            FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
         } );
 
     return FReply::Handled();
@@ -74,6 +78,8 @@ FReply SGitHubToolsPRPendingReviewTableRow::OnApproveReviewButtonClicked()
 
 FReply SGitHubToolsPRPendingReviewTableRow::OnAbandonReviewButtonClicked()
 {
+    FGitHubToolsModule::Get().GetNotificationManager().DisplayModalNotification( LOCTEXT( "AbandonReview", "Abandoning the review" ) );
+
     FGitHubToolsModule::Get()
         .GetRequestManager()
         .SendRequest< FGitHubToolsHttpRequest_DeletePullRequestReview >( PendingReview->Id )
@@ -82,6 +88,8 @@ FReply SGitHubToolsPRPendingReviewTableRow::OnAbandonReviewButtonClicked()
             {
                 OnReviewStateUpdated.Execute( PendingReview );
             }
+
+            FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
         } );
 
     return FReply::Handled();

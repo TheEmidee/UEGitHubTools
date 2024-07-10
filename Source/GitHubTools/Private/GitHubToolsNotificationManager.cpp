@@ -64,3 +64,36 @@ void FGitHubToolsNotificationManager::DisplayFailureNotification( const FText & 
 
     UE_LOG( LogGitHubTools, Error, TEXT( "%s" ), *error_message.ToString() );
 }
+
+void FGitHubToolsNotificationManager::DisplayModalNotification( const FText & message )
+{
+    const auto window = SNew( SWindow )
+                            .IsPopupWindow( true )
+                            .SupportsMaximize( false )
+                            .SupportsMinimize( false )
+                            .CreateTitleBar( false )
+                            .SizingRule( ESizingRule::Autosized );
+
+    WindowPtr = window;
+
+    window->SetContent(
+        SNew( SBox )
+            .WidthOverride( 300.0f )
+            .HeightOverride( 50.0f )
+                [ SNew( SBorder )
+                        .VAlign( VAlign_Center )
+                        .HAlign( HAlign_Center )
+                            [ SNew( STextBlock )
+                                    .Text( message ) ] ] );
+
+    const auto root_window = FGlobalTabmanager::Get()->GetRootWindow();
+    FSlateApplication::Get().AddModalWindow( window, root_window, true );
+
+    window->ShowWindow();
+}
+
+void FGitHubToolsNotificationManager::RemoveModalNotification()
+{
+    WindowPtr->RequestDestroyWindow();
+    WindowPtr.Reset();
+}
