@@ -267,10 +267,10 @@ namespace GitHubToolsUtils
             .Then( [ file = MoveTemp( file_infos ), callback = MoveTemp( callback ) ]( const TFuture< FGitHubToolsHttpRequest_MarkFileAsViewed > & request ) {
                 if ( request.Get().GetResult().Get( false ) )
                 {
+                    FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
+
                     file->UpdateViewedState( EGitHubToolsFileViewedState::Viewed );
                     callback( file );
-
-                    FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
                 }
             } );
     }
@@ -313,8 +313,9 @@ namespace GitHubToolsUtils
             }
 
             AsyncTask( ENamedThreads::GameThread, [ files = MoveTemp( files ), callback = MoveTemp( callback ) ]() {
-                callback( files );
                 FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
+
+                callback( files );
             } );
         } );
     }
