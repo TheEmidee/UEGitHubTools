@@ -138,7 +138,7 @@ namespace GitHubToolsUtils
 
                         if ( optional_result.IsSet() )
                         {
-                            pr_infos->FileInfos.Append( files );
+                            pr_infos->SetFiles( files );
                         }
 
                         wrapper->Promise.SetValue( pr_infos );
