@@ -27,14 +27,14 @@ void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TS
                             .HAlign( HAlign_Center )
                             .VAlign( VAlign_Center )
                                 [ SNew( SImage )
-                                        .Image( FRevisionControlStyleManager::Get().GetBrush( TreeItem->FileInfos->ChangedStateIconName ) )
+                                        .Image( TreeItem->FileInfos->ChangedStateBrush )
                                         .ToolTipText( TreeItem->FileInfos->ChangedStateToolTip ) ] +
                         SHorizontalBox::Slot()
                             .AutoWidth()
                             .HAlign( HAlign_Center )
                             .VAlign( VAlign_Center )
                                 [ SNew( SImage )
-                                        .Image( FRevisionControlStyleManager::Get().GetBrush( TreeItem->FileInfos->ViewedStateIconName ) )
+                                        .Image( TreeItem->FileInfos->ViewedStateBrush )
                                         .ToolTipText( TreeItem->FileInfos->ViewedStateToolTip ) ] +
                         SHorizontalBox::Slot()
                             .AutoWidth()

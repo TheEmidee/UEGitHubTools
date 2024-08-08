@@ -1,10 +1,8 @@
 #include "GitHubToolsTypes.h"
 
 #include "GitHubToolsGitUtils.h"
-#include "RevisionControlStyle/RevisionControlStyle.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools"
-#define GET_ICON_RETURN( NAME ) FSlateIcon( FRevisionControlStyleManager::GetStyleSetName(), "RevisionControl." #NAME )
 
 namespace
 {
@@ -48,35 +46,35 @@ namespace
         return EGitHubToolsFileViewedState::Unknown;
     }
 
-    FSlateIcon GetSlateIconFromFileChangeState( EGitHubToolsFileChangedState file_state )
+    const FSlateBrush * GetSlateBrushFromFileChangeState( EGitHubToolsFileChangedState file_state )
     {
         switch ( file_state )
         {
             case EGitHubToolsFileChangedState::Added:
-                return GET_ICON_RETURN( OpenForAdd );
+                return FCoreStyle::Get().GetBrush( "Perforce.OpenForAdd" );
             case EGitHubToolsFileChangedState::Modified:
-                return GET_ICON_RETURN( CheckedOut );
+                return FCoreStyle::Get().GetBrush( "Graph.ConnectorFeedback.OK" );
             case EGitHubToolsFileChangedState::Removed:
-                return GET_ICON_RETURN( MarkedForDelete );
+                return FCoreStyle::Get().GetBrush( "Perforce.MarkedForDelete" );
             case EGitHubToolsFileChangedState::Renamed:
-                return GET_ICON_RETURN( CheckedOut );
+                return FCoreStyle::Get().GetBrush( "Graph.ConnectorFeedback.OK" );
             default:
-                return FSlateIcon();
+                return nullptr;
         }
     }
 
-    FSlateIcon GetSlateIconFromFileViewedState( EGitHubToolsFileViewedState viewed_state )
+    const FSlateBrush * GetSlateBrushFromFileViewedState( EGitHubToolsFileViewedState viewed_state )
     {
         switch ( viewed_state )
         {
             case EGitHubToolsFileViewedState::Dismissed:
-                return GET_ICON_RETURN( OpenForAdd );
+                return FCoreStyle::Get().GetBrush( "Perforce.OpenForAdd" );
             case EGitHubToolsFileViewedState::Viewed:
-                return GET_ICON_RETURN( CheckedOut );
+                return FCoreStyle::Get().GetBrush( "Graph.ConnectorFeedback.OK" );
             case EGitHubToolsFileViewedState::UnViewed:
-                return GET_ICON_RETURN( MarkedForDelete );
+                return FCoreStyle::Get().GetBrush( "Perforce.MarkedForDelete" );
             default:
-                return FSlateIcon();
+                return nullptr;
         }
     }
 
@@ -173,8 +171,7 @@ FGithubToolsPullRequestFileInfos::FGithubToolsPullRequestFileInfos( const FStrin
     AssetName( FText::FromString( FPaths::GetCleanFilename( path ) ) ),
     PackageName( FText::FromString( path ) ),
     ChangedState( GetFileChangedState( change_type ) ),
-    ChangedStateIcon( GetSlateIconFromFileChangeState( ChangedState ) ),
-    ChangedStateIconName( ChangedStateIcon.GetStyleName() ),
+    ChangedStateBrush( GetSlateBrushFromFileChangeState( ChangedState ) ),
     ChangedStateToolTip( GetToolTipFromFileChangedState( ChangedState ) ),
     bHasUnresolvedConversations( false )
 {
@@ -184,8 +181,7 @@ FGithubToolsPullRequestFileInfos::FGithubToolsPullRequestFileInfos( const FStrin
 void FGithubToolsPullRequestFileInfos::UpdateViewedState( EGitHubToolsFileViewedState new_viewed_state )
 {
     ViewedState = new_viewed_state;
-    ViewedStateIcon = GetSlateIconFromFileViewedState( ViewedState );
-    ViewedStateIconName = ViewedStateIcon.GetStyleName();
+    ViewedStateBrush = GetSlateBrushFromFileViewedState( ViewedState );
     ViewedStateToolTip = GetToolTipFromFileViewedState( ViewedState );
 }
 

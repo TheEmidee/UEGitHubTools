@@ -81,12 +81,10 @@ struct FGithubToolsPullRequestFileInfos
     FText AssetName;
     FText PackageName;
     EGitHubToolsFileChangedState ChangedState;
-    FSlateIcon ChangedStateIcon;
-    FName ChangedStateIconName;
+    const FSlateBrush * ChangedStateBrush;
     FText ChangedStateToolTip;
     EGitHubToolsFileViewedState ViewedState;
-    FSlateIcon ViewedStateIcon;
-    FName ViewedStateIconName;
+    const FSlateBrush * ViewedStateBrush;
     FText ViewedStateToolTip;
     bool bHasUnresolvedConversations;
 };
