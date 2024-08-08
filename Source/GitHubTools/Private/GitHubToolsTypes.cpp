@@ -175,7 +175,8 @@ FGithubToolsPullRequestFileInfos::FGithubToolsPullRequestFileInfos( const FStrin
     ChangedState( GetFileChangedState( change_type ) ),
     ChangedStateIcon( GetSlateIconFromFileChangeState( ChangedState ) ),
     ChangedStateIconName( ChangedStateIcon.GetStyleName() ),
-    ChangedStateToolTip( GetToolTipFromFileChangedState( ChangedState ) )
+    ChangedStateToolTip( GetToolTipFromFileChangedState( ChangedState ) ),
+    bHasUnresolvedConversations( false )
 {
     UpdateViewedState( GetFileViewedState( viewed_state ) );
 }
@@ -252,6 +253,20 @@ FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( const TSharedRef< FJ
 bool FGithubToolsPullRequestInfos::CanCommentFiles() const
 {
     return !HasPendingReviews() && State == EGitHubToolsPullRequestsState::Open;
+}
+
+void FGithubToolsPullRequestInfos::SetFiles( const TArray< FGithubToolsPullRequestFileInfosPtr > & files )
+{
+    FileInfos.Append( files );
+
+    for ( auto file_infos : files )
+    {
+        auto * review = Reviews.FindByPredicate( [ & ]( const FGithubToolsPullRequestReviewThreadInfosPtr & review_infos ) {
+            return review_infos->FileName == file_infos->Path;
+        } );
+
+        file_infos->bHasUnresolvedConversations = review != nullptr && !( *review )->bIsResolved;
+    }
 }
 
 #undef LOCTEXT_NAMESPACE

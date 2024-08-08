@@ -24,7 +24,7 @@ void SGitHubToolsAssetActions::Construct( const FArguments & arguments )
                     [ SNew( SButton )
                             .Content()
                                 [ SNew( SImage )
-                                        .Image( FSlateIcon( FAppStyle::GetAppStyleSetName(), "Icons.Localization" ).GetIcon() ) ]
+                                        .Image( FCoreStyle::Get().GetBrush( "Symbols.Check" ) ) ]
                             .ToolTipText( LOCTEXT( "MarkAsViewed", "Mark as Viewed" ) )
                             .IsEnabled_Lambda( [ & ]() {
                                 return IsMarkedAsViewedButtonEnabled.Execute();
@@ -46,7 +46,7 @@ void SGitHubToolsAssetActions::Construct( const FArguments & arguments )
                     [ SNew( SButton )
                             .Content()
                                 [ SNew( SImage )
-                                        .Image( FSlateIcon( FRevisionControlStyleManager::GetStyleSetName(), "RevisionControl.Actions.Diff" ).GetIcon() ) ]
+                                        .Image( FCoreStyle::Get().GetBrush( "SourceControl.Actions.Diff" ) ) ]
                             .ToolTipText( LOCTEXT( "DiffAsset", "Open the diff tool" ) )
                             .IsEnabled_Lambda( [ & ]() {
                                 return IsDiffButtonEnabled.Execute();

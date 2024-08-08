@@ -390,11 +390,7 @@ EVisibility SGitHubToolsPRInfos::GetItemRowVisibility( FGithubToolsPullRequestFi
 
     if ( TreeViewFilters->bShowOnlyWithoutResolution )
     {
-        auto * review = PRInfos->Reviews.FindByPredicate( [ & ]( const FGithubToolsPullRequestReviewThreadInfosPtr & review_infos ) {
-            return review_infos->FileName == file_infos->Path;
-        } );
-
-        if ( review == nullptr || ( *review )->bIsResolved )
+        if ( !file_infos->bHasUnresolvedConversations )
         {
             return EVisibility::Collapsed;
         }

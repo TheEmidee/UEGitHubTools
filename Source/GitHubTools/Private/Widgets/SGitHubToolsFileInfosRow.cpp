@@ -1,16 +1,11 @@
 #include "SGitHubToolsFileInfosRow.h"
 
-#include "AssetToolsModule.h"
 #include "GitHubTools.h"
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
 #include "SGitHubToolsAssetActions.h"
-#include "SGitHubToolsPRInfos.h"
-#include "picosha2.h"
 
 #include <RevisionControlStyle/RevisionControlStyle.h>
-
-#include <string>
 
 #define LOCTEXT_NAMESPACE "GitHubToolsPullRequestReviewWidget"
 
@@ -41,6 +36,14 @@ void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TS
                                 [ SNew( SImage )
                                         .Image( FRevisionControlStyleManager::Get().GetBrush( TreeItem->FileInfos->ViewedStateIconName ) )
                                         .ToolTipText( TreeItem->FileInfos->ViewedStateToolTip ) ] +
+                        SHorizontalBox::Slot()
+                            .AutoWidth()
+                            .HAlign( HAlign_Center )
+                            .VAlign( VAlign_Center )
+                                [ SNew( SImage )
+                                        .Image( FCoreStyle::Get().GetBrush( "Icons.Warning" ) )
+                                        .Visibility( TreeItem->FileInfos->bHasUnresolvedConversations ? EVisibility::Visible : EVisibility::Collapsed )
+                                        .ToolTipText( LOCTEXT( "UnresolvedComments", "This file has unresolved comments" ) ) ] +
                         SHorizontalBox::Slot()
                             .FillWidth( 1.0f )
                                 [ SNew( STextBlock )

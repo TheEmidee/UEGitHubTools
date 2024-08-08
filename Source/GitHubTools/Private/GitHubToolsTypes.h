@@ -88,6 +88,7 @@ struct FGithubToolsPullRequestFileInfos
     FSlateIcon ViewedStateIcon;
     FName ViewedStateIconName;
     FText ViewedStateToolTip;
+    bool bHasUnresolvedConversations;
 };
 
 typedef TSharedPtr< FGithubToolsPullRequestFileInfos > FGithubToolsPullRequestFileInfosPtr;
@@ -144,6 +145,7 @@ struct FGithubToolsPullRequestInfos
 
     bool CanCommentFiles() const;
     bool HasPendingReviews() const;
+    void SetFiles( const TArray< FGithubToolsPullRequestFileInfosPtr > & files );
 
     FString ViewerLogin;
     int Number;
