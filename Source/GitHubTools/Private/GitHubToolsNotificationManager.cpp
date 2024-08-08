@@ -94,6 +94,11 @@ void FGitHubToolsNotificationManager::DisplayModalNotification( const FText & me
 
 void FGitHubToolsNotificationManager::RemoveModalNotification()
 {
+    if ( !WindowPtr.IsValid() )
+    {
+        return;
+    }
+
     WindowPtr->RequestDestroyWindow();
     WindowPtr.Reset();
 }
