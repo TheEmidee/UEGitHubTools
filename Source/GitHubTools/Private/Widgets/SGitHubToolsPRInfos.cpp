@@ -317,6 +317,15 @@ void SGitHubToolsPRInfos::CollapseAllTreeItems()
     }
 }
 
+void SGitHubToolsPRInfos::RecursivelySelectChildren( TArray< FGitHubToolsFileInfosTreeItemPtr > & children, FGitHubToolsFileInfosTreeItemPtr item )
+{
+    for ( auto child : item->Children )
+    {
+        children.Add( child );
+        RecursivelySelectChildren( children, child );
+    }
+}
+
 void SGitHubToolsPRInfos::OnGetChildrenForTreeView( FGitHubToolsFileInfosTreeItemPtr tree_item, TArray< FGitHubToolsFileInfosTreeItemPtr > & children )
 {
     children.Append( tree_item->Children );
@@ -404,6 +413,21 @@ void SGitHubToolsPRInfos::OnSelectedFileChanged( FGitHubToolsFileInfosTreeItemPt
     if ( TreeView->GetNumItemsSelected() == 1 )
     {
         ReviewList->ShowFileReviews( selected_item->FileInfos );
+
+        if ( selected_item->FileInfos == nullptr )
+        {
+            TArray< FGitHubToolsFileInfosTreeItemPtr > children_items;
+            for ( auto child : selected_item->Children )
+            {
+                children_items.Add( child );
+                RecursivelySelectChildren( children_items, child );
+            }
+
+            for ( auto child : children_items )
+            {
+                TreeView->Private_SetItemSelection( child, true, false );
+            }
+        }
     }
     else
     {
