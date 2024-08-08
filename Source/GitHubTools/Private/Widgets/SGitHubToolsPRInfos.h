@@ -47,6 +47,7 @@ private:
     void OnTreeViewFiltersChanged();
     void ExpandAllTreeItems();
     void CollapseAllTreeItems();
+    void RecursivelySelectChildren( TArray< FGitHubToolsFileInfosTreeItemPtr > & children, FGitHubToolsFileInfosTreeItemPtr item );
 
     FGithubToolsPullRequestInfosPtr PRInfos;
     TSharedPtr< STreeView< FGitHubToolsFileInfosTreeItemPtr > > TreeView;
