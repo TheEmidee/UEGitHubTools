@@ -69,6 +69,17 @@ struct FGithubToolsPullRequestComment
 
 typedef TSharedPtr< FGithubToolsPullRequestComment > FGithubToolsPullRequestCommentPtr;
 
+struct FGithubToolsPullRequestFilePatchInfos
+{
+    FGithubToolsPullRequestFilePatchInfos() = default;
+    FGithubToolsPullRequestFilePatchInfos( const FString & path, const FString & patch );
+
+    FString Path;
+    FString Patch;
+};
+
+typedef TSharedPtr< FGithubToolsPullRequestFilePatchInfos > FGithubToolsPullRequestFilePatchInfosPtr;
+
 struct FGithubToolsPullRequestFileInfos
 {
     FGithubToolsPullRequestFileInfos() = default;
@@ -87,6 +98,7 @@ struct FGithubToolsPullRequestFileInfos
     const FSlateBrush * ViewedStateBrush;
     FText ViewedStateToolTip;
     bool bHasUnresolvedConversations;
+    FGithubToolsPullRequestFilePatchInfosPtr PatchInfos;
 };
 
 typedef TSharedPtr< FGithubToolsPullRequestFileInfos > FGithubToolsPullRequestFileInfosPtr;

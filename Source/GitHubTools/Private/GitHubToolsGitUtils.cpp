@@ -3,6 +3,7 @@
 #include "GitHubTools.h"
 #include "GitSourceControlModule.h"
 #include "GitSourceControlUtils.h"
+#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestFilePatches.h"
 #include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestInfos.h"
 #include "HttpRequests/GitHubToolsHttpRequest_MarkFileAsViewed.h"
 
@@ -130,19 +131,25 @@ namespace GitHubToolsUtils
 
                 FGitHubToolsModule::Get()
                     .GetRequestManager()
-                    .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestInfos >( pr_number )
-                    .Then( [ &, files = MoveTemp( files ) ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestInfos > & get_pr_infos ) {
-                        const auto optional_result = get_pr_infos.Get().GetResult();
+                    .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestFilePatches >( pr_number )
+                    .Then( [ &, pr_number ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestFilePatches > & pr_files2 ) {
 
-                        auto pr_infos = optional_result.GetValue();
+                        FGitHubToolsModule::Get()
+                            .GetRequestManager()
+                            .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestInfos >( pr_number )
+                            .Then( [ &, files = MoveTemp( files ) ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestInfos > & get_pr_infos ) {
+                                const auto optional_result = get_pr_infos.Get().GetResult();
 
-                        if ( optional_result.IsSet() )
-                        {
-                            pr_infos->SetFiles( files );
-                        }
+                                auto pr_infos = optional_result.GetValue();
 
-                        wrapper->Promise.SetValue( pr_infos );
-                        wrapper.Reset();
+                                if ( optional_result.IsSet() )
+                                {
+                                    pr_infos->SetFiles( files );
+                                }
+
+                                wrapper->Promise.SetValue( pr_infos );
+                                wrapper.Reset();
+                            } );
                     } );
             } );
 
