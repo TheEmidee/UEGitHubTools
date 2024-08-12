@@ -20,6 +20,7 @@ public:
 private:
     FReply OpenInGitHubClicked();
     FReply OnApprovePRClicked();
+    FReply OnMergePRClicked();
     EVisibility GetPendingReviewsVisibility() const;
 
     FGithubToolsPullRequestInfosPtr PRInfos;
