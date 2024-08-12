@@ -3,8 +3,8 @@
 #include "GitHubTools.h"
 #include "GitHubToolsGitUtils.h"
 #include "HttpRequests/GitHubToolsHttpRequest_AddPRReview.h"
+#include "HttpRequests/GitHubToolsHttpRequest_MergePR.h"
 #include "RevisionControlStyle/RevisionControlStyle.h"
-#include "SGitHubToolsPRInfosPendingReviews.h"
 
 #if SOURCE_CONTROL_WITH_SLATE
 
@@ -164,7 +164,15 @@ void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
                                             [ SNew( SButton )
                                                     .VAlign( VAlign_Center )
                                                     .Text( LOCTEXT( "ApprovePR", "Approve the PR" ) )
-                                                    .OnClicked( this, &SGitHubToolsPRHeader::OnApprovePRClicked ) ] ] ] ];
+                                                    .OnClicked( this, &SGitHubToolsPRHeader::OnApprovePRClicked ) ] +
+                                    SHorizontalBox::Slot()
+                                        .AutoWidth()
+                                        .Padding( FMargin( 5.0f ) )
+                                            [ SNew( SButton )
+                                                    .VAlign( VAlign_Center )
+                                                    .ButtonColorAndOpacity( FLinearColor( 1.0f, 0.0f, 0.0f, 1.0f ) )
+                                                    .Text( LOCTEXT( "MergePR", "Merge the PR" ) )
+                                                    .OnClicked( this, &SGitHubToolsPRHeader::OnMergePRClicked ) ] ] ] ];
 }
 
 FReply SGitHubToolsPRHeader::OpenInGitHubClicked()
@@ -184,6 +192,25 @@ FReply SGitHubToolsPRHeader::OnApprovePRClicked()
         .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReview > & /*request_future*/ ) {
             FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
         } );
+
+    return FReply::Handled();
+}
+
+FReply SGitHubToolsPRHeader::OnMergePRClicked()
+{
+    const auto choice = FMessageDialog::Open( EAppMsgType::YesNo, LOCTEXT( "MergePRConfirmation", "Are you sure you want to merge the PR?" ) );
+    if ( choice == EAppReturnType::Yes )
+    {
+
+        FGitHubToolsModule::Get().GetNotificationManager().DisplayModalNotification( LOCTEXT( "MergePR", "Merging the PR" ) );
+
+        FGitHubToolsModule::Get()
+            .GetRequestManager()
+            .SendRequest< FGitHubToolsHttpRequest_MergePR >( PRInfos->Id )
+            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_MergePR > & /*request_future*/ ) {
+                FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
+            } );
+    }
 
     return FReply::Handled();
 }
