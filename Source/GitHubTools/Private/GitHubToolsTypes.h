@@ -69,16 +69,16 @@ struct FGithubToolsPullRequestComment
 
 typedef TSharedPtr< FGithubToolsPullRequestComment > FGithubToolsPullRequestCommentPtr;
 
-struct FGithubToolsPullRequestFilePatchInfos
+struct FGithubToolsPullRequestFilePatch
 {
-    FGithubToolsPullRequestFilePatchInfos() = default;
-    FGithubToolsPullRequestFilePatchInfos( const FString & path, const FString & patch );
+    FGithubToolsPullRequestFilePatch() = default;
+    explicit FGithubToolsPullRequestFilePatch( const FString & file_name, const FString & patch );
 
-    FString Path;
+    FString FileName;
     FString Patch;
 };
 
-typedef TSharedPtr< FGithubToolsPullRequestFilePatchInfos > FGithubToolsPullRequestFilePatchInfosPtr;
+typedef TSharedPtr< FGithubToolsPullRequestFilePatch > FGithubToolsPullRequestFilePatchPtr;
 
 struct FGithubToolsPullRequestFileInfos
 {
@@ -98,7 +98,7 @@ struct FGithubToolsPullRequestFileInfos
     const FSlateBrush * ViewedStateBrush;
     FText ViewedStateToolTip;
     bool bHasUnresolvedConversations;
-    FGithubToolsPullRequestFilePatchInfosPtr PatchInfos;
+    FString Patch;
 };
 
 typedef TSharedPtr< FGithubToolsPullRequestFileInfos > FGithubToolsPullRequestFileInfosPtr;
@@ -155,7 +155,7 @@ struct FGithubToolsPullRequestInfos
 
     bool CanCommentFiles() const;
     bool HasPendingReviews() const;
-    void SetFiles( const TArray< FGithubToolsPullRequestFileInfosPtr > & files );
+    void SetFiles( const TArray< FGithubToolsPullRequestFileInfosPtr > & files, const TArray< FGithubToolsPullRequestFilePatchPtr > & patches );
 
     FString ViewerLogin;
     int Number;

@@ -4,7 +4,7 @@
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 
-FGitHubToolsHttpRequestData_GetPullRequestFilePatches::FGitHubToolsHttpRequestData_GetPullRequestFilePatches( int pull_request_number, const FString & after_cursor ) :
+FGitHubToolsHttpRequestData_GetPullRequestFilePatches::FGitHubToolsHttpRequestData_GetPullRequestFilePatches( int pull_request_number ) :
     PullRequestNumber( pull_request_number )
 {
 }
@@ -30,28 +30,21 @@ void FGitHubToolsHttpRequestData_GetPullRequestFilePatches::ParseResponse( FHttp
         return;
     }
 
-    const auto data_object = data->AsObject()->GetObjectField( TEXT( "data" ) );
-    const auto repository_object = data_object->GetObjectField( TEXT( "repository" ) );
-    const auto pull_request_object = repository_object->GetObjectField( TEXT( "pullRequest" ) );
+    const auto objects = data->AsArray();
 
-    const auto files_object = pull_request_object->GetObjectField( TEXT( "files" ) );
-    const auto files_edges_object = files_object->GetArrayField( TEXT( "nodes" ) );
+    TArray< FGithubToolsPullRequestFilePatchPtr > patches;
+    patches.Reserve( objects.Num() );
 
-    TArray< FGithubToolsPullRequestFileInfosPtr > files;
-
-    for ( const auto file_object : files_edges_object )
+    for ( auto array_object : objects )
     {
-        const auto file_node_object = file_object->AsObject();
+        const auto object = array_object->AsObject();
+        const auto file_name = object->GetStringField( TEXT( "filename" ) );
+        const auto patch = object->GetStringField( TEXT( "patch" ) );
 
-        files.Emplace( MakeShared< FGithubToolsPullRequestFileInfos >(
-            file_node_object->GetStringField( TEXT( "path" ) ),
-            file_node_object->GetStringField( TEXT( "changeType" ) ),
-            file_node_object->GetStringField( TEXT( "viewerViewedState" ) ) ) );
+        patches.Add( MakeShared< FGithubToolsPullRequestFilePatch >( file_name, patch ) );
     }
 
-    //ParsePageInfo( files_object );
-
-    Result = files;
+    Result = patches;
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -166,6 +166,12 @@ FGithubToolsPullRequestComment::FGithubToolsPullRequestComment( const TSharedRef
     }
 }
 
+FGithubToolsPullRequestFilePatch::FGithubToolsPullRequestFilePatch( const FString & file_name, const FString & patch ) :
+    FileName( file_name ),
+    Patch( patch )
+{
+}
+
 FGithubToolsPullRequestFileInfos::FGithubToolsPullRequestFileInfos( const FString & path, const FString & change_type, const FString & viewed_state ) :
     Path( path ),
     AssetName( FText::FromString( FPaths::GetCleanFilename( path ) ) ),
@@ -251,9 +257,19 @@ bool FGithubToolsPullRequestInfos::CanCommentFiles() const
     return !HasPendingReviews() && State == EGitHubToolsPullRequestsState::Open;
 }
 
-void FGithubToolsPullRequestInfos::SetFiles( const TArray< FGithubToolsPullRequestFileInfosPtr > & files )
+void FGithubToolsPullRequestInfos::SetFiles( const TArray< FGithubToolsPullRequestFileInfosPtr > & files, const TArray< FGithubToolsPullRequestFilePatchPtr > & patches )
 {
     FileInfos.Append( files );
+
+    for ( auto patch : patches )
+    {
+        if ( auto * item = FileInfos.FindByPredicate( [ & ]( const auto file_infos ) {
+                 return file_infos->Path == patch->FileName;
+             } ) )
+        {
+            ( *item )->Patch = patch->Patch;
+        }
+    }
 
     for ( auto file_infos : files )
     {
