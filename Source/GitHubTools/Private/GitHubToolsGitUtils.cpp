@@ -6,6 +6,7 @@
 #include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestFilePatches.h"
 #include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestInfos.h"
 #include "HttpRequests/GitHubToolsHttpRequest_MarkFileAsViewed.h"
+#include "Widgets/SGitHubToolsFilePatch.h"
 
 #include <AssetDefinition.h>
 #include <AssetRegistry/AssetRegistryModule.h>
@@ -37,14 +38,30 @@ namespace GitHubToolsUtils
         return TOptional< FAssetData >();
     }
 
-    void DiffFileAgainstOriginStatusBranch( const FGithubToolsPullRequestFileInfosPtr & file_infos )
+    void DiffTextFile( const FGithubToolsPullRequestFileInfosPtr & file_infos )
     {
-        if ( file_infos == nullptr )
-        {
-            return;
-        }
+        const TSharedPtr< SWindow > window = SNew( SWindow )
+                                                 .Title( LOCTEXT( "DiffTextWindowTitle", "Text diff" ) )
+                                                 .ClientSize( FVector2D( 1000, 800 ) );
 
-        auto optional_asset_data = GetAssetDataFromFileInfos( *file_infos );
+        window->SetContent( SNew( SGitHubToolsFilePatch )
+                                .FileInfos( file_infos )
+                                .ParentWindow( window ) );
+
+        if ( const TSharedPtr< SWindow > active_modal = FSlateApplication::Get().GetActiveModalWindow();
+             active_modal.IsValid() )
+        {
+            FSlateApplication::Get().AddWindowAsNativeChild( window.ToSharedRef(), active_modal.ToSharedRef() );
+        }
+        else
+        {
+            FSlateApplication::Get().AddWindow( window.ToSharedRef() );
+        }
+    }
+
+    void DiffUAsset( const FGithubToolsPullRequestFileInfos & file_infos )
+    {
+        auto optional_asset_data = GetAssetDataFromFileInfos( file_infos );
         if ( !optional_asset_data.IsSet() )
         {
             return;
@@ -101,6 +118,19 @@ namespace GitHubToolsUtils
         new_revision.Revision = TEXT( "" );
 
         FModuleManager::GetModuleChecked< FAssetToolsModule >( "AssetTools" ).Get().DiffAssets( old_object, current_object, old_revision, new_revision );
+    }
+
+    void DiffFileAgainstOriginStatusBranch( const FGithubToolsPullRequestFileInfosPtr & file_infos )
+    {
+        if ( file_infos == nullptr )
+        {
+            return;
+        }
+
+        if ( !file_infos->IsUAsset() )
+        {
+            DiffTextFile( file_infos );
+        }
     }
 
     void DiffFilesAgainstOriginStatusBranch( const TArray< FGithubToolsPullRequestFileInfosPtr > & file_infos )
