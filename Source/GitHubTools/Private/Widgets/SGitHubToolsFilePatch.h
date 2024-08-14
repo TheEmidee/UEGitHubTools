@@ -9,14 +9,18 @@ struct FGitHubToolsFilePatchViewListItem : public TSharedFromThis< FGitHubToolsF
 public:
     TSharedRef< SWidget > GenerateWidgetForItem();
 
-    static TSharedPtr< FGitHubToolsFilePatchViewListItem > Create( FString string );
+    static TSharedPtr< FGitHubToolsFilePatchViewListItem > Create( FString string, bool show_line_before_number, int line_before, bool show_line_after_number, int line_after );
 
 protected:
     FGitHubToolsFilePatchViewListItem() = default;
-    explicit FGitHubToolsFilePatchViewListItem( FString && string );
+    explicit FGitHubToolsFilePatchViewListItem( FString && string, bool show_line_before_number, int line_before, bool show_line_after_number, int line_after );
 
 private:
     FString String;
+    bool bShowLineBeforeNumber;
+    FString LineBefore;
+    bool bShowLineAfterNumber;
+    FString LineAfter;
 };
 
 typedef TSharedPtr< FGitHubToolsFilePatchViewListItem > FGitHubToolsFilePatchViewListItemPtr;
@@ -39,6 +43,7 @@ public:
 private:
     TSharedRef< ITableRow > GenerateRowForItem( FGitHubToolsFilePatchViewListItemPtr item, const TSharedRef< STableViewBase > & owner_table ) const;
     void PopulateListItems();
+    void OnMouseButtonClick( TSharedPtr< FGitHubToolsFilePatchViewListItem > item );
 
     FGithubToolsPullRequestFileInfosPtr FileInfos;
     TSharedPtr< SListView< FGitHubToolsFilePatchViewListItemPtr > > ListView;

@@ -64,22 +64,41 @@ TSharedRef< SWidget > FGitHubToolsFilePatchViewListItem::GenerateWidgetForItem()
     return SNew( SBox )
         .HAlign( HAlign_Fill )
         .Padding( FMargin( 4.0f ) )
-            [ SNew( SRichTextBlock )
-                    .Text( FText::FromString( String ) )
-                    .TextStyle( FAppStyle::Get(), "NormalText" ) +
-                SRichTextBlock::Decorator( FHeaderViewSyntaxDecorator::Create( SyntaxDecorators::NoDecorator, FLinearColor::White ) ) +
-                SRichTextBlock::Decorator( FHeaderViewSyntaxDecorator::Create( SyntaxDecorators::PatchDecorator, FLinearColor::Blue ) ) +
-                SRichTextBlock::Decorator( FHeaderViewSyntaxDecorator::Create( SyntaxDecorators::AddDecorator, FLinearColor::Green ) ) +
-                SRichTextBlock::Decorator( FHeaderViewSyntaxDecorator::Create( SyntaxDecorators::RemoveDecorator, FLinearColor::Red ) ) ];
+            [ SNew( SHorizontalBox ) +
+                SHorizontalBox::Slot()
+                    .Padding( 5.0f )
+                    .AutoWidth()
+                        [ SNew( STextBlock )
+                                .Visibility( bShowLineBeforeNumber ? EVisibility::Visible : EVisibility::Hidden )
+                                .Text( FText::FromString( LineBefore ) ) ] +
+                SHorizontalBox::Slot()
+                    .AutoWidth()
+                    .Padding( 5.0f )
+                        [ SNew( STextBlock )
+                                .Visibility( bShowLineAfterNumber ? EVisibility::Visible : EVisibility::Hidden )
+                                .Text( FText::FromString( LineAfter ) ) ] +
+                SHorizontalBox::Slot()
+                    .FillWidth( 1.0f )
+                        [ SNew( SRichTextBlock )
+                                .Text( FText::FromString( String ) )
+                                .TextStyle( FAppStyle::Get(), "NormalText" ) +
+                            SRichTextBlock::Decorator( FHeaderViewSyntaxDecorator::Create( SyntaxDecorators::NoDecorator, FLinearColor::White ) ) +
+                            SRichTextBlock::Decorator( FHeaderViewSyntaxDecorator::Create( SyntaxDecorators::PatchDecorator, FStyleColors::AccentBlue.GetSpecifiedColor() ) ) +
+                            SRichTextBlock::Decorator( FHeaderViewSyntaxDecorator::Create( SyntaxDecorators::AddDecorator, FLinearColor::Green ) ) +
+                            SRichTextBlock::Decorator( FHeaderViewSyntaxDecorator::Create( SyntaxDecorators::RemoveDecorator, FLinearColor::Red ) ) ] ];
 }
 
-TSharedPtr< FGitHubToolsFilePatchViewListItem > FGitHubToolsFilePatchViewListItem::Create( FString string )
+TSharedPtr< FGitHubToolsFilePatchViewListItem > FGitHubToolsFilePatchViewListItem::Create( FString string, bool show_line_before_number, int line_before, bool show_line_after_number, int line_after )
 {
-    return MakeShareable( new FGitHubToolsFilePatchViewListItem( MoveTemp( string ) ) );
+    return MakeShareable( new FGitHubToolsFilePatchViewListItem( MoveTemp( string ), show_line_before_number, line_before, show_line_after_number, line_after ) );
 }
 
-FGitHubToolsFilePatchViewListItem::FGitHubToolsFilePatchViewListItem( FString && string ) :
-    String( MoveTemp( string ) )
+FGitHubToolsFilePatchViewListItem::FGitHubToolsFilePatchViewListItem( FString && string, bool show_line_before_number, int line_before, bool show_line_after_number, int line_after ) :
+    String( MoveTemp( string ) ),
+    bShowLineBeforeNumber( show_line_before_number ),
+    LineBefore( FString::FromInt( line_before ) ),
+    bShowLineAfterNumber( show_line_after_number ),
+    LineAfter( FString::FromInt( line_after ) )
 {
 }
 
@@ -116,7 +135,8 @@ void SGitHubToolsFilePatch::Construct( const FArguments & arguments )
                             .VAlign( EVerticalAlignment::VAlign_Fill )
                                 [ SAssignNew( ListView, SListView< FGitHubToolsFilePatchViewListItemPtr > )
                                         .ListItemsSource( &ListItems )
-                                        .OnGenerateRow( this, &SGitHubToolsFilePatch::GenerateRowForItem ) ] ] ];
+                                        .OnGenerateRow( this, &SGitHubToolsFilePatch::GenerateRowForItem )
+                                        .OnMouseButtonClick( this, &SGitHubToolsFilePatch::OnMouseButtonClick ) ] ] ];
 
     PopulateListItems();
 }
@@ -130,30 +150,75 @@ void SGitHubToolsFilePatch::PopulateListItems()
 
     ListItems.Reserve( line_count );
 
+    auto line_before = 0;
+    auto line_after = 0;
+
     for ( const auto & line : lines )
     {
+        auto line_before_increment = 1;
+        auto line_after_increment = 1;
+
         FString decorator;
         const auto first_char = line[ 0 ];
+        bool show_line_before_number = true;
+        bool show_line_after_number = true;
 
         if ( first_char == '@' )
         {
             decorator = SyntaxDecorators::PatchDecorator;
+
+            auto line_copy = line;
+
+            // @@ -3,6 +3,7 @@
+            line_copy.RemoveFromStart( TEXT( "@@ -" ) );
+            line_copy.RemoveFromEnd( TEXT( " @@" ) );
+
+            const auto first_comma_index = line_copy.Find( TEXT( "," ) );
+            const auto before_line_start_str = line_copy.Mid( 0, first_comma_index );
+
+            line_before = FCString::Atoi( GetData( before_line_start_str ) );
+
+            const auto plus_index = line_copy.Find( TEXT( "+" ) );
+
+            line_copy = line_copy.Mid( plus_index + 1 );
+            const auto last_comma_index = line_copy.Find( TEXT( "," ) );
+
+            const auto after_line_start_str = line_copy.Mid( 0, last_comma_index );
+
+            line_after = FCString::Atoi( GetData( after_line_start_str ) );
+
+            line_before_increment = 0;
+            line_after_increment = 0;
+
+            show_line_before_number = false;
+            show_line_after_number = false;
         }
         else if ( first_char == '+' )
         {
             decorator = SyntaxDecorators::AddDecorator;
+            line_before_increment = 0;
+            show_line_before_number = false;
         }
         else if ( first_char == '-' )
         {
             decorator = SyntaxDecorators::RemoveDecorator;
+            line_after_increment = 0;
+            show_line_after_number = false;
         }
         else
         {
             decorator = SyntaxDecorators::NoDecorator;
         }
 
-        ListItems.Emplace( FGitHubToolsFilePatchViewListItem::Create( FString::Printf( TEXT( "<%s>%s</>" ), *decorator, *line ) ) );
+        ListItems.Emplace( FGitHubToolsFilePatchViewListItem::Create( FString::Printf( TEXT( "<%s>%s</>" ), *decorator, *line ), show_line_before_number, line_before, show_line_after_number, line_after ) );
+
+        line_before += line_before_increment;
+        line_after += line_after_increment;
     }
+}
+
+void SGitHubToolsFilePatch::OnMouseButtonClick( TSharedPtr< FGitHubToolsFilePatchViewListItem > item )
+{
 }
 
 TSharedRef< ITableRow > SGitHubToolsFilePatch::GenerateRowForItem( FGitHubToolsFilePatchViewListItemPtr item, const TSharedRef< STableViewBase > & owner_table ) const
