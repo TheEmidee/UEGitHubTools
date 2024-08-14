@@ -72,8 +72,7 @@ void SGitHubToolsPRReviewList::Construct( const FArguments & arguments )
                                             [ SAssignNew( AddCommentForm, SGitHubToolsAddCommentForm )
                                                     .OnAddCommentDone_Lambda( [ & ]() {
                                                         ShowFileReviews( FileInfos );
-                                                    } )
-                                                    .PRInfos( PRInfos ) ] ] ] ];
+                                                    } ) ] ] ] ];
 }
 
 void SGitHubToolsPRReviewList::ShowFileReviews( const FGithubToolsPullRequestFileInfosPtr & file_infos )

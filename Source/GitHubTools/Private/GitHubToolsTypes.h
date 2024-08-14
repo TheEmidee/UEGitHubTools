@@ -2,6 +2,8 @@
 
 #include <CoreMinimal.h>
 
+struct FGithubToolsPullRequestInfos;
+
 enum class EGitHubToolsPullRequestReviewEvent : uint8
 {
     Approve,
@@ -99,6 +101,7 @@ struct FGithubToolsPullRequestFileInfos
     FText ViewedStateToolTip;
     bool bHasUnresolvedConversations;
     FString Patch;
+    TSharedPtr< FGithubToolsPullRequestInfos > PRInfos;
 };
 
 typedef TSharedPtr< FGithubToolsPullRequestFileInfos > FGithubToolsPullRequestFileInfosPtr;
@@ -148,7 +151,7 @@ struct FGitHubToolsPullRequestCheckInfos
 
 typedef TSharedPtr< FGitHubToolsPullRequestCheckInfos > FGitHubToolsPullRequestCheckInfosPtr;
 
-struct FGithubToolsPullRequestInfos
+struct FGithubToolsPullRequestInfos : TSharedFromThis< FGithubToolsPullRequestInfos >
 {
     FGithubToolsPullRequestInfos() = default;
     explicit FGithubToolsPullRequestInfos( const TSharedRef< FJsonObject > & json );

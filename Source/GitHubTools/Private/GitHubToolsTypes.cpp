@@ -259,16 +259,20 @@ bool FGithubToolsPullRequestInfos::CanCommentFiles() const
 
 void FGithubToolsPullRequestInfos::SetFiles( const TArray< FGithubToolsPullRequestFileInfosPtr > & files, const TArray< FGithubToolsPullRequestFilePatchPtr > & patches )
 {
-    FileInfos.Append( files );
+    FileInfos.Reserve( files.Num() );
 
-    for ( auto patch : patches )
+    for ( auto file : files )
     {
-        if ( auto * item = FileInfos.FindByPredicate( [ & ]( const auto file_infos ) {
-                 return file_infos->Path == patch->FileName;
-             } ) )
+        file->PRInfos = AsShared();
+
+        if ( auto * patch = patches.FindByPredicate( [ & ]( const auto file_patch ) {
+            return file_patch->FileName == file->Path;
+        } ) )
         {
-            ( *item )->Patch = patch->Patch;
+            file->Patch = ( *patch )->Patch;
         }
+
+        FileInfos.Add( file );
     }
 
     for ( auto file_infos : files )

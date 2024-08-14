@@ -2,6 +2,7 @@
 
 #include "Framework/Text/SlateTextRun.h"
 #include "GitHubToolsStyle.h"
+#include "SGitHubToolsAddCommentForm.h"
 
 #include <Widgets/Text/SRichTextBlock.h>
 
@@ -64,42 +65,64 @@ TSharedRef< SWidget > FGitHubToolsFilePatchViewListItem::GenerateWidgetForItem()
     return SNew( SBox )
         .HAlign( HAlign_Fill )
         .Padding( FMargin( 4.0f ) )
-            [ SNew( SHorizontalBox ) +
-                SHorizontalBox::Slot()
-                    .Padding( 5.0f )
-                    .AutoWidth()
-                        [ SNew( STextBlock )
-                                .Visibility( bShowLineBeforeNumber ? EVisibility::Visible : EVisibility::Hidden )
-                                .Text( FText::FromString( LineBefore ) ) ] +
-                SHorizontalBox::Slot()
-                    .AutoWidth()
-                    .Padding( 5.0f )
-                        [ SNew( STextBlock )
-                                .Visibility( bShowLineAfterNumber ? EVisibility::Visible : EVisibility::Hidden )
-                                .Text( FText::FromString( LineAfter ) ) ] +
-                SHorizontalBox::Slot()
-                    .FillWidth( 1.0f )
-                        [ SNew( SRichTextBlock )
-                                .Text( FText::FromString( String ) )
-                                .TextStyle( FAppStyle::Get(), "NormalText" ) +
-                            SRichTextBlock::Decorator( FHeaderViewSyntaxDecorator::Create( SyntaxDecorators::NoDecorator, FLinearColor::White ) ) +
-                            SRichTextBlock::Decorator( FHeaderViewSyntaxDecorator::Create( SyntaxDecorators::PatchDecorator, FStyleColors::AccentBlue.GetSpecifiedColor() ) ) +
-                            SRichTextBlock::Decorator( FHeaderViewSyntaxDecorator::Create( SyntaxDecorators::AddDecorator, FLinearColor::Green ) ) +
-                            SRichTextBlock::Decorator( FHeaderViewSyntaxDecorator::Create( SyntaxDecorators::RemoveDecorator, FLinearColor::Red ) ) ] ];
+            [ SNew( SVerticalBox ) +
+                SVerticalBox::Slot()
+                    .AutoHeight()
+                        [ SNew( SHorizontalBox ) +
+                            SHorizontalBox::Slot()
+                                .AutoWidth()
+                                .Padding( 5.0f )
+                                    [ SNew( SButton )
+                                            .Visibility( bShowAddCommentButton ? EVisibility::Visible : EVisibility::Hidden )
+                                            .Text( LOCTEXT( "AddComment", "+" ) )
+                                            .OnClicked( this, &FGitHubToolsFilePatchViewListItem::OnAddCommentClicked ) ] +
+                            SHorizontalBox::Slot()
+                                .Padding( 5.0f )
+                                .AutoWidth()
+                                    [ SNew( STextBlock )
+                                            .Visibility( bShowLineBeforeNumber ? EVisibility::Visible : EVisibility::Hidden )
+                                            .Text( FText::FromString( LineBefore ) ) ] +
+                            SHorizontalBox::Slot()
+                                .AutoWidth()
+                                .Padding( 5.0f )
+                                    [ SNew( STextBlock )
+                                            .Visibility( bShowLineAfterNumber ? EVisibility::Visible : EVisibility::Hidden )
+                                            .Text( FText::FromString( LineAfter ) ) ] +
+                            SHorizontalBox::Slot()
+                                .FillWidth( 1.0f )
+                                    [ SNew( SRichTextBlock )
+                                            .Text( FText::FromString( String ) )
+                                            .TextStyle( FAppStyle::Get(), "NormalText" ) +
+                                        SRichTextBlock::Decorator( FHeaderViewSyntaxDecorator::Create( SyntaxDecorators::NoDecorator, FLinearColor::White ) ) +
+                                        SRichTextBlock::Decorator( FHeaderViewSyntaxDecorator::Create( SyntaxDecorators::PatchDecorator, FStyleColors::AccentBlue.GetSpecifiedColor() ) ) +
+                                        SRichTextBlock::Decorator( FHeaderViewSyntaxDecorator::Create( SyntaxDecorators::AddDecorator, FLinearColor::Green ) ) +
+                                        SRichTextBlock::Decorator( FHeaderViewSyntaxDecorator::Create( SyntaxDecorators::RemoveDecorator, FLinearColor::Red ) ) ] ] +
+                SVerticalBox::Slot()
+                    .FillHeight( 1.0f )
+                        [ SAssignNew( AddCommentForm, SGitHubToolsAddCommentForm )
+                                .FileInfos( FileInfos )
+                                .Visibility( EVisibility::Collapsed )
+                                .OnAddCommentDone_Lambda( [ & ]() {
+                                    // ShowFileReviews( FileInfos );
+                                } ) ] ];
 }
 
-TSharedPtr< FGitHubToolsFilePatchViewListItem > FGitHubToolsFilePatchViewListItem::Create( FString string, bool show_line_before_number, int line_before, bool show_line_after_number, int line_after )
-{
-    return MakeShareable( new FGitHubToolsFilePatchViewListItem( MoveTemp( string ), show_line_before_number, line_before, show_line_after_number, line_after ) );
-}
-
-FGitHubToolsFilePatchViewListItem::FGitHubToolsFilePatchViewListItem( FString && string, bool show_line_before_number, int line_before, bool show_line_after_number, int line_after ) :
+FGitHubToolsFilePatchViewListItem::FGitHubToolsFilePatchViewListItem( FGithubToolsPullRequestFileInfosPtr file_infos, FString && string, bool show_add_comment_button, bool show_line_before_number, int line_before, bool show_line_after_number, int line_after ) :
+    FileInfos( file_infos ),
+    bShowAddCommentButton( show_add_comment_button ),
     String( MoveTemp( string ) ),
     bShowLineBeforeNumber( show_line_before_number ),
     LineBefore( FString::FromInt( line_before ) ),
     bShowLineAfterNumber( show_line_after_number ),
     LineAfter( FString::FromInt( line_after ) )
 {
+}
+
+FReply FGitHubToolsFilePatchViewListItem::OnAddCommentClicked()
+{
+    AddCommentForm->SetVisibility( EVisibility::Visible );
+
+    return FReply::Handled();
 }
 
 SGitHubToolsFilePatch::~SGitHubToolsFilePatch()
@@ -160,6 +183,7 @@ void SGitHubToolsFilePatch::PopulateListItems()
 
         FString decorator;
         const auto first_char = line[ 0 ];
+        bool show_add_comment_button = true;
         bool show_line_before_number = true;
         bool show_line_after_number = true;
 
@@ -190,6 +214,7 @@ void SGitHubToolsFilePatch::PopulateListItems()
             line_before_increment = 0;
             line_after_increment = 0;
 
+            show_add_comment_button = false;
             show_line_before_number = false;
             show_line_after_number = false;
         }
@@ -210,7 +235,7 @@ void SGitHubToolsFilePatch::PopulateListItems()
             decorator = SyntaxDecorators::NoDecorator;
         }
 
-        ListItems.Emplace( FGitHubToolsFilePatchViewListItem::Create( FString::Printf( TEXT( "<%s>%s</>" ), *decorator, *line ), show_line_before_number, line_before, show_line_after_number, line_after ) );
+        ListItems.Emplace( MakeShared< FGitHubToolsFilePatchViewListItem >( FileInfos, FString::Printf( TEXT( "<%s>%s</>" ), *decorator, *line ), show_add_comment_button, show_line_before_number, line_before, show_line_after_number, line_after ) );
 
         line_before += line_before_increment;
         line_after += line_after_increment;

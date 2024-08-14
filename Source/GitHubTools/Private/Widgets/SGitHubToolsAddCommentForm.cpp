@@ -19,7 +19,7 @@ SGitHubToolsAddCommentForm::~SGitHubToolsAddCommentForm()
 
 void SGitHubToolsAddCommentForm::Construct( const FArguments & arguments )
 {
-    PRInfos = arguments._PRInfos.Get();
+    FileInfos = arguments._FileInfos.Get();
     OnAddCommentDone = arguments._OnAddCommentDone;
 
     ChildSlot
@@ -114,7 +114,7 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
 
         FGitHubToolsModule::Get()
             .GetRequestManager()
-            .SendRequest< FGitHubToolsHttpRequestData_AddPRReview >( PRInfos->Id )
+            .SendRequest< FGitHubToolsHttpRequestData_AddPRReview >( FileInfos->PRInfos->Id )
             .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReview > & request_future ) {
                 const auto & request = request_future.Get();
 
@@ -136,19 +136,19 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
 
                 FGitHubToolsModule::Get()
                     .GetRequestManager()
-                    .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThread >( PRInfos->Id, review_id, FileInfos->Path, GetComment() )
+                    .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThread >( FileInfos->PRInfos->Id, review_id, FileInfos->Path, GetComment() )
                     .Then( [ &, review_id ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReviewThread > & add_pr_review_thread_result ) {
                         auto add_pr_review_thread_result_data = add_pr_review_thread_result.Get();
 
                         FGitHubToolsModule::Get()
                             .GetRequestManager()
-                            .SendRequest< FGitHubToolsHttpRequestData_SubmitPRReview >( PRInfos->Id, review_id, EGitHubToolsPullRequestReviewEvent::RequestChanges )
+                            .SendRequest< FGitHubToolsHttpRequestData_SubmitPRReview >( FileInfos->PRInfos->Id, review_id, EGitHubToolsPullRequestReviewEvent::RequestChanges )
                             .Then( [ &, add_pr_review_thread_result_data ]( const TFuture< FGitHubToolsHttpRequestData_SubmitPRReview > & submit_pr_result ) {
                                 auto submit_pr_result_data = submit_pr_result.Get();
 
                                 if ( submit_pr_result_data.GetResult().IsSet() && !submit_pr_result_data.GetResult()->IsEmpty() )
                                 {
-                                    PRInfos->Reviews.Add( add_pr_review_thread_result_data.GetResult().GetValue() );
+                                    FileInfos->PRInfos->Reviews.Add( add_pr_review_thread_result_data.GetResult().GetValue() );
 
                                     Close();
                                 }
