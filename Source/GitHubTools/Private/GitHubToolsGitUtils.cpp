@@ -369,16 +369,7 @@ namespace GitHubToolsUtils
 
             if ( !file->IsUAsset() )
             {
-                // :TODO: Should be removed when we can display text patches in the UI
-                /* std::string str( StringCast< ANSICHAR >( *file->Path ).Get() );
-                const auto hash = picosha2::hash256_hex_string( str );
-
-                TStringBuilder< 512 > url;
-                url << file->PRUrl;
-                url << TEXT( "/files#diff-" );
-                url << hash.data();
-
-                FPlatformProcess::LaunchURL( *url, nullptr, nullptr );*/
+                DiffTextFile( file );
                 continue;
             }
 
