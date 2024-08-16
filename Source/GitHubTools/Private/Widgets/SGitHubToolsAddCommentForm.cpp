@@ -20,6 +20,7 @@ SGitHubToolsAddCommentForm::~SGitHubToolsAddCommentForm()
 void SGitHubToolsAddCommentForm::Construct( const FArguments & arguments )
 {
     FileInfos = arguments._FileInfos.Get();
+    LineInfos = arguments._LineInfos.Get();
     OnAddCommentDone = arguments._OnAddCommentDone;
 
     ChildSlot
@@ -134,26 +135,54 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
                     return;
                 }
 
-                FGitHubToolsModule::Get()
-                    .GetRequestManager()
-                    .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThread >( FileInfos->PRInfos->Id, review_id, FileInfos->Path, GetComment() )
-                    .Then( [ &, review_id ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReviewThread > & add_pr_review_thread_result ) {
-                        auto add_pr_review_thread_result_data = add_pr_review_thread_result.Get();
+                if ( LineInfos.IsSet() )
+                {
+                    const auto & line_infos = LineInfos.GetValue();
 
-                        FGitHubToolsModule::Get()
-                            .GetRequestManager()
-                            .SendRequest< FGitHubToolsHttpRequestData_SubmitPRReview >( FileInfos->PRInfos->Id, review_id, EGitHubToolsPullRequestReviewEvent::RequestChanges )
-                            .Then( [ &, add_pr_review_thread_result_data ]( const TFuture< FGitHubToolsHttpRequestData_SubmitPRReview > & submit_pr_result ) {
-                                auto submit_pr_result_data = submit_pr_result.Get();
+                    FGitHubToolsModule::Get()
+                        .GetRequestManager()
+                        .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThreadToLine >( FileInfos->PRInfos->Id, review_id, FileInfos->Path, line_infos.Side, line_infos.Line, GetComment() )
+                        .Then( [ &, review_id ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReviewThreadToLine > & add_pr_review_thread_result ) {
+                            auto add_pr_review_thread_result_data = add_pr_review_thread_result.Get();
 
-                                if ( submit_pr_result_data.GetResult().IsSet() && !submit_pr_result_data.GetResult()->IsEmpty() )
-                                {
-                                    FileInfos->PRInfos->Reviews.Add( add_pr_review_thread_result_data.GetResult().GetValue() );
+                            FGitHubToolsModule::Get()
+                                .GetRequestManager()
+                                .SendRequest< FGitHubToolsHttpRequestData_SubmitPRReview >( FileInfos->PRInfos->Id, review_id, EGitHubToolsPullRequestReviewEvent::RequestChanges )
+                                .Then( [ &, add_pr_review_thread_result_data ]( const TFuture< FGitHubToolsHttpRequestData_SubmitPRReview > & submit_pr_result ) {
+                                    auto submit_pr_result_data = submit_pr_result.Get();
 
-                                    Close();
-                                }
-                            } );
-                    } );
+                                    if ( submit_pr_result_data.GetResult().IsSet() && !submit_pr_result_data.GetResult()->IsEmpty() )
+                                    {
+                                        FileInfos->PRInfos->Reviews.Add( add_pr_review_thread_result_data.GetResult().GetValue() );
+
+                                        Close();
+                                    }
+                                } );
+                        } );
+                }
+                else
+                {
+                    FGitHubToolsModule::Get()
+                        .GetRequestManager()
+                        .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThreadToFile >( FileInfos->PRInfos->Id, review_id, FileInfos->Path, GetComment() )
+                        .Then( [ &, review_id ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReviewThreadToFile > & add_pr_review_thread_result ) {
+                            auto add_pr_review_thread_result_data = add_pr_review_thread_result.Get();
+
+                            FGitHubToolsModule::Get()
+                                .GetRequestManager()
+                                .SendRequest< FGitHubToolsHttpRequestData_SubmitPRReview >( FileInfos->PRInfos->Id, review_id, EGitHubToolsPullRequestReviewEvent::RequestChanges )
+                                .Then( [ &, add_pr_review_thread_result_data ]( const TFuture< FGitHubToolsHttpRequestData_SubmitPRReview > & submit_pr_result ) {
+                                    auto submit_pr_result_data = submit_pr_result.Get();
+
+                                    if ( submit_pr_result_data.GetResult().IsSet() && !submit_pr_result_data.GetResult()->IsEmpty() )
+                                    {
+                                        FileInfos->PRInfos->Reviews.Add( add_pr_review_thread_result_data.GetResult().GetValue() );
+
+                                        Close();
+                                    }
+                                } );
+                        } );
+                }
             } );
     }
 
@@ -171,6 +200,8 @@ void SGitHubToolsAddCommentForm::Close()
     OnAddCommentDone.Execute();
 
     FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
+
+    CommentTextBox->SetText( FText::GetEmpty() );
 }
 
 void SGitHubToolsAddCommentForm::OnTextChanged( const FText & text )

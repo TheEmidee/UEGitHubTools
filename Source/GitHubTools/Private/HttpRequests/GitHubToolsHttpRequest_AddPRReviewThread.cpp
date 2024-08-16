@@ -24,7 +24,7 @@ FString FGitHubToolsHttpRequestData_AddPRReviewThread::GetBody() const
     string_builder << TEXT( "      body: \\\"" ) << *Comment << TEXT( "\\\", " );
     string_builder << TEXT( "      pullRequestId: \\\"" ) << *PullRequestId << TEXT( "\\\", " );
     string_builder << TEXT( "      pullRequestReviewId: \\\"" ) << *PullRequestReviewId << TEXT( "\\\", " );
-    string_builder << TEXT( "      subjectType: FILE, " );
+    string_builder << GetMutationInputData();
     string_builder << TEXT( "      path: \\\"" ) << *FilePath << TEXT( "\\\" " );
     string_builder << TEXT( "    } ) { " );
     string_builder << TEXT( "      thread {" );
@@ -100,6 +100,40 @@ void FGitHubToolsHttpRequestData_AddPRReviewThread::ParseResponse( FHttpResponse
     }
 
     Result = review_thread_infos;
+}
+
+FGitHubToolsHttpRequestData_AddPRReviewThreadToFile::FGitHubToolsHttpRequestData_AddPRReviewThreadToFile( const FString & pull_request_id, const FString & pull_request_review_id, const FString & file_path, const FString & comment ) :
+    FGitHubToolsHttpRequestData_AddPRReviewThread( pull_request_id, pull_request_review_id, file_path, comment )
+{
+}
+
+FString FGitHubToolsHttpRequestData_AddPRReviewThreadToFile::GetMutationInputData() const
+{
+    return TEXT( "      subjectType: FILE, " );
+}
+
+FGitHubToolsHttpRequestData_AddPRReviewThreadToLine::FGitHubToolsHttpRequestData_AddPRReviewThreadToLine( const FString & pull_request_id, const FString & pull_request_review_id, const FString & file_path, const EGitHubToolsDiffSide diff_side, const int line, const FString & comment ) :
+    FGitHubToolsHttpRequestData_AddPRReviewThread( pull_request_id, pull_request_review_id, file_path, comment ),
+    DiffSide( diff_side ),
+    Line( line )
+{
+}
+
+FString FGitHubToolsHttpRequestData_AddPRReviewThreadToLine::GetMutationInputData() const
+{
+    TStringBuilder< 512 > string_builder;
+
+    const auto get_side_str = [ & ]() -> FString {
+        return DiffSide == EGitHubToolsDiffSide::Left
+                   ? TEXT( "LEFT" )
+                   : TEXT( "RIGHT" );
+    };
+
+    string_builder << TEXT( "      subjectType: LINE, " );
+    string_builder << TEXT( "      side: " << get_side_str() << "," );
+    string_builder << TEXT( "      line: " << Line << "," );
+
+    return *string_builder;
 }
 
 #undef LOCTEXT_NAMESPACE

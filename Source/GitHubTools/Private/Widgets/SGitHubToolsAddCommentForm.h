@@ -5,7 +5,21 @@
 #include <CoreMinimal.h>
 #include <Widgets/Input/SMultiLineEditableTextBox.h>
 
+class FGitHubToolsHttpRequestData_AddPRReviewThread;
 DECLARE_DELEGATE( FGitHubToolsOnAddCommentDoneDelegate );
+
+struct FGitHubToolsAddCommentLineInfos
+{
+    FGitHubToolsAddCommentLineInfos() = default;
+    FGitHubToolsAddCommentLineInfos( EGitHubToolsDiffSide side, int line ) :
+        Side( side ),
+        Line( line )
+    {
+    }
+
+    EGitHubToolsDiffSide Side;
+    int Line;
+};
 
 class SGitHubToolsAddCommentForm final : public SCompoundWidget
 {
@@ -13,6 +27,7 @@ public:
     SLATE_BEGIN_ARGS( SGitHubToolsAddCommentForm )
     {}
     SLATE_ATTRIBUTE( FGithubToolsPullRequestFileInfosPtr, FileInfos )
+    SLATE_ATTRIBUTE( FGitHubToolsAddCommentLineInfos, LineInfos )
     SLATE_EVENT( FGitHubToolsOnAddCommentDoneDelegate, OnAddCommentDone )
     SLATE_END_ARGS()
 
@@ -38,4 +53,5 @@ private:
     FGithubToolsPullRequestFileInfosPtr FileInfos;
     FText ErrorTextMessage;
     FGitHubToolsOnAddCommentDoneDelegate OnAddCommentDone;
+    TOptional< FGitHubToolsAddCommentLineInfos > LineInfos;
 };

@@ -1,5 +1,6 @@
 #include "SGitHubToolsFilePatch.h"
 
+#include "Components/SizeBox.h"
 #include "Framework/Text/SlateTextRun.h"
 #include "GitHubToolsStyle.h"
 #include "SGitHubToolsAddCommentForm.h"
@@ -81,13 +82,13 @@ TSharedRef< SWidget > FGitHubToolsFilePatchViewListItem::GenerateWidgetForItem()
                                 .AutoWidth()
                                     [ SNew( STextBlock )
                                             .Visibility( bShowLineBeforeNumber ? EVisibility::Visible : EVisibility::Hidden )
-                                            .Text( FText::FromString( LineBefore ) ) ] +
+                                            .Text( FText::FromString( FString::FromInt( LineBefore ) ) ) ] +
                             SHorizontalBox::Slot()
                                 .AutoWidth()
                                 .Padding( 5.0f )
                                     [ SNew( STextBlock )
                                             .Visibility( bShowLineAfterNumber ? EVisibility::Visible : EVisibility::Hidden )
-                                            .Text( FText::FromString( LineAfter ) ) ] +
+                                            .Text( FText::FromString( FString::FromInt( LineAfter ) ) ) ] +
                             SHorizontalBox::Slot()
                                 .FillWidth( 1.0f )
                                     [ SNew( SRichTextBlock )
@@ -99,12 +100,15 @@ TSharedRef< SWidget > FGitHubToolsFilePatchViewListItem::GenerateWidgetForItem()
                                         SRichTextBlock::Decorator( FHeaderViewSyntaxDecorator::Create( SyntaxDecorators::RemoveDecorator, FLinearColor::Red ) ) ] ] +
                 SVerticalBox::Slot()
                     .FillHeight( 1.0f )
-                        [ SAssignNew( AddCommentForm, SGitHubToolsAddCommentForm )
-                                .FileInfos( FileInfos )
-                                .Visibility( EVisibility::Collapsed )
-                                .OnAddCommentDone_Lambda( [ & ]() {
-                                    // ShowFileReviews( FileInfos );
-                                } ) ] ];
+                        [ SNew( SBox )
+                                .MaxDesiredHeight( FOptionalSize( 150.0f ) )
+                                    [ SAssignNew( AddCommentForm, SGitHubToolsAddCommentForm )
+                                            .FileInfos( FileInfos )
+                                            .LineInfos( FGitHubToolsAddCommentLineInfos( EGitHubToolsDiffSide::Right, LineAfter ) )
+                                            .Visibility( EVisibility::Collapsed )
+                                            .OnAddCommentDone_Lambda( [ & ]() {
+                                                AddCommentForm->SetVisibility( EVisibility::Collapsed );
+                                            } ) ] ] ];
 }
 
 FGitHubToolsFilePatchViewListItem::FGitHubToolsFilePatchViewListItem( FGithubToolsPullRequestFileInfosPtr file_infos, FString && string, bool show_add_comment_button, bool show_line_before_number, int line_before, bool show_line_after_number, int line_after ) :
@@ -112,9 +116,9 @@ FGitHubToolsFilePatchViewListItem::FGitHubToolsFilePatchViewListItem( FGithubToo
     bShowAddCommentButton( show_add_comment_button ),
     String( MoveTemp( string ) ),
     bShowLineBeforeNumber( show_line_before_number ),
-    LineBefore( FString::FromInt( line_before ) ),
+    LineBefore( line_before ),
     bShowLineAfterNumber( show_line_after_number ),
-    LineAfter( FString::FromInt( line_after ) )
+    LineAfter( line_after )
 {
 }
 

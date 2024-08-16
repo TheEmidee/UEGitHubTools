@@ -24,9 +24,9 @@ private:
     bool bShowAddCommentButton;
     FString String;
     bool bShowLineBeforeNumber;
-    FString LineBefore;
+    int LineBefore;
     bool bShowLineAfterNumber;
-    FString LineAfter;
+    int LineAfter;
 };
 
 typedef TSharedPtr< FGitHubToolsFilePatchViewListItem > FGitHubToolsFilePatchViewListItemPtr;

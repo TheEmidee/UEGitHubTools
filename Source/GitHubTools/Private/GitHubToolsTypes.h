@@ -4,6 +4,12 @@
 
 struct FGithubToolsPullRequestInfos;
 
+enum class EGitHubToolsDiffSide : uint8
+{
+    Left,
+    Right
+};
+
 enum class EGitHubToolsPullRequestReviewEvent : uint8
 {
     Approve,
