@@ -131,6 +131,10 @@ namespace GitHubToolsUtils
         {
             DiffTextFile( file_infos );
         }
+        else
+        {
+            DiffUAsset( *file_infos );
+        }
     }
 
     void DiffFilesAgainstOriginStatusBranch( const TArray< FGithubToolsPullRequestFileInfosPtr > & file_infos )
