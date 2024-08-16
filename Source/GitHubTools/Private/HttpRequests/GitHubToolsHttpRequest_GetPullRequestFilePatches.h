@@ -1,7 +1,6 @@
 #pragma once
 
 #include "GitHubToolsHttpRequestManager.h"
-
 #include "GitHubToolsTypes.h"
 
 class FGitHubToolsHttpRequestData_GetPullRequestFilePatches final : public FGitHubToolsHttpRequest< TArray< FGithubToolsPullRequestFilePatchPtr > >
