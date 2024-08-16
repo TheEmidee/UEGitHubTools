@@ -1,7 +1,5 @@
 #include "SGitHubToolsPRReviewList.h"
 
-#include "GitHubTools.h"
-#include "HttpRequests/GitHubToolsHttpRequest_MarkFileAsViewed.h"
 #include "Widgets/Layout/SWidgetSwitcher.h"
 #include "Widgets/SGitHubToolsAddCommentForm.h"
 #include "Widgets/SGitHubToolsPRReviewThreadTableRow.h"
@@ -79,7 +77,7 @@ void SGitHubToolsPRReviewList::ShowFileReviews( const FGithubToolsPullRequestFil
 {
     FileInfos = file_infos;
 
-    SetEnabled( FileInfos != nullptr );
+    SetEnabled( FileInfos != nullptr && FileInfos->IsUAsset() );
 
     ReviewThreads.Reset();
 
