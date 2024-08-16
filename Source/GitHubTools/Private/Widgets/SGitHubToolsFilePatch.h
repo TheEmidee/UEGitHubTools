@@ -7,11 +7,19 @@
 
 class SGitHubToolsAddCommentForm;
 
+enum class EGitHubToolsFilePatchViewListItemType : uint8
+{
+    Patch,
+    Left,
+    Right,
+    Normal
+};
+
 struct FGitHubToolsFilePatchViewListItem : public TSharedFromThis< FGitHubToolsFilePatchViewListItem >
 {
 public:
     FGitHubToolsFilePatchViewListItem() = default;
-    explicit FGitHubToolsFilePatchViewListItem( FGithubToolsPullRequestFileInfosPtr file_infos, FString && string, TOptional< EGitHubToolsDiffSide > diff_side, int left_side_line_number, int right_side_line_number );
+    explicit FGitHubToolsFilePatchViewListItem( FGithubToolsPullRequestFileInfosPtr file_infos, FString && string, EGitHubToolsFilePatchViewListItemType type, int left_side_line_number, int right_side_line_number );
 
     TSharedRef< SWidget > GenerateWidgetForItem();
 
@@ -24,7 +32,7 @@ private:
 
     FGithubToolsPullRequestFileInfosPtr FileInfos;
     TSharedPtr< SGitHubToolsAddCommentForm > AddCommentForm;
-    TOptional< EGitHubToolsDiffSide > DiffSide;
+    EGitHubToolsFilePatchViewListItemType Type;
     FString String;
     int LeftLine;
     int RightLine;

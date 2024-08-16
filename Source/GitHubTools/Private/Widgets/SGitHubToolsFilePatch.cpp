@@ -76,20 +76,20 @@ TSharedRef< SWidget > FGitHubToolsFilePatchViewListItem::GenerateWidgetForItem()
                                 .AutoWidth()
                                 .Padding( 5.0f )
                                     [ SNew( SButton )
-                                            .Visibility( DiffSide.IsSet() ? EVisibility::Visible : EVisibility::Hidden )
+                                            .Visibility( Type != EGitHubToolsFilePatchViewListItemType::Patch ? EVisibility::Visible : EVisibility::Hidden )
                                             .Text( LOCTEXT( "AddComment", "+" ) )
                                             .OnClicked( this, &FGitHubToolsFilePatchViewListItem::OnAddCommentClicked ) ] +
                             SHorizontalBox::Slot()
                                 .Padding( 5.0f )
                                 .AutoWidth()
                                     [ SNew( STextBlock )
-                                            .Visibility( DiffSide.Get( EGitHubToolsDiffSide::Unknown ) != EGitHubToolsDiffSide::Right ? EVisibility::Visible : EVisibility::Hidden )
+                                            .Visibility( Type != EGitHubToolsFilePatchViewListItemType::Right ? EVisibility::Visible : EVisibility::Hidden )
                                             .Text( FText::FromString( FString::FromInt( LeftLine ) ) ) ] +
                             SHorizontalBox::Slot()
                                 .AutoWidth()
                                 .Padding( 5.0f )
                                     [ SNew( STextBlock )
-                                            .Visibility( DiffSide.Get( EGitHubToolsDiffSide::Unknown ) != EGitHubToolsDiffSide::Left ? EVisibility::Visible : EVisibility::Hidden )
+                                            .Visibility( Type != EGitHubToolsFilePatchViewListItemType::Left ? EVisibility::Visible : EVisibility::Hidden )
                                             .Text( FText::FromString( FString::FromInt( RightLine ) ) ) ] +
                             SHorizontalBox::Slot()
                                 .FillWidth( 1.0f )
@@ -121,27 +121,38 @@ TSharedRef< SWidget > FGitHubToolsFilePatchViewListItem::GenerateWidgetForItem()
                                 .OnGenerateRow( this, &FGitHubToolsFilePatchViewListItem::GenerateItemRow ) ] ];
 }
 
-FGitHubToolsFilePatchViewListItem::FGitHubToolsFilePatchViewListItem( FGithubToolsPullRequestFileInfosPtr file_infos, FString && string, TOptional< EGitHubToolsDiffSide > diff_side, int left_side_line_number, int right_side_line_number ) :
+FGitHubToolsFilePatchViewListItem::FGitHubToolsFilePatchViewListItem( FGithubToolsPullRequestFileInfosPtr file_infos, FString && string, EGitHubToolsFilePatchViewListItemType type, int left_side_line_number, int right_side_line_number ) :
     FileInfos( file_infos ),
-    DiffSide( diff_side ),
+    Type( type ),
     String( MoveTemp( string ) ),
     LeftLine( left_side_line_number ),
     RightLine( right_side_line_number )
 {
-    switch ( DiffSide.Get( EGitHubToolsDiffSide::Unknown ) )
+    switch ( Type )
     {
-        case EGitHubToolsDiffSide::Left:
+        case EGitHubToolsFilePatchViewListItemType::Patch:
         {
             RightLine = INDEX_NONE;
+            LeftLine = INDEX_NONE;
         }
         break;
-        case EGitHubToolsDiffSide::Right:
+        case EGitHubToolsFilePatchViewListItemType::Right:
         {
             LeftLine = INDEX_NONE;
         }
         break;
-        case EGitHubToolsDiffSide::Unknown:
+        case EGitHubToolsFilePatchViewListItemType::Left:
         {
+            RightLine = INDEX_NONE;
+        }
+        break;
+        case EGitHubToolsFilePatchViewListItemType::Normal:
+        {
+        }
+        break;
+        default:
+        {
+            checkNoEntry();
         }
         break;
     }
@@ -255,7 +266,7 @@ void SGitHubToolsFilePatch::PopulateListItems()
         FString decorator;
         const auto first_char = line[ 0 ];
 
-        TOptional< EGitHubToolsDiffSide > diff_side;
+        EGitHubToolsFilePatchViewListItemType item_type = EGitHubToolsFilePatchViewListItemType::Normal;
 
         if ( first_char == '@' )
         {
@@ -281,20 +292,22 @@ void SGitHubToolsFilePatch::PopulateListItems()
 
             line_after = FCString::Atoi( GetData( after_line_start_str ) );
 
+            item_type = EGitHubToolsFilePatchViewListItemType::Patch;
+
             line_before_increment = 0;
             line_after_increment = 0;
         }
         else if ( first_char == '+' )
         {
             decorator = SyntaxDecorators::AddDecorator;
-            diff_side = EGitHubToolsDiffSide::Right;
+            item_type = EGitHubToolsFilePatchViewListItemType::Right;
 
             line_before_increment = 0;
         }
         else if ( first_char == '-' )
         {
             decorator = SyntaxDecorators::RemoveDecorator;
-            diff_side = EGitHubToolsDiffSide::Left;
+            item_type = EGitHubToolsFilePatchViewListItemType::Left;
 
             line_after_increment = 0;
         }
@@ -303,7 +316,7 @@ void SGitHubToolsFilePatch::PopulateListItems()
             decorator = SyntaxDecorators::NoDecorator;
         }
 
-        ListItems.Emplace( MakeShared< FGitHubToolsFilePatchViewListItem >( FileInfos, FString::Printf( TEXT( "<%s>%s</>" ), *decorator, *line ), diff_side, line_before, line_after ) );
+        ListItems.Emplace( MakeShared< FGitHubToolsFilePatchViewListItem >( FileInfos, FString::Printf( TEXT( "<%s>%s</>" ), *decorator, *line ), item_type, line_before, line_after ) );
 
         line_before += line_before_increment;
         line_after += line_after_increment;
