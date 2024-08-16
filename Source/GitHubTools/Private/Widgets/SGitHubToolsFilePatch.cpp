@@ -157,6 +157,11 @@ FReply FGitHubToolsFilePatchViewListItem::OnAddCommentClicked()
 TSharedRef< ITableRow > FGitHubToolsFilePatchViewListItem::GenerateItemRow( FGithubToolsPullRequestReviewThreadInfosPtr thread_infos, const TSharedRef< STableViewBase > & owner_table )
 {
     return SNew( SGitHubToolsPRReviewThreadTableRow, owner_table )
+        .Visibility( MakeAttributeLambda( [ &, thread_infos ]() {
+            return !thread_infos->bIsResolved
+                       ? EVisibility::Visible
+                       : EVisibility::Collapsed;
+        } ) )
         //.OnAddCommentClicked( this, &SGitHubToolsPRReviewList::OnAddCommentClicked, item )
         .ThreadInfos( thread_infos );
 }
