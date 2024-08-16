@@ -153,7 +153,7 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
 
                                     if ( submit_pr_result_data.GetResult().IsSet() && !submit_pr_result_data.GetResult()->IsEmpty() )
                                     {
-                                        FileInfos->PRInfos->Reviews.Add( add_pr_review_thread_result_data.GetResult().GetValue() );
+                                        FileInfos->Reviews.Add( add_pr_review_thread_result_data.GetResult().GetValue() );
 
                                         Close();
                                     }
@@ -176,7 +176,7 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
 
                                     if ( submit_pr_result_data.GetResult().IsSet() && !submit_pr_result_data.GetResult()->IsEmpty() )
                                     {
-                                        FileInfos->PRInfos->Reviews.Add( add_pr_review_thread_result_data.GetResult().GetValue() );
+                                        FileInfos->Reviews.Add( add_pr_review_thread_result_data.GetResult().GetValue() );
 
                                         Close();
                                     }

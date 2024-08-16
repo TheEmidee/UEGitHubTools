@@ -257,7 +257,7 @@ bool FGithubToolsPullRequestInfos::CanCommentFiles() const
     return !HasPendingReviews() && State == EGitHubToolsPullRequestsState::Open;
 }
 
-void FGithubToolsPullRequestInfos::SetFiles( const TArray< FGithubToolsPullRequestFileInfosPtr > & files, const TArray< FGithubToolsPullRequestFilePatchPtr > & patches )
+void FGithubToolsPullRequestInfos::SetFiles( const TArray< FGithubToolsPullRequestFileInfosPtr > & files, const TArray< FGithubToolsPullRequestFilePatchPtr > & patches, const TArray< FGithubToolsPullRequestReviewThreadInfosPtr > & reviews )
 {
     FileInfos.Reserve( files.Num() );
 
@@ -266,22 +266,21 @@ void FGithubToolsPullRequestInfos::SetFiles( const TArray< FGithubToolsPullReque
         file->PRInfos = AsShared();
 
         if ( auto * patch = patches.FindByPredicate( [ & ]( const auto file_patch ) {
-            return file_patch->FileName == file->Path;
-        } ) )
+                 return file_patch->FileName == file->Path;
+             } ) )
         {
             file->Patch = ( *patch )->Patch;
         }
 
-        FileInfos.Add( file );
-    }
-
-    for ( auto file_infos : files )
-    {
-        auto * review = Reviews.FindByPredicate( [ & ]( const FGithubToolsPullRequestReviewThreadInfosPtr & review_infos ) {
-            return review_infos->FileName == file_infos->Path;
+        file->Reviews = reviews.FilterByPredicate( [ & ]( const FGithubToolsPullRequestReviewThreadInfosPtr & review_infos ) {
+            return review_infos->FileName == file->Path;
         } );
 
-        file_infos->bHasUnresolvedConversations = review != nullptr && !( *review )->bIsResolved;
+        file->bHasUnresolvedConversations = file->Reviews.FindByPredicate( []( auto review ) {
+            return !review->bIsResolved;
+        } ) != nullptr;
+
+        FileInfos.Add( file );
     }
 }
 

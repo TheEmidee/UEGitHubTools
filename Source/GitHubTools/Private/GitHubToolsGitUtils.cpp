@@ -167,18 +167,9 @@ namespace GitHubToolsUtils
 
                         FGitHubToolsModule::Get()
                             .GetRequestManager()
-                            .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestInfos >( pr_number )
-                            .Then( [ &, files, patches = MoveTemp( patches ) ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestInfos > & get_pr_infos ) {
-                                const auto optional_result = get_pr_infos.Get().GetResult();
-
-                                auto pr_infos = optional_result.GetValue();
-
-                                if ( optional_result.IsSet() )
-                                {
-                                    pr_infos->SetFiles( files, patches );
-                                }
-
-                                wrapper->Promise.SetValue( pr_infos );
+                            .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestInfos >( pr_number, files, MoveTemp( patches ) )
+                            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestInfos > & get_pr_infos ) {
+                                wrapper->Promise.SetValue( get_pr_infos.Get().GetResult().GetValue() );
                                 wrapper.Reset();
                             } );
                     } );

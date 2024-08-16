@@ -7,8 +7,10 @@
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 
-FGitHubToolsHttpRequestData_GetPullRequestInfos::FGitHubToolsHttpRequestData_GetPullRequestInfos( int pull_request_number ) :
-    PullRequestNumber( pull_request_number )
+FGitHubToolsHttpRequestData_GetPullRequestInfos::FGitHubToolsHttpRequestData_GetPullRequestInfos( int pull_request_number, TArray< FGithubToolsPullRequestFileInfosPtr > files, TArray< FGithubToolsPullRequestFilePatchPtr > patches ) :
+    PullRequestNumber( pull_request_number ),
+    Files( MoveTemp( files ) ),
+    Patches( MoveTemp( patches ) )
 {
 }
 
@@ -142,7 +144,8 @@ void FGitHubToolsHttpRequestData_GetPullRequestInfos::ParseResponse( FHttpRespon
     const auto review_threads_object = pull_request_object->GetObjectField( TEXT( "reviewThreads" ) );
     const auto review_threads_nodes_object = review_threads_object->GetArrayField( TEXT( "nodes" ) );
 
-    pr_infos->Reviews.Reserve( review_threads_nodes_object.Num() );
+    TArray< FGithubToolsPullRequestReviewThreadInfosPtr > reviews;
+    reviews.Reserve( review_threads_nodes_object.Num() );
 
     for ( const auto review_thread_object : review_threads_nodes_object )
     {
@@ -170,8 +173,10 @@ void FGitHubToolsHttpRequestData_GetPullRequestInfos::ParseResponse( FHttpRespon
             pr_infos->bHasUnresolvedConversations = true;
         }
 
-        pr_infos->Reviews.Emplace( review_thread_infos );
+        reviews.Emplace( review_thread_infos );
     }
+
+    pr_infos->SetFiles( Files, Patches, reviews );
 
     const auto checks_object = pull_request_object->GetObjectField( TEXT( "checks" ) );
     const auto checks_edges_object = checks_object->GetArrayField( TEXT( "edges" ) );

@@ -2,6 +2,7 @@
 
 #include <CoreMinimal.h>
 
+struct FGithubToolsPullRequestReviewThreadInfos;
 struct FGithubToolsPullRequestInfos;
 
 enum class EGitHubToolsDiffSide : uint8
@@ -108,6 +109,7 @@ struct FGithubToolsPullRequestFileInfos
     bool bHasUnresolvedConversations;
     FString Patch;
     TSharedPtr< FGithubToolsPullRequestInfos > PRInfos;
+    TArray< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > > Reviews;
 };
 
 typedef TSharedPtr< FGithubToolsPullRequestFileInfos > FGithubToolsPullRequestFileInfosPtr;
@@ -164,7 +166,7 @@ struct FGithubToolsPullRequestInfos : TSharedFromThis< FGithubToolsPullRequestIn
 
     bool CanCommentFiles() const;
     bool HasPendingReviews() const;
-    void SetFiles( const TArray< FGithubToolsPullRequestFileInfosPtr > & files, const TArray< FGithubToolsPullRequestFilePatchPtr > & patches );
+    void SetFiles( const TArray< FGithubToolsPullRequestFileInfosPtr > & files, const TArray< FGithubToolsPullRequestFilePatchPtr > & patches, const TArray< FGithubToolsPullRequestReviewThreadInfosPtr > & reviews );
 
     FString ViewerLogin;
     int Number;
@@ -184,7 +186,6 @@ struct FGithubToolsPullRequestInfos : TSharedFromThis< FGithubToolsPullRequestIn
     bool bApprovedByMe;
     bool bHasUnresolvedConversations;
     TArray< FGithubToolsPullRequestFileInfosPtr > FileInfos;
-    TArray< FGithubToolsPullRequestReviewThreadInfosPtr > Reviews;
     TArray< FGitHubToolsPullRequestCheckInfosPtr > Checks;
     TArray< FGithubToolsPullRequestPendingReviewInfosPtr > PendingReviews;
 };

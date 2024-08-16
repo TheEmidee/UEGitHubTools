@@ -85,13 +85,7 @@ void SGitHubToolsPRReviewList::ShowFileReviews( const FGithubToolsPullRequestFil
 
     if ( FileInfos != nullptr )
     {
-        for ( const auto review : PRInfos->Reviews )
-        {
-            if ( review->FileName == file_infos->Path )
-            {
-                ReviewThreads.Emplace( review );
-            }
-        }
+        ReviewThreads = FileInfos->Reviews;
     }
 
     ReviewThreadsListView->RequestListRefresh();
