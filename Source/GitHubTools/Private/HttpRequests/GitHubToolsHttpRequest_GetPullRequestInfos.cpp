@@ -52,6 +52,9 @@ FString FGitHubToolsHttpRequestData_GetPullRequestInfos::GetBody() const
     string_builder << TEXT( "          id" );
     string_builder << TEXT( "          isResolved" );
     string_builder << TEXT( "          path" );
+    string_builder << TEXT( "          subjectType" );
+    string_builder << TEXT( "          diffSide" );
+    string_builder << TEXT( "          line" );
     string_builder << TEXT( "          comments( first : 100 ) {" );
     string_builder << TEXT( "            edges {" );
     string_builder << TEXT( "              node {" );

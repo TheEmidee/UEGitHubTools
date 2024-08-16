@@ -149,6 +149,36 @@ namespace
 
         return EGitHubToolsCommitStatusState::Unknown;
     }
+
+    EGitHubToolsSubjectType GetSubjectType( FStringView string_view )
+    {
+        if ( string_view == TEXT( "FILE" ) )
+        {
+            return EGitHubToolsSubjectType::File;
+        }
+
+        if ( string_view == TEXT( "LINE" ) )
+        {
+            return EGitHubToolsSubjectType::Line;
+        }
+
+        return EGitHubToolsSubjectType::Unknown;
+    }
+
+    EGitHubToolsDiffSide GetDiffSide( FStringView string_view )
+    {
+        if ( string_view == TEXT( "RIGHT" ) )
+        {
+            return EGitHubToolsDiffSide::Right;
+        }
+
+        if ( string_view == TEXT( "LEFT" ) )
+        {
+            return EGitHubToolsDiffSide::Left;
+        }
+
+        return EGitHubToolsDiffSide::Unknown;
+    }
 }
 
 FGithubToolsPullRequestComment::FGithubToolsPullRequestComment( const TSharedRef< FJsonObject > & json_object )
@@ -202,6 +232,9 @@ FGithubToolsPullRequestReviewThreadInfos::FGithubToolsPullRequestReviewThreadInf
     Id = json_object->GetStringField( TEXT( "id" ) );
     bIsResolved = json_object->GetBoolField( TEXT( "isResolved" ) );
     FileName = json_object->GetStringField( TEXT( "path" ) );
+    SubjectType = GetSubjectType( json_object->GetStringField( TEXT( "subjectType" ) ) );
+    DiffSide = GetDiffSide( json_object->GetStringField( TEXT( "diffSide" ) ) );
+    Line = json_object->GetIntegerField( TEXT( "line" ) );
 
     const auto get_resolved_by_user_name = [ &json_object ]() {
         FString user_name( TEXT( "" ) );

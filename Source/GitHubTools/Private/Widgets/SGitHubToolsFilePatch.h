@@ -10,23 +10,24 @@ struct FGitHubToolsFilePatchViewListItem : public TSharedFromThis< FGitHubToolsF
 {
 public:
     FGitHubToolsFilePatchViewListItem() = default;
-    explicit FGitHubToolsFilePatchViewListItem( FGithubToolsPullRequestFileInfosPtr file_infos, FString && string, bool show_add_comment_button, bool show_line_before_number, int line_before, bool show_line_after_number, int line_after );
+    explicit FGitHubToolsFilePatchViewListItem( FGithubToolsPullRequestFileInfosPtr file_infos, FString && string, TOptional< EGitHubToolsDiffSide > diff_side, int left_side_line_number, int right_side_line_number );
 
     TSharedRef< SWidget > GenerateWidgetForItem();
 
-    static TSharedPtr< FGitHubToolsFilePatchViewListItem > Create( FGithubToolsPullRequestFileInfosPtr file_infos, FString string, bool show_add_comment_button, bool show_line_before_number, int line_before, bool show_line_after_number, int line_after );
-
 private:
     FReply OnAddCommentClicked();
+    TSharedRef< ITableRow > GenerateItemRow( FGithubToolsPullRequestReviewThreadInfosPtr thread_infos, const TSharedRef< STableViewBase > & owner_table );
+    EVisibility GetThreadListVisibility() const;
+    void SetReviews();
 
     FGithubToolsPullRequestFileInfosPtr FileInfos;
     TSharedPtr< SGitHubToolsAddCommentForm > AddCommentForm;
-    bool bShowAddCommentButton;
+    TOptional< EGitHubToolsDiffSide > DiffSide;
     FString String;
-    bool bShowLineBeforeNumber;
-    int LineBefore;
-    bool bShowLineAfterNumber;
-    int LineAfter;
+    int LeftLine;
+    int RightLine;
+    TArray< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > > Reviews;
+    TSharedPtr< SListView< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > > > ThreadList;
 };
 
 typedef TSharedPtr< FGitHubToolsFilePatchViewListItem > FGitHubToolsFilePatchViewListItemPtr;

@@ -1,9 +1,9 @@
 #include "SGitHubToolsFilePatch.h"
 
-#include "Components/SizeBox.h"
 #include "Framework/Text/SlateTextRun.h"
 #include "GitHubToolsStyle.h"
 #include "SGitHubToolsAddCommentForm.h"
+#include "SGitHubToolsPRReviewThreadTableRow.h"
 
 #include <Widgets/Text/SRichTextBlock.h>
 
@@ -63,6 +63,8 @@ namespace
 
 TSharedRef< SWidget > FGitHubToolsFilePatchViewListItem::GenerateWidgetForItem()
 {
+    SetReviews();
+
     return SNew( SBox )
         .HAlign( HAlign_Fill )
         .Padding( FMargin( 4.0f ) )
@@ -74,21 +76,21 @@ TSharedRef< SWidget > FGitHubToolsFilePatchViewListItem::GenerateWidgetForItem()
                                 .AutoWidth()
                                 .Padding( 5.0f )
                                     [ SNew( SButton )
-                                            .Visibility( bShowAddCommentButton ? EVisibility::Visible : EVisibility::Hidden )
+                                            .Visibility( DiffSide.IsSet() ? EVisibility::Visible : EVisibility::Hidden )
                                             .Text( LOCTEXT( "AddComment", "+" ) )
                                             .OnClicked( this, &FGitHubToolsFilePatchViewListItem::OnAddCommentClicked ) ] +
                             SHorizontalBox::Slot()
                                 .Padding( 5.0f )
                                 .AutoWidth()
                                     [ SNew( STextBlock )
-                                            .Visibility( bShowLineBeforeNumber ? EVisibility::Visible : EVisibility::Hidden )
-                                            .Text( FText::FromString( FString::FromInt( LineBefore ) ) ) ] +
+                                            .Visibility( DiffSide.Get( EGitHubToolsDiffSide::Unknown ) != EGitHubToolsDiffSide::Right ? EVisibility::Visible : EVisibility::Hidden )
+                                            .Text( FText::FromString( FString::FromInt( LeftLine ) ) ) ] +
                             SHorizontalBox::Slot()
                                 .AutoWidth()
                                 .Padding( 5.0f )
                                     [ SNew( STextBlock )
-                                            .Visibility( bShowLineAfterNumber ? EVisibility::Visible : EVisibility::Hidden )
-                                            .Text( FText::FromString( FString::FromInt( LineAfter ) ) ) ] +
+                                            .Visibility( DiffSide.Get( EGitHubToolsDiffSide::Unknown ) != EGitHubToolsDiffSide::Left ? EVisibility::Visible : EVisibility::Hidden )
+                                            .Text( FText::FromString( FString::FromInt( RightLine ) ) ) ] +
                             SHorizontalBox::Slot()
                                 .FillWidth( 1.0f )
                                     [ SNew( SRichTextBlock )
@@ -99,27 +101,50 @@ TSharedRef< SWidget > FGitHubToolsFilePatchViewListItem::GenerateWidgetForItem()
                                         SRichTextBlock::Decorator( FHeaderViewSyntaxDecorator::Create( SyntaxDecorators::AddDecorator, FLinearColor::Green ) ) +
                                         SRichTextBlock::Decorator( FHeaderViewSyntaxDecorator::Create( SyntaxDecorators::RemoveDecorator, FLinearColor::Red ) ) ] ] +
                 SVerticalBox::Slot()
-                    .FillHeight( 1.0f )
+                    .AutoHeight()
                         [ SNew( SBox )
                                 .MaxDesiredHeight( FOptionalSize( 150.0f ) )
                                     [ SAssignNew( AddCommentForm, SGitHubToolsAddCommentForm )
                                             .FileInfos( FileInfos )
-                                            .LineInfos( FGitHubToolsAddCommentLineInfos( EGitHubToolsDiffSide::Right, LineAfter ) )
+                                            .LineInfos( FGitHubToolsAddCommentLineInfos( EGitHubToolsDiffSide::Right, RightLine ) )
                                             .Visibility( EVisibility::Collapsed )
                                             .OnAddCommentDone_Lambda( [ & ]() {
+                                                SetReviews();
+                                                ThreadList->RequestListRefresh();
                                                 AddCommentForm->SetVisibility( EVisibility::Collapsed );
-                                            } ) ] ] ];
+                                            } ) ] ] +
+                SVerticalBox::Slot()
+                    .AutoHeight()
+                        [ SAssignNew( ThreadList, SListView< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > > )
+                                .Visibility( this, &FGitHubToolsFilePatchViewListItem::GetThreadListVisibility )
+                                .ListItemsSource( &Reviews )
+                                .OnGenerateRow( this, &FGitHubToolsFilePatchViewListItem::GenerateItemRow ) ] ];
 }
 
-FGitHubToolsFilePatchViewListItem::FGitHubToolsFilePatchViewListItem( FGithubToolsPullRequestFileInfosPtr file_infos, FString && string, bool show_add_comment_button, bool show_line_before_number, int line_before, bool show_line_after_number, int line_after ) :
+FGitHubToolsFilePatchViewListItem::FGitHubToolsFilePatchViewListItem( FGithubToolsPullRequestFileInfosPtr file_infos, FString && string, TOptional< EGitHubToolsDiffSide > diff_side, int left_side_line_number, int right_side_line_number ) :
     FileInfos( file_infos ),
-    bShowAddCommentButton( show_add_comment_button ),
+    DiffSide( diff_side ),
     String( MoveTemp( string ) ),
-    bShowLineBeforeNumber( show_line_before_number ),
-    LineBefore( line_before ),
-    bShowLineAfterNumber( show_line_after_number ),
-    LineAfter( line_after )
+    LeftLine( left_side_line_number ),
+    RightLine( right_side_line_number )
 {
+    switch ( DiffSide.Get( EGitHubToolsDiffSide::Unknown ) )
+    {
+        case EGitHubToolsDiffSide::Left:
+        {
+            RightLine = INDEX_NONE;
+        }
+        break;
+        case EGitHubToolsDiffSide::Right:
+        {
+            LeftLine = INDEX_NONE;
+        }
+        break;
+        case EGitHubToolsDiffSide::Unknown:
+        {
+        }
+        break;
+    }
 }
 
 FReply FGitHubToolsFilePatchViewListItem::OnAddCommentClicked()
@@ -127,6 +152,32 @@ FReply FGitHubToolsFilePatchViewListItem::OnAddCommentClicked()
     AddCommentForm->SetVisibility( EVisibility::Visible );
 
     return FReply::Handled();
+}
+
+TSharedRef< ITableRow > FGitHubToolsFilePatchViewListItem::GenerateItemRow( FGithubToolsPullRequestReviewThreadInfosPtr thread_infos, const TSharedRef< STableViewBase > & owner_table )
+{
+    return SNew( SGitHubToolsPRReviewThreadTableRow, owner_table )
+        //.OnAddCommentClicked( this, &SGitHubToolsPRReviewList::OnAddCommentClicked, item )
+        .ThreadInfos( thread_infos );
+}
+
+EVisibility FGitHubToolsFilePatchViewListItem::GetThreadListVisibility() const
+{
+    return Reviews.IsEmpty()
+               ? EVisibility::Collapsed
+               : EVisibility::Visible;
+}
+
+void FGitHubToolsFilePatchViewListItem::SetReviews()
+{
+    Reviews = FileInfos->Reviews.FilterByPredicate( [ & ]( const FGithubToolsPullRequestReviewThreadInfosPtr & thread_infos ) {
+        if ( thread_infos->DiffSide == EGitHubToolsDiffSide::Right )
+        {
+            return thread_infos->Line == RightLine;
+        }
+
+        return thread_infos->Line == LeftLine;
+    } );
 }
 
 SGitHubToolsFilePatch::~SGitHubToolsFilePatch()
@@ -140,13 +191,6 @@ void SGitHubToolsFilePatch::Construct( const FArguments & arguments )
     if ( arguments._ParentWindow.IsValid() )
     {
         WeakParentWindow = arguments._ParentWindow;
-
-        /*
-        if (WeakParentWindow.IsValid())
-		{
-			WeakParentWindow.Pin()->RequestDestroyWindow();
-		}
-        */
     }
 
     ChildSlot
@@ -187,9 +231,8 @@ void SGitHubToolsFilePatch::PopulateListItems()
 
         FString decorator;
         const auto first_char = line[ 0 ];
-        bool show_add_comment_button = true;
-        bool show_line_before_number = true;
-        bool show_line_after_number = true;
+
+        TOptional< EGitHubToolsDiffSide > diff_side;
 
         if ( first_char == '@' )
         {
@@ -217,29 +260,27 @@ void SGitHubToolsFilePatch::PopulateListItems()
 
             line_before_increment = 0;
             line_after_increment = 0;
-
-            show_add_comment_button = false;
-            show_line_before_number = false;
-            show_line_after_number = false;
         }
         else if ( first_char == '+' )
         {
             decorator = SyntaxDecorators::AddDecorator;
+            diff_side = EGitHubToolsDiffSide::Right;
+
             line_before_increment = 0;
-            show_line_before_number = false;
         }
         else if ( first_char == '-' )
         {
             decorator = SyntaxDecorators::RemoveDecorator;
+            diff_side = EGitHubToolsDiffSide::Left;
+
             line_after_increment = 0;
-            show_line_after_number = false;
         }
         else
         {
             decorator = SyntaxDecorators::NoDecorator;
         }
 
-        ListItems.Emplace( MakeShared< FGitHubToolsFilePatchViewListItem >( FileInfos, FString::Printf( TEXT( "<%s>%s</>" ), *decorator, *line ), show_add_comment_button, show_line_before_number, line_before, show_line_after_number, line_after ) );
+        ListItems.Emplace( MakeShared< FGitHubToolsFilePatchViewListItem >( FileInfos, FString::Printf( TEXT( "<%s>%s</>" ), *decorator, *line ), diff_side, line_before, line_after ) );
 
         line_before += line_before_increment;
         line_after += line_after_increment;

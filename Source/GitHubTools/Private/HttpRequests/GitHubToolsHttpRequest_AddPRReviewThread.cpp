@@ -34,6 +34,9 @@ FString FGitHubToolsHttpRequestData_AddPRReviewThread::GetBody() const
     string_builder << TEXT( "        id" );
     string_builder << TEXT( "        isResolved" );
     string_builder << TEXT( "        path" );
+    string_builder << TEXT( "        diffSide" );
+    string_builder << TEXT( "        subjectType" );
+    string_builder << TEXT( "        line" );
     string_builder << TEXT( "        pullRequest {" );
     string_builder << TEXT( "           number" );
     string_builder << TEXT( "        }" );
@@ -73,10 +76,7 @@ void FGitHubToolsHttpRequestData_AddPRReviewThread::ParseResponse( FHttpResponse
     const auto thread_object = result_object->GetObjectField( TEXT( "thread" ) );
     const auto pr_object = thread_object->GetObjectField( TEXT( "pullRequest" ) );
 
-    auto review_thread_infos = MakeShared< FGithubToolsPullRequestReviewThreadInfos >();
-    review_thread_infos->Id = thread_object->GetStringField( TEXT( "id" ) );
-    review_thread_infos->bIsResolved = false;
-    review_thread_infos->FileName = thread_object->GetStringField( TEXT( "path" ) );
+    auto review_thread_infos = MakeShared< FGithubToolsPullRequestReviewThreadInfos >( thread_object.ToSharedRef() );
     review_thread_infos->PRNumber = pr_object->GetIntegerField( TEXT( "number" ) );
 
     const auto comments_object = thread_object->GetObjectField( TEXT( "comments" ) );

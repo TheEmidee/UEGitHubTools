@@ -5,10 +5,18 @@
 struct FGithubToolsPullRequestReviewThreadInfos;
 struct FGithubToolsPullRequestInfos;
 
+enum class EGitHubToolsSubjectType : uint8
+{
+    File,
+    Line,
+    Unknown
+};
+
 enum class EGitHubToolsDiffSide : uint8
 {
     Left,
-    Right
+    Right,
+    Unknown
 };
 
 enum class EGitHubToolsPullRequestReviewEvent : uint8
@@ -130,6 +138,9 @@ struct FGithubToolsPullRequestReviewThreadInfos
     bool bIsResolved;
     FString ResolvedByUserName;
     FString FileName;
+    EGitHubToolsDiffSide DiffSide;
+    EGitHubToolsSubjectType SubjectType;
+    int Line;
     TArray< FGithubToolsPullRequestCommentPtr > Comments;
     int PRNumber;
 };
