@@ -106,7 +106,7 @@ TSharedRef< SWidget > FGitHubToolsFilePatchViewListItem::GenerateWidgetForItem()
                                 .MaxDesiredHeight( FOptionalSize( 150.0f ) )
                                     [ SAssignNew( AddCommentForm, SGitHubToolsAddCommentForm )
                                             .FileInfos( FileInfos )
-                                            .LineInfos( FGitHubToolsAddCommentLineInfos( EGitHubToolsDiffSide::Right, RightLine ) )
+                                            .LineInfos( GetCommentLineInfos() )
                                             .Visibility( EVisibility::Collapsed )
                                             .OnAddCommentDone_Lambda( [ & ]() {
                                                 SetReviews();
@@ -183,6 +183,24 @@ void FGitHubToolsFilePatchViewListItem::SetReviews()
 
         return thread_infos->Line == LeftLine;
     } );
+}
+
+FGitHubToolsAddCommentLineInfos FGitHubToolsFilePatchViewListItem::GetCommentLineInfos() const
+{
+    FGitHubToolsAddCommentLineInfos result;
+
+    if ( RightLine != INDEX_NONE )
+    {
+        result.Side = EGitHubToolsDiffSide::Right;
+        result.Line = RightLine;
+    }
+    else if ( LeftLine != INDEX_NONE )
+    {
+        result.Side = EGitHubToolsDiffSide::Left;
+        result.Line = LeftLine;
+    }
+
+    return result;
 }
 
 SGitHubToolsFilePatch::~SGitHubToolsFilePatch()

@@ -18,7 +18,7 @@ struct FGitHubToolsAddCommentLineInfos
     }
 
     EGitHubToolsDiffSide Side;
-    int Line;
+    int Line = INDEX_NONE;
 };
 
 class SGitHubToolsAddCommentForm final : public SCompoundWidget
@@ -53,5 +53,5 @@ private:
     FGithubToolsPullRequestFileInfosPtr FileInfos;
     FText ErrorTextMessage;
     FGitHubToolsOnAddCommentDoneDelegate OnAddCommentDone;
-    TOptional< FGitHubToolsAddCommentLineInfos > LineInfos;
+    FGitHubToolsAddCommentLineInfos LineInfos = {};
 };

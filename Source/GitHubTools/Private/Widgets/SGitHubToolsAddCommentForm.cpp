@@ -135,13 +135,11 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
                     return;
                 }
 
-                if ( LineInfos.IsSet() )
+                if ( LineInfos.Line != INDEX_NONE )
                 {
-                    const auto & line_infos = LineInfos.GetValue();
-
                     FGitHubToolsModule::Get()
                         .GetRequestManager()
-                        .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThreadToLine >( FileInfos->PRInfos->Id, review_id, FileInfos->Path, line_infos.Side, line_infos.Line, GetComment() )
+                        .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThreadToLine >( FileInfos->PRInfos->Id, review_id, FileInfos->Path, LineInfos.Side, LineInfos.Line, GetComment() )
                         .Then( [ &, review_id ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReviewThreadToLine > & add_pr_review_thread_result ) {
                             auto add_pr_review_thread_result_data = add_pr_review_thread_result.Get();
 

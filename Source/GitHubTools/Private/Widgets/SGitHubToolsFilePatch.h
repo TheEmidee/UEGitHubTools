@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GithubToolsTypes.h"
+#include "SGitHubToolsAddCommentForm.h"
 
 #include <CoreMinimal.h>
 
@@ -19,6 +20,7 @@ private:
     TSharedRef< ITableRow > GenerateItemRow( FGithubToolsPullRequestReviewThreadInfosPtr thread_infos, const TSharedRef< STableViewBase > & owner_table );
     EVisibility GetThreadListVisibility() const;
     void SetReviews();
+    FGitHubToolsAddCommentLineInfos GetCommentLineInfos() const;
 
     FGithubToolsPullRequestFileInfosPtr FileInfos;
     TSharedPtr< SGitHubToolsAddCommentForm > AddCommentForm;
