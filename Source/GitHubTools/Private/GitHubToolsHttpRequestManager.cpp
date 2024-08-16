@@ -9,10 +9,13 @@
 template < typename TRequest >
 bool TGitHubToolsHttpRequestWrapper< TRequest >::ProcessRequest()
 {
-    const auto token = GetDefault< UGitHubToolsSettings >()->Token;
+    auto * settings = GetDefault< UGitHubToolsSettings >();
+    const auto token = settings->Token;
     const auto request = FHttpModule::Get().CreateRequest();
 
-    request->SetVerb( TEXT( "POST" ) );
+    const auto verb = Request.UsesGraphQL() ? TEXT( "POST" ) : TEXT( "GET" );
+
+    request->SetVerb( verb );
     request->SetHeader( TEXT( "Accept" ), TEXT( "application/json" ) );
     request->SetHeader( TEXT( "Content-Type" ), TEXT( "application/vnd.github+json" ) );
 
@@ -23,7 +26,23 @@ bool TGitHubToolsHttpRequestWrapper< TRequest >::ProcessRequest()
     request->SetHeader( TEXT( "Authorization" ), *token_builder );
     request->SetHeader( TEXT( "X-GitHub-Api-Version" ), TEXT( "2022-11-28" ) );
 
-    request->SetURL( TEXT( "https://api.github.com/graphql" ) );
+    TStringBuilder< 256 > url_string_builder;
+
+    if ( Request.UsesGraphQL() )
+    {
+        url_string_builder << TEXT( "https://api.github.com/graphql" );
+    }
+    else
+    {
+        url_string_builder << TEXT( "https://api.github.com/repos/" );
+        url_string_builder << settings->RepositoryOwner;
+        url_string_builder << TEXT( "/" );
+        url_string_builder << settings->RepositoryName;
+        url_string_builder << TEXT( "/" );
+        url_string_builder << Request.GetEndPoint();
+    }
+
+    request->SetURL( *url_string_builder );
     request->SetContentAsString( Request.GetBody() );
     request->OnProcessRequestComplete().BindRaw( this, &::TGitHubToolsHttpRequestWrapper< TRequest >::OnProcessRequestComplete );
     request->SetDelegateThreadPolicy( EHttpRequestDelegateThreadPolicy::CompleteOnHttpThread );

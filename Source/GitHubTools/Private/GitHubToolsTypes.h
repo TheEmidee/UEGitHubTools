@@ -2,6 +2,23 @@
 
 #include <CoreMinimal.h>
 
+struct FGithubToolsPullRequestReviewThreadInfos;
+struct FGithubToolsPullRequestInfos;
+
+enum class EGitHubToolsSubjectType : uint8
+{
+    File,
+    Line,
+    Unknown
+};
+
+enum class EGitHubToolsDiffSide : uint8
+{
+    Left,
+    Right,
+    Unknown
+};
+
 enum class EGitHubToolsPullRequestReviewEvent : uint8
 {
     Approve,
@@ -69,6 +86,17 @@ struct FGithubToolsPullRequestComment
 
 typedef TSharedPtr< FGithubToolsPullRequestComment > FGithubToolsPullRequestCommentPtr;
 
+struct FGithubToolsPullRequestFilePatch
+{
+    FGithubToolsPullRequestFilePatch() = default;
+    explicit FGithubToolsPullRequestFilePatch( const FString & file_name, const FString & patch );
+
+    FString FileName;
+    FString Patch;
+};
+
+typedef TSharedPtr< FGithubToolsPullRequestFilePatch > FGithubToolsPullRequestFilePatchPtr;
+
 struct FGithubToolsPullRequestFileInfos
 {
     FGithubToolsPullRequestFileInfos() = default;
@@ -87,6 +115,9 @@ struct FGithubToolsPullRequestFileInfos
     const FSlateBrush * ViewedStateBrush;
     FText ViewedStateToolTip;
     bool bHasUnresolvedConversations;
+    FString Patch;
+    TSharedPtr< FGithubToolsPullRequestInfos > PRInfos;
+    TArray< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > > Reviews;
 };
 
 typedef TSharedPtr< FGithubToolsPullRequestFileInfos > FGithubToolsPullRequestFileInfosPtr;
@@ -107,6 +138,9 @@ struct FGithubToolsPullRequestReviewThreadInfos
     bool bIsResolved;
     FString ResolvedByUserName;
     FString FileName;
+    EGitHubToolsDiffSide DiffSide;
+    EGitHubToolsSubjectType SubjectType;
+    int Line;
     TArray< FGithubToolsPullRequestCommentPtr > Comments;
     int PRNumber;
 };
@@ -136,14 +170,14 @@ struct FGitHubToolsPullRequestCheckInfos
 
 typedef TSharedPtr< FGitHubToolsPullRequestCheckInfos > FGitHubToolsPullRequestCheckInfosPtr;
 
-struct FGithubToolsPullRequestInfos
+struct FGithubToolsPullRequestInfos : TSharedFromThis< FGithubToolsPullRequestInfos >
 {
     FGithubToolsPullRequestInfos() = default;
     explicit FGithubToolsPullRequestInfos( const TSharedRef< FJsonObject > & json );
 
     bool CanCommentFiles() const;
     bool HasPendingReviews() const;
-    void SetFiles( const TArray< FGithubToolsPullRequestFileInfosPtr > & files );
+    void SetFiles( const TArray< FGithubToolsPullRequestFileInfosPtr > & files, const TArray< FGithubToolsPullRequestFilePatchPtr > & patches, const TArray< FGithubToolsPullRequestReviewThreadInfosPtr > & reviews );
 
     FString ViewerLogin;
     int Number;
@@ -163,7 +197,6 @@ struct FGithubToolsPullRequestInfos
     bool bApprovedByMe;
     bool bHasUnresolvedConversations;
     TArray< FGithubToolsPullRequestFileInfosPtr > FileInfos;
-    TArray< FGithubToolsPullRequestReviewThreadInfosPtr > Reviews;
     TArray< FGitHubToolsPullRequestCheckInfosPtr > Checks;
     TArray< FGithubToolsPullRequestPendingReviewInfosPtr > PendingReviews;
 };

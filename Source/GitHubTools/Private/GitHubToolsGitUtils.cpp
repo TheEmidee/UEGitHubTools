@@ -3,8 +3,10 @@
 #include "GitHubTools.h"
 #include "GitSourceControlModule.h"
 #include "GitSourceControlUtils.h"
+#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestFilePatches.h"
 #include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestInfos.h"
 #include "HttpRequests/GitHubToolsHttpRequest_MarkFileAsViewed.h"
+#include "Widgets/SGitHubToolsFilePatch.h"
 
 #include <AssetDefinition.h>
 #include <AssetRegistry/AssetRegistryModule.h>
@@ -36,14 +38,30 @@ namespace GitHubToolsUtils
         return TOptional< FAssetData >();
     }
 
-    void DiffFileAgainstOriginStatusBranch( const FGithubToolsPullRequestFileInfosPtr & file_infos )
+    void DiffTextFile( const FGithubToolsPullRequestFileInfosPtr & file_infos )
     {
-        if ( file_infos == nullptr )
-        {
-            return;
-        }
+        const TSharedPtr< SWindow > window = SNew( SWindow )
+                                                 .Title( LOCTEXT( "DiffTextWindowTitle", "Text diff" ) )
+                                                 .ClientSize( FVector2D( 1000, 800 ) );
 
-        auto optional_asset_data = GetAssetDataFromFileInfos( *file_infos );
+        window->SetContent( SNew( SGitHubToolsFilePatch )
+                                .FileInfos( file_infos )
+                                .ParentWindow( window ) );
+
+        if ( const TSharedPtr< SWindow > active_modal = FSlateApplication::Get().GetActiveModalWindow();
+             active_modal.IsValid() )
+        {
+            FSlateApplication::Get().AddWindowAsNativeChild( window.ToSharedRef(), active_modal.ToSharedRef() );
+        }
+        else
+        {
+            FSlateApplication::Get().AddWindow( window.ToSharedRef() );
+        }
+    }
+
+    void DiffUAsset( const FGithubToolsPullRequestFileInfos & file_infos )
+    {
+        auto optional_asset_data = GetAssetDataFromFileInfos( file_infos );
         if ( !optional_asset_data.IsSet() )
         {
             return;
@@ -102,6 +120,19 @@ namespace GitHubToolsUtils
         FModuleManager::GetModuleChecked< FAssetToolsModule >( "AssetTools" ).Get().DiffAssets( old_object, current_object, old_revision, new_revision );
     }
 
+    void DiffFileAgainstOriginStatusBranch( const FGithubToolsPullRequestFileInfosPtr & file_infos )
+    {
+        if ( file_infos == nullptr )
+        {
+            return;
+        }
+
+        if ( !file_infos->IsUAsset() )
+        {
+            DiffTextFile( file_infos );
+        }
+    }
+
     void DiffFilesAgainstOriginStatusBranch( const TArray< FGithubToolsPullRequestFileInfosPtr > & file_infos )
     {
         for ( auto file : file_infos )
@@ -130,19 +161,17 @@ namespace GitHubToolsUtils
 
                 FGitHubToolsModule::Get()
                     .GetRequestManager()
-                    .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestInfos >( pr_number )
-                    .Then( [ &, files = MoveTemp( files ) ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestInfos > & get_pr_infos ) {
-                        const auto optional_result = get_pr_infos.Get().GetResult();
+                    .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestFilePatches >( pr_number )
+                    .Then( [ &, files = MoveTemp( files ), pr_number ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestFilePatches > & file_patches ) {
+                        auto patches = file_patches.Get().GetResult().GetValue();
 
-                        auto pr_infos = optional_result.GetValue();
-
-                        if ( optional_result.IsSet() )
-                        {
-                            pr_infos->SetFiles( files );
-                        }
-
-                        wrapper->Promise.SetValue( pr_infos );
-                        wrapper.Reset();
+                        FGitHubToolsModule::Get()
+                            .GetRequestManager()
+                            .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestInfos >( pr_number, files, MoveTemp( patches ) )
+                            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestInfos > & get_pr_infos ) {
+                                wrapper->Promise.SetValue( get_pr_infos.Get().GetResult().GetValue() );
+                                wrapper.Reset();
+                            } );
                     } );
             } );
 
@@ -331,16 +360,7 @@ namespace GitHubToolsUtils
 
             if ( !file->IsUAsset() )
             {
-                // :TODO: Should be removed when we can display text patches in the UI
-                /* std::string str( StringCast< ANSICHAR >( *file->Path ).Get() );
-                const auto hash = picosha2::hash256_hex_string( str );
-
-                TStringBuilder< 512 > url;
-                url << file->PRUrl;
-                url << TEXT( "/files#diff-" );
-                url << hash.data();
-
-                FPlatformProcess::LaunchURL( *url, nullptr, nullptr );*/
+                DiffTextFile( file );
                 continue;
             }
 

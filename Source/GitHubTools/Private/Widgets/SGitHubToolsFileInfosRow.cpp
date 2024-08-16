@@ -165,8 +165,7 @@ bool SGitHubToolsFileInfosRow::IsOpenButtonEnabled() const
 
 bool SGitHubToolsFileInfosRow::IsDiffButtonEnabled() const
 {
-    return TreeItem->FileInfos->IsUAsset() &&
-           TreeItem->FileInfos->ChangedState == EGitHubToolsFileChangedState::Modified;
+    return TreeItem->FileInfos->ChangedState == EGitHubToolsFileChangedState::Modified;
 }
 
 bool SGitHubToolsFileInfosRow::GetButtonContainerEnable() const

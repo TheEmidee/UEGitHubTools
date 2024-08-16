@@ -62,7 +62,17 @@ public:
         return Result;
     }
 
+    virtual bool UsesGraphQL() const
+    {
+        return true;
+    }
+
     virtual FString GetBody() const
+    {
+        return TEXT( "" );
+    }
+
+    virtual FString GetEndPoint() const
     {
         return TEXT( "" );
     }

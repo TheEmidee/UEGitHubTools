@@ -1,7 +1,5 @@
 #include "SGitHubToolsPRReviewList.h"
 
-#include "GitHubTools.h"
-#include "HttpRequests/GitHubToolsHttpRequest_MarkFileAsViewed.h"
 #include "Widgets/Layout/SWidgetSwitcher.h"
 #include "Widgets/SGitHubToolsAddCommentForm.h"
 #include "Widgets/SGitHubToolsPRReviewThreadTableRow.h"
@@ -72,27 +70,20 @@ void SGitHubToolsPRReviewList::Construct( const FArguments & arguments )
                                             [ SAssignNew( AddCommentForm, SGitHubToolsAddCommentForm )
                                                     .OnAddCommentDone_Lambda( [ & ]() {
                                                         ShowFileReviews( FileInfos );
-                                                    } )
-                                                    .PRInfos( PRInfos ) ] ] ] ];
+                                                    } ) ] ] ] ];
 }
 
 void SGitHubToolsPRReviewList::ShowFileReviews( const FGithubToolsPullRequestFileInfosPtr & file_infos )
 {
     FileInfos = file_infos;
 
-    SetEnabled( FileInfos != nullptr );
+    SetEnabled( FileInfos != nullptr && FileInfos->IsUAsset() );
 
     ReviewThreads.Reset();
 
     if ( FileInfos != nullptr )
     {
-        for ( const auto review : PRInfos->Reviews )
-        {
-            if ( review->FileName == file_infos->Path )
-            {
-                ReviewThreads.Emplace( review );
-            }
-        }
+        ReviewThreads = FileInfos->Reviews;
     }
 
     ReviewThreadsListView->RequestListRefresh();

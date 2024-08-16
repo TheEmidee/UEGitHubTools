@@ -5,14 +5,29 @@
 #include <CoreMinimal.h>
 #include <Widgets/Input/SMultiLineEditableTextBox.h>
 
+class FGitHubToolsHttpRequestData_AddPRReviewThread;
 DECLARE_DELEGATE( FGitHubToolsOnAddCommentDoneDelegate );
+
+struct FGitHubToolsAddCommentLineInfos
+{
+    FGitHubToolsAddCommentLineInfos() = default;
+    FGitHubToolsAddCommentLineInfos( EGitHubToolsDiffSide side, int line ) :
+        Side( side ),
+        Line( line )
+    {
+    }
+
+    EGitHubToolsDiffSide Side;
+    int Line = INDEX_NONE;
+};
 
 class SGitHubToolsAddCommentForm final : public SCompoundWidget
 {
 public:
     SLATE_BEGIN_ARGS( SGitHubToolsAddCommentForm )
     {}
-    SLATE_ATTRIBUTE( FGithubToolsPullRequestInfosPtr, PRInfos )
+    SLATE_ATTRIBUTE( FGithubToolsPullRequestFileInfosPtr, FileInfos )
+    SLATE_ATTRIBUTE( FGitHubToolsAddCommentLineInfos, LineInfos )
     SLATE_EVENT( FGitHubToolsOnAddCommentDoneDelegate, OnAddCommentDone )
     SLATE_END_ARGS()
 
@@ -34,9 +49,9 @@ private:
     TSharedPtr< SMultiLineEditableTextBox > CommentTextBox;
     TSharedPtr< STextBlock > HeaderText;
     TSharedPtr< SErrorText > ErrorText;
-    FGithubToolsPullRequestInfosPtr PRInfos;
     FGithubToolsPullRequestReviewThreadInfosPtr ThreadInfos;
     FGithubToolsPullRequestFileInfosPtr FileInfos;
     FText ErrorTextMessage;
     FGitHubToolsOnAddCommentDoneDelegate OnAddCommentDone;
+    FGitHubToolsAddCommentLineInfos LineInfos = {};
 };

@@ -149,6 +149,36 @@ namespace
 
         return EGitHubToolsCommitStatusState::Unknown;
     }
+
+    EGitHubToolsSubjectType GetSubjectType( FStringView string_view )
+    {
+        if ( string_view == TEXT( "FILE" ) )
+        {
+            return EGitHubToolsSubjectType::File;
+        }
+
+        if ( string_view == TEXT( "LINE" ) )
+        {
+            return EGitHubToolsSubjectType::Line;
+        }
+
+        return EGitHubToolsSubjectType::Unknown;
+    }
+
+    EGitHubToolsDiffSide GetDiffSide( FStringView string_view )
+    {
+        if ( string_view == TEXT( "RIGHT" ) )
+        {
+            return EGitHubToolsDiffSide::Right;
+        }
+
+        if ( string_view == TEXT( "LEFT" ) )
+        {
+            return EGitHubToolsDiffSide::Left;
+        }
+
+        return EGitHubToolsDiffSide::Unknown;
+    }
 }
 
 FGithubToolsPullRequestComment::FGithubToolsPullRequestComment( const TSharedRef< FJsonObject > & json_object )
@@ -164,6 +194,12 @@ FGithubToolsPullRequestComment::FGithubToolsPullRequestComment( const TSharedRef
     {
         Path = json_object->GetStringField( TEXT( "path" ) );
     }
+}
+
+FGithubToolsPullRequestFilePatch::FGithubToolsPullRequestFilePatch( const FString & file_name, const FString & patch ) :
+    FileName( file_name ),
+    Patch( patch )
+{
 }
 
 FGithubToolsPullRequestFileInfos::FGithubToolsPullRequestFileInfos( const FString & path, const FString & change_type, const FString & viewed_state ) :
@@ -196,6 +232,9 @@ FGithubToolsPullRequestReviewThreadInfos::FGithubToolsPullRequestReviewThreadInf
     Id = json_object->GetStringField( TEXT( "id" ) );
     bIsResolved = json_object->GetBoolField( TEXT( "isResolved" ) );
     FileName = json_object->GetStringField( TEXT( "path" ) );
+    SubjectType = GetSubjectType( json_object->GetStringField( TEXT( "subjectType" ) ) );
+    DiffSide = GetDiffSide( json_object->GetStringField( TEXT( "diffSide" ) ) );
+    Line = json_object->GetIntegerField( TEXT( "line" ) );
 
     const auto get_resolved_by_user_name = [ &json_object ]() {
         FString user_name( TEXT( "" ) );
@@ -251,17 +290,30 @@ bool FGithubToolsPullRequestInfos::CanCommentFiles() const
     return !HasPendingReviews() && State == EGitHubToolsPullRequestsState::Open;
 }
 
-void FGithubToolsPullRequestInfos::SetFiles( const TArray< FGithubToolsPullRequestFileInfosPtr > & files )
+void FGithubToolsPullRequestInfos::SetFiles( const TArray< FGithubToolsPullRequestFileInfosPtr > & files, const TArray< FGithubToolsPullRequestFilePatchPtr > & patches, const TArray< FGithubToolsPullRequestReviewThreadInfosPtr > & reviews )
 {
-    FileInfos.Append( files );
+    FileInfos.Reserve( files.Num() );
 
-    for ( auto file_infos : files )
+    for ( auto file : files )
     {
-        auto * review = Reviews.FindByPredicate( [ & ]( const FGithubToolsPullRequestReviewThreadInfosPtr & review_infos ) {
-            return review_infos->FileName == file_infos->Path;
+        file->PRInfos = AsShared();
+
+        if ( auto * patch = patches.FindByPredicate( [ & ]( const auto file_patch ) {
+                 return file_patch->FileName == file->Path;
+             } ) )
+        {
+            file->Patch = ( *patch )->Patch;
+        }
+
+        file->Reviews = reviews.FilterByPredicate( [ & ]( const FGithubToolsPullRequestReviewThreadInfosPtr & review_infos ) {
+            return review_infos->FileName == file->Path;
         } );
 
-        file_infos->bHasUnresolvedConversations = review != nullptr && !( *review )->bIsResolved;
+        file->bHasUnresolvedConversations = file->Reviews.FindByPredicate( []( auto review ) {
+            return !review->bIsResolved;
+        } ) != nullptr;
+
+        FileInfos.Add( file );
     }
 }
 

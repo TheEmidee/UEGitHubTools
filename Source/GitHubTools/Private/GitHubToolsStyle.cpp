@@ -12,6 +12,7 @@
 #define RootToContentDir Style->RootToContentDir
 
 TSharedPtr< FSlateStyleSet > FGitHubToolsStyle::StyleInstance = nullptr;
+FTextBlockStyle FGitHubToolsStyle::FilePatchTextStyle;
 
 void FGitHubToolsStyle::Initialize()
 {
@@ -20,6 +21,10 @@ void FGitHubToolsStyle::Initialize()
         StyleInstance = Create();
         FSlateStyleRegistry::RegisterSlateStyle( *StyleInstance );
     }
+
+    FilePatchTextStyle = FTextBlockStyle()
+                             .SetFont( FCoreStyle::GetDefaultFontStyle( "Mono", 10.0f ) )
+                             .SetColorAndOpacity( FSlateColor::UseForeground() );
 }
 
 void FGitHubToolsStyle::Shutdown()

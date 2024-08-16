@@ -20,6 +20,8 @@ public:
 
     static FName GetStyleSetName();
 
+    static FTextBlockStyle FilePatchTextStyle;
+
 private:
     static TSharedRef< class FSlateStyleSet > Create();
 
