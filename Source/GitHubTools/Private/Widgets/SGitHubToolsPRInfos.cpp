@@ -69,7 +69,6 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
                     .Visibility( this, &SGitHubToolsPRInfos::GetMessageDisplayVisibility ) ];
 
     TreeView = SNew( STreeView< FGitHubToolsFileInfosTreeItemPtr > )
-                   .ItemHeight( 20 )
                    .TreeItemsSource( &TreeItems )
                    .OnGetChildren( this, &SGitHubToolsPRInfos::OnGetChildrenForTreeView )
                    .OnGenerateRow( this, &SGitHubToolsPRInfos::OnGenerateRowForList )

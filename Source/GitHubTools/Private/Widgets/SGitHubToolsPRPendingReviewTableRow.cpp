@@ -25,7 +25,6 @@ void SGitHubToolsPRPendingReviewTableRow::Construct( const FArguments & argument
                                     .FillHeight( 1.0f )
                                         [ SNew( SBox )
                                                 [ SNew( SListView< FGithubToolsPullRequestCommentPtr > )
-                                                        .ItemHeight( 50 )
                                                         .ListItemsSource( &PendingReview->Comments )
                                                         .OnGenerateRow( this, &SGitHubToolsPRPendingReviewTableRow::GenerateCommentRow )
                                                         .SelectionMode( ESelectionMode::None ) ] ] +

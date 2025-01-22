@@ -61,7 +61,6 @@ void SGitHubToolsPRReviewList::Construct( const FArguments & arguments )
                                                     [ SNew( SBox )
                                                             .WidthOverride( 520 )
                                                                 [ SAssignNew( ReviewThreadsListView, SListView< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > > )
-                                                                        .ItemHeight( 50 )
                                                                         .ListItemsSource( &ReviewThreads )
                                                                         .OnGenerateRow( this, &SGitHubToolsPRReviewList::GenerateItemRow )
                                                                         .SelectionMode( ESelectionMode::None ) ] ] ] +

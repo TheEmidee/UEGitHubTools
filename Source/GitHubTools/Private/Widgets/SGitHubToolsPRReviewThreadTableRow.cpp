@@ -36,7 +36,6 @@ void SGitHubToolsPRReviewThreadTableRow::Construct( const FArguments & arguments
                                                     [ SNew( SBox )
                                                             .WidthOverride( 520 )
                                                                 [ SNew( SListView< FGithubToolsPullRequestCommentPtr > )
-                                                                        .ItemHeight( 50 )
                                                                         .ListItemsSource( &ThreadInfos->Comments )
                                                                         .OnGenerateRow( this, &SGitHubToolsPRReviewThreadTableRow::GenerateCommentRow )
                                                                         .SelectionMode( ESelectionMode::None ) ] ] ] ] ],
