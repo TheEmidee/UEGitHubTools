@@ -17,7 +17,7 @@ struct FGitHubToolsAddCommentLineInfos
     {
     }
 
-    EGitHubToolsDiffSide Side;
+    EGitHubToolsDiffSide Side = EGitHubToolsDiffSide::Left;
     int Line = INDEX_NONE;
 };
 
