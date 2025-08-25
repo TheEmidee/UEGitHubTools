@@ -11,7 +11,10 @@
 #include <AssetDefinition.h>
 #include <AssetRegistry/AssetRegistryModule.h>
 #include <AssetToolsModule.h>
+#include <Async/Async.h>
+#include <Framework/Application/SlateApplication.h>
 #include <HttpRequests/GitHubToolsHttpRequest_GetPullRequestFiles.h>
+#include <Misc/Optional.h>
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 
