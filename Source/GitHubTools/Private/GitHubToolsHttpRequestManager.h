@@ -1,7 +1,7 @@
 #pragma once
 
-#include <CoreMinimal.h>
-#include <Interfaces/IHttpRequest.h>
+#include "CoreMinimal.h"
+#include "Interfaces/IHttpRequest.h"
 
 class IGitHubToolsHttpRequest
 {

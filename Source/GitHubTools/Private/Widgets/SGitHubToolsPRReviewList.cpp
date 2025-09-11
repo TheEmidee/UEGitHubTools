@@ -4,7 +4,7 @@
 #include "Widgets/SGitHubToolsAddCommentForm.h"
 #include "Widgets/SGitHubToolsPRReviewThreadTableRow.h"
 
-#include <Widgets/Input/SMultiLineEditableTextBox.h>
+#include "Widgets/Input/SMultiLineEditableTextBox.h"
 
 #define LOCTEXT_NAMESPACE "SGitHubToolsAddCommentToFile"
 

@@ -3,7 +3,7 @@
 #include "GitHubToolsTypes.h"
 #include "SGitHubToolsPRInfos.h"
 
-#include <CoreMinimal.h>
+#include "CoreMinimal.h"
 
 class SGitHubToolsMultipleAssetActions final : public SCompoundWidget
 {

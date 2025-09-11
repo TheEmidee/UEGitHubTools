@@ -2,7 +2,7 @@
 
 #include "Misc/TextFilterExpressionEvaluator.h"
 
-#include <CoreMinimal.h>
+#include "CoreMinimal.h"
 
 struct FGitHubToolsTreeViewFilters
 {

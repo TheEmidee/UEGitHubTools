@@ -1,6 +1,6 @@
 #pragma once
 
-#include <CoreMinimal.h>
+#include "CoreMinimal.h"
 
 DECLARE_DELEGATE_RetVal( bool, FGitHubToolsReturnBoolDelegate );
 DECLARE_DELEGATE_RetVal( FReply, FGitHubToolsOnButtonClickedDelegate );

@@ -2,7 +2,7 @@
 
 #include "GitHubToolsTypes.h"
 
-#include <CoreMinimal.h>
+#include "CoreMinimal.h"
 
 class FGitHubToolsMenu
 {

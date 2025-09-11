@@ -2,7 +2,7 @@
 
 #include "SGitHubToolsPRInfos.h"
 
-#include <CoreMinimal.h>
+#include "CoreMinimal.h"
 
 class SGitHubToolsFileInfosRow final : public STableRow< FGitHubToolsFileInfosTreeItemPtr >
 {

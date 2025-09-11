@@ -2,8 +2,8 @@
 
 #include "GitHubToolsStyle.h"
 
-#include <Misc/MessageDialog.h>
-#include <ToolMenus.h>
+#include "Misc/MessageDialog.h"
+#include "ToolMenus.h"
 
 #define LOCTEXT_NAMESPACE "FGitHubToolsModule"
 

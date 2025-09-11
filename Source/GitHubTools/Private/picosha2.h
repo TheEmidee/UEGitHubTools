@@ -30,12 +30,12 @@ THE SOFTWARE.
     1048576 //=1024*1024: default is 1MB memory
 #endif
 
-#include <algorithm>
-#include <cassert>
-#include <fstream>
-#include <iterator>
-#include <sstream>
-#include <vector>
+#include "algorithm"
+#include "cassert"
+#include "fstream"
+#include "iterator"
+#include "sstream"
+#include "vector"
 namespace picosha2
 {
     typedef unsigned long word_t;

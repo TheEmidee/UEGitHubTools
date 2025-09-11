@@ -6,8 +6,8 @@
 #include "HttpRequests/GitHubToolsHttpRequest_AddPRReviewThreadReply.h"
 #include "HttpRequests/GitHubToolsHttpRequest_SubmitPRReview.h"
 
-#include <Widgets/Input/SMultiLineEditableTextBox.h>
-#include <Widgets/Layout/SUniformGridPanel.h>
+#include "Widgets/Input/SMultiLineEditableTextBox.h"
+#include "Widgets/Layout/SUniformGridPanel.h"
 
 #if SOURCE_CONTROL_WITH_SLATE
 

@@ -1,6 +1,6 @@
 #include "GitHubToolsHttpRequest_DeletePullRequestReview.h"
 
-#include <Interfaces/IHttpResponse.h>
+#include "Interfaces/IHttpResponse.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 

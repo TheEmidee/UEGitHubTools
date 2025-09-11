@@ -5,7 +5,7 @@
 #include "GitHubToolsSettings.h"
 #include "SGitHubToolsAssetActions.h"
 
-#include <RevisionControlStyle/RevisionControlStyle.h>
+#include "RevisionControlStyle/RevisionControlStyle.h"
 
 #define LOCTEXT_NAMESPACE "GitHubToolsPullRequestReviewWidget"
 

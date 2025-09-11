@@ -3,8 +3,8 @@
 #include "GitHubToolsTypes.h"
 #include "SGitHubToolsAddCommentForm.h"
 
-#include <CoreMinimal.h>
-#include <Widgets/Input/SMultiLineEditableTextBox.h>
+#include "CoreMinimal.h"
+#include "Widgets/Input/SMultiLineEditableTextBox.h"
 
 class SGitHubToolsPRReviewList final : public SCompoundWidget
 {

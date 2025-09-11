@@ -3,8 +3,8 @@
 #include "GitHubTools.h"
 #include "GitHubToolsSettings.h"
 
-#include <HttpModule.h>
-#include <Interfaces/IHttpResponse.h>
+#include "HttpModule.h"
+#include "Interfaces/IHttpResponse.h"
 
 template < typename TRequest >
 bool TGitHubToolsHttpRequestWrapper< TRequest >::ProcessRequest()

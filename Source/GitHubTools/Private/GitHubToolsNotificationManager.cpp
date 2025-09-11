@@ -2,8 +2,8 @@
 
 #include "GitHubToolsLog.h"
 
-#include <Framework/Notifications/NotificationManager.h>
-#include <Widgets/Notifications/SNotificationList.h>
+#include "Framework/Notifications/NotificationManager.h"
+#include "Widgets/Notifications/SNotificationList.h"
 
 bool FGitHubToolsNotificationManager::IsOperationInProgress() const
 {

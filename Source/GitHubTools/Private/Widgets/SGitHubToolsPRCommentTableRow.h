@@ -2,8 +2,8 @@
 
 #include "GitHubToolsTypes.h"
 
-#include <CoreMinimal.h>
-#include <Widgets/Views/STableRow.h>
+#include "CoreMinimal.h"
+#include "Widgets/Views/STableRow.h"
 
 class SGitHubToolsPRCommentTableRow : public STableRow< FGithubToolsPullRequestCommentPtr >
 {

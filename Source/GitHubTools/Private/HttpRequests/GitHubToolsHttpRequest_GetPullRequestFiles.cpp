@@ -2,7 +2,7 @@
 
 #include "GitHubToolsSettings.h"
 
-#include <Interfaces/IHttpResponse.h>
+#include "Interfaces/IHttpResponse.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 

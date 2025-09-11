@@ -2,8 +2,8 @@
 
 #include "GitHubToolsTypes.h"
 
-#include <CoreMinimal.h>
-#include <Widgets/Input/SMultiLineEditableTextBox.h>
+#include "CoreMinimal.h"
+#include "Widgets/Input/SMultiLineEditableTextBox.h"
 
 class FGitHubToolsHttpRequestData_AddPRReviewThread;
 DECLARE_DELEGATE( FGitHubToolsOnAddCommentDoneDelegate );

@@ -5,7 +5,7 @@
 #include "SGitHubToolsAddCommentForm.h"
 #include "SGitHubToolsPRReviewThreadTableRow.h"
 
-#include <Widgets/Text/SRichTextBlock.h>
+#include "Widgets/Text/SRichTextBlock.h"
 
 #define LOCTEXT_NAMESPACE "SGitHubToolsFilePatch"
 

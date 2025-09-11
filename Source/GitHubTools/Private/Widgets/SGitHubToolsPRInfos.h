@@ -3,7 +3,7 @@
 #include "GitHubToolsTypes.h"
 #include "SGitHubToolsPRInfosTreeFilters.h"
 
-#include <CoreMinimal.h>
+#include "CoreMinimal.h"
 
 class SGitHubToolsMultipleAssetActions;
 class SGitHubToolsPRReviewList;

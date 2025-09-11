@@ -3,7 +3,7 @@
 #include "GithubToolsTypes.h"
 #include "SGitHubToolsAddCommentForm.h"
 
-#include <CoreMinimal.h>
+#include "CoreMinimal.h"
 
 class SGitHubToolsAddCommentForm;
 
