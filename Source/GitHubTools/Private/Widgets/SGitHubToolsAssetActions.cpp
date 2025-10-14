@@ -1,6 +1,10 @@
 #include "SGitHubToolsAssetActions.h"
 
+#include "Components/HorizontalBox.h"
 #include "RevisionControlStyle/RevisionControlStyle.h"
+#include "Textures/SlateIcon.h"
+#include "Widgets/Images/SImage.h"
+#include "Widgets/Input/SButton.h"
 
 #define LOCTEXT_NAMESPACE "SGitHubToolsAssetActions"
 

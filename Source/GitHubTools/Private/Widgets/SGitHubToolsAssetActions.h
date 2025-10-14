@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Widgets/SCompoundWidget.h"
 
 DECLARE_DELEGATE_RetVal( bool, FGitHubToolsReturnBoolDelegate );
 DECLARE_DELEGATE_RetVal( FReply, FGitHubToolsOnButtonClickedDelegate );
