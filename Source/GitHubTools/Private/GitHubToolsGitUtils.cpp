@@ -73,6 +73,11 @@ namespace GitHubToolsUtils
         const auto & git_source_control = FModuleManager::GetModuleChecked< FGitSourceControlModule >( "GitSourceControl" );
         const auto & path_to_repository_root = git_source_control.GetProvider().GetPathToRepositoryRoot();
         const auto & status_branch_names = FGitSourceControlModule::Get().GetProvider().GetStatusBranchNames();
+        if (status_branch_names.IsEmpty())
+        {
+            return;
+        }
+
         const auto & branch_name = status_branch_names[ 0 ];
         const auto & path_to_git_binary = git_source_control.AccessSettings().GetBinaryPath();
 
