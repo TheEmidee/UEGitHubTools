@@ -3,6 +3,9 @@
 #include "GitHubToolsTypes.h"
 
 #include "CoreMinimal.h"
+#include "Widgets/SCompoundWidget.h"
+
+class SButton;
 
 class SGitHubToolsPRHeader : public SCompoundWidget
 {
