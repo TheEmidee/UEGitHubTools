@@ -8,10 +8,10 @@ class SGitHubToolsPRSelector final : public SCompoundWidget
 {
 public:
     SLATE_BEGIN_ARGS( SGitHubToolsPRSelector )
-        {
-        }
+    {
+    }
 
-        SLATE_ATTRIBUTE( TArray< FGitHubToolsOpenedPullRequestInfosPtr >, OpenedPRs )
+    SLATE_ATTRIBUTE( TArray< FGitHubToolsOpenedPullRequestInfosPtr >, OpenedPRs )
     SLATE_END_ARGS()
 
     virtual ~SGitHubToolsPRSelector() override;

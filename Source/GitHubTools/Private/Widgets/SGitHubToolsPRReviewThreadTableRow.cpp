@@ -3,6 +3,8 @@
 #include "GitHubTools.h"
 #include "HttpRequests/GitHubToolsHttpRequest_ResolveReviewThread.h"
 #include "SGitHubToolsPRCommentTableRow.h"
+#include "Widgets/Input/SButton.h"
+#include "Widgets/Views/SListView.h"
 
 #if SOURCE_CONTROL_WITH_SLATE
 

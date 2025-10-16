@@ -3,9 +3,8 @@
 #include "GitHubTools.h"
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
-#include "SGitHubToolsAssetActions.h"
-
 #include "RevisionControlStyle/RevisionControlStyle.h"
+#include "SGitHubToolsAssetActions.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Text/STextBlock.h"
 

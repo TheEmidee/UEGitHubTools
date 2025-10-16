@@ -1,9 +1,8 @@
 #pragma once
 
+#include "CoreMinimal.h"
 #include "GitHubToolsTypes.h"
 #include "SGitHubToolsPRInfosTreeFilters.h"
-
-#include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/Views/STreeView.h"
 
@@ -24,7 +23,7 @@ public:
     SLATE_BEGIN_ARGS( SGitHubToolsPRInfos )
     {}
     SLATE_ATTRIBUTE( FGithubToolsPullRequestInfosPtr, Infos )
-    SLATE_ATTRIBUTE( TArray<FGitHubToolsOpenedPullRequestInfosPtr>, OpenedPrs )
+    SLATE_ATTRIBUTE( TArray< FGitHubToolsOpenedPullRequestInfosPtr >, OpenedPrs )
 
     SLATE_END_ARGS()
 

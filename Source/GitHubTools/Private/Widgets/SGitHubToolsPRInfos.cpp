@@ -61,11 +61,9 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
     contents->AddSlot()
         .Padding( FMargin( 5 ) )
         .AutoHeight()
-            [
-                SNew( SGitHubToolsPRSelector )
-                    .OpenedPRs( arguments._OpenedPrs.Get() )
-            ];
-    
+            [ SNew( SGitHubToolsPRSelector )
+                    .OpenedPRs( arguments._OpenedPrs.Get() ) ];
+
     contents->AddSlot()
         .Padding( FMargin( 5 ) )
         .AutoHeight()
