@@ -1,25 +1,24 @@
 #include "GitHubToolsGitUtils.h"
 
+#include "AssetDefinition.h"
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "AssetToolsModule.h"
+#include "Async/Async.h"
+#include "FileHelpers.h"
+#include "Framework/Application/SlateApplication.h"
 #include "GitHubTools.h"
 #include "GitSourceControlModule.h"
 #include "GitSourceControlUtils.h"
 #include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestFilePatches.h"
+#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestFiles.h"
 #include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestInfos.h"
 #include "HttpRequests/GitHubToolsHttpRequest_MarkFileAsViewed.h"
-#include "Widgets/SGitHubToolsFilePatch.h"
-
-#include "AssetDefinition.h"
-#include "AssetRegistry/AssetRegistryModule.h"
-#include "AssetToolsModule.h"
-#include "FileHelpers.h"
 #include "IHotReload.h"
 #include "ILiveCodingModule.h"
 #include "ISourceControlModule.h"
-#include "SourceControlOperations.h"
-#include "Async/Async.h"
-#include "Framework/Application/SlateApplication.h"
-#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestFiles.h"
 #include "Misc/Optional.h"
+#include "SourceControlOperations.h"
+#include "Widgets/SGitHubToolsFilePatch.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 
@@ -38,7 +37,7 @@ namespace GitHubToolsUtils
         Parameters.Add( TEXT( "--short" ) );
         Parameters.Add( TEXT( "--quiet" ) ); // no error message while in detached HEAD
         Parameters.Add( TEXT( "HEAD" ) );
-        if (GitSourceControlUtils::RunCommand( TEXT( "symbolic-ref" ), path_to_git_binary, path_to_repository_root, Parameters, FGitSourceControlModule::GetEmptyStringArray(), InfoMessages, ErrorMessages ) && InfoMessages.Num() > 0)
+        if ( GitSourceControlUtils::RunCommand( TEXT( "symbolic-ref" ), path_to_git_binary, path_to_repository_root, Parameters, FGitSourceControlModule::GetEmptyStringArray(), InfoMessages, ErrorMessages ) && InfoMessages.Num() > 0 )
         {
             return InfoMessages[ 0 ];
         }
@@ -46,7 +45,7 @@ namespace GitHubToolsUtils
         Parameters.Reset( 2 );
         Parameters.Add( TEXT( "-1" ) );
         Parameters.Add( TEXT( "--format=\"%h\"" ) ); // no error message while in detached HEAD
-        if (GitSourceControlUtils::RunCommand( TEXT( "log" ), path_to_git_binary, path_to_repository_root, Parameters, FGitSourceControlModule::GetEmptyStringArray(), InfoMessages, ErrorMessages ) && InfoMessages.Num() > 0)
+        if ( GitSourceControlUtils::RunCommand( TEXT( "log" ), path_to_git_binary, path_to_repository_root, Parameters, FGitSourceControlModule::GetEmptyStringArray(), InfoMessages, ErrorMessages ) && InfoMessages.Num() > 0 )
         {
             return "HEAD detached at " + InfoMessages[ 0 ];
         }
@@ -61,12 +60,12 @@ namespace GitHubToolsUtils
 
         const auto absolute_path = FPaths::ConvertRelativePathToFull( path_to_repository_root, file_infos.Path );
 
-        if (FString package_name;
-            FPackageName::TryConvertFilenameToLongPackageName( absolute_path, package_name ))
+        if ( FString package_name;
+            FPackageName::TryConvertFilenameToLongPackageName( absolute_path, package_name ) )
         {
             TArray< FAssetData > assets;
             FModuleManager::LoadModuleChecked< FAssetRegistryModule >( TEXT( "AssetRegistry" ) ).Get().GetAssetsByPackageName( *package_name, assets );
-            if (assets.Num() == 1)
+            if ( assets.Num() == 1 )
             {
                 return assets[ 0 ];
             }
@@ -78,15 +77,15 @@ namespace GitHubToolsUtils
     void DiffTextFile( const FGithubToolsPullRequestFileInfosPtr & file_infos )
     {
         const TSharedPtr< SWindow > window = SNew( SWindow )
-            .Title( LOCTEXT( "DiffTextWindowTitle", "Text diff" ) )
-            .ClientSize( FVector2D( 1000, 800 ) );
+                                                 .Title( LOCTEXT( "DiffTextWindowTitle", "Text diff" ) )
+                                                 .ClientSize( FVector2D( 1000, 800 ) );
 
         window->SetContent( SNew( SGitHubToolsFilePatch )
-        .FileInfos( file_infos )
-        .ParentWindow( window ) );
+                .FileInfos( file_infos )
+                .ParentWindow( window ) );
 
-        if (const TSharedPtr< SWindow > active_modal = FSlateApplication::Get().GetActiveModalWindow();
-            active_modal.IsValid())
+        if ( const TSharedPtr< SWindow > active_modal = FSlateApplication::Get().GetActiveModalWindow();
+            active_modal.IsValid() )
         {
             FSlateApplication::Get().AddWindowAsNativeChild( window.ToSharedRef(), active_modal.ToSharedRef() );
         }
@@ -99,7 +98,7 @@ namespace GitHubToolsUtils
     void DiffUAsset( const FGithubToolsPullRequestFileInfos & file_infos )
     {
         auto optional_asset_data = GetAssetDataFromFileInfos( file_infos );
-        if (!optional_asset_data.IsSet())
+        if ( !optional_asset_data.IsSet() )
         {
             return;
         }
@@ -107,7 +106,7 @@ namespace GitHubToolsUtils
         const auto & git_source_control = FModuleManager::GetModuleChecked< FGitSourceControlModule >( "GitSourceControl" );
         const auto & path_to_repository_root = git_source_control.GetProvider().GetPathToRepositoryRoot();
         const auto & status_branch_names = FGitSourceControlModule::Get().GetProvider().GetStatusBranchNames();
-        if (status_branch_names.IsEmpty())
+        if ( status_branch_names.IsEmpty() )
         {
             return;
         }
@@ -123,7 +122,7 @@ namespace GitHubToolsUtils
 
         // Get the file name of package
         FString relative_file_name;
-        if (!FPackageName::DoesPackageExist( package_path, &relative_file_name ))
+        if ( !FPackageName::DoesPackageExist( package_path, &relative_file_name ) )
         {
             return;
         }
@@ -134,19 +133,19 @@ namespace GitHubToolsUtils
         check( revision.IsValid() );
 
         FString temp_file_name;
-        if (!revision->Get( temp_file_name ))
+        if ( !revision->Get( temp_file_name ) )
         {
             return;
         }
 
         auto * temp_package = LoadPackage( nullptr, *temp_file_name, LOAD_ForDiff | LOAD_DisableCompileOnLoad );
-        if (temp_package == nullptr)
+        if ( temp_package == nullptr )
         {
             return;
         }
 
         auto * old_object = FindObject< UObject >( temp_package, *package_name );
-        if (old_object == nullptr)
+        if ( old_object == nullptr )
         {
             return;
         }
@@ -164,12 +163,12 @@ namespace GitHubToolsUtils
 
     void DiffFileAgainstOriginStatusBranch( const FGithubToolsPullRequestFileInfosPtr & file_infos )
     {
-        if (file_infos == nullptr)
+        if ( file_infos == nullptr )
         {
             return;
         }
 
-        if (!file_infos->IsUAsset())
+        if ( !file_infos->IsUAsset() )
         {
             DiffTextFile( file_infos );
         }
@@ -181,7 +180,7 @@ namespace GitHubToolsUtils
 
     void DiffFilesAgainstOriginStatusBranch( const TArray< FGithubToolsPullRequestFileInfosPtr > & file_infos )
     {
-        for (auto file : file_infos)
+        for ( auto file : file_infos )
         {
             DiffFileAgainstOriginStatusBranch( file );
         }
@@ -226,7 +225,7 @@ namespace GitHubToolsUtils
 
     FLinearColor GetCommitCheckColor( EGitHubToolsCommitStatusState state )
     {
-        switch (state)
+        switch ( state )
         {
             case EGitHubToolsCommitStatusState::Error:
                 return FLinearColor::Red;
@@ -252,9 +251,9 @@ namespace GitHubToolsUtils
     {
         EGitHubToolsCommitStatusState global_state = EGitHubToolsCommitStatusState::Unknown;
 
-        for (auto check : pr_infos.Checks)
+        for ( auto check : pr_infos.Checks )
         {
-            if (check->State < global_state)
+            if ( check->State < global_state )
             {
                 global_state = check->State;
             }
@@ -265,7 +264,7 @@ namespace GitHubToolsUtils
 
     FString GetPullRequestReviewEventStringValue( EGitHubToolsPullRequestReviewEvent event )
     {
-        switch (event)
+        switch ( event )
         {
             case EGitHubToolsPullRequestReviewEvent::Approve:
                 return TEXT( "APPROVE" );
@@ -285,23 +284,23 @@ namespace GitHubToolsUtils
 
     EGitHubToolsPullRequestReviewState GetPullRequestReviewState( const FString & event )
     {
-        if (event == TEXT( "APPROVED" ))
+        if ( event == TEXT( "APPROVED" ) )
         {
             return EGitHubToolsPullRequestReviewState::Approved;
         }
-        if (event == TEXT( "CHANGES_REQUESTED" ))
+        if ( event == TEXT( "CHANGES_REQUESTED" ) )
         {
             return EGitHubToolsPullRequestReviewState::ChangesRequested;
         }
-        if (event == TEXT( "COMMENTED" ))
+        if ( event == TEXT( "COMMENTED" ) )
         {
             return EGitHubToolsPullRequestReviewState::Commented;
         }
-        if (event == TEXT( "DISMISSED" ))
+        if ( event == TEXT( "DISMISSED" ) )
         {
             return EGitHubToolsPullRequestReviewState::Dismissed;
         }
-        if (event == TEXT( "PENDING" ))
+        if ( event == TEXT( "PENDING" ) )
         {
             return EGitHubToolsPullRequestReviewState::Pending;
         }
@@ -310,15 +309,15 @@ namespace GitHubToolsUtils
 
     EGitHubToolsPullRequestsState GetPullRequestState( const FString & state )
     {
-        if (state == TEXT( "CLOSED" ))
+        if ( state == TEXT( "CLOSED" ) )
         {
             return EGitHubToolsPullRequestsState::Closed;
         }
-        if (state == TEXT( "MERGED" ))
+        if ( state == TEXT( "MERGED" ) )
         {
             return EGitHubToolsPullRequestsState::Merged;
         }
-        if (state == TEXT( "OPEN" ))
+        if ( state == TEXT( "OPEN" ) )
         {
             return EGitHubToolsPullRequestsState::Open;
         }
@@ -328,7 +327,7 @@ namespace GitHubToolsUtils
 
     void MarkFileAsViewedAndExecuteCallback( const FString & pr_id, FGithubToolsPullRequestFileInfosPtr file_infos, TFunction< void( FGithubToolsPullRequestFileInfosPtr ) > callback )
     {
-        if (file_infos->ViewedState == EGitHubToolsFileViewedState::Viewed)
+        if ( file_infos->ViewedState == EGitHubToolsFileViewedState::Viewed )
         {
             callback( file_infos );
             return;
@@ -338,7 +337,7 @@ namespace GitHubToolsUtils
             .GetRequestManager()
             .SendRequest< FGitHubToolsHttpRequest_MarkFileAsViewed >( pr_id, file_infos->Path )
             .Then( [ file = MoveTemp( file_infos ), callback = MoveTemp( callback ) ]( const TFuture< FGitHubToolsHttpRequest_MarkFileAsViewed > & request ) {
-                if (request.Get().GetResult().Get( false ))
+                if ( request.Get().GetResult().Get( false ) )
                 {
                     FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
 
@@ -350,9 +349,9 @@ namespace GitHubToolsUtils
 
     void MarkFilesAsViewedAndExecuteCallback( FString pr_id, TArray< FGithubToolsPullRequestFileInfosPtr > && files, TFunction< void( const TArray< FGithubToolsPullRequestFileInfosPtr > & ) > && callback )
     {
-        if (files.FindByPredicate( []( const FGithubToolsPullRequestFileInfosPtr & file_infos ) {
-            return file_infos != nullptr && file_infos->ViewedState != EGitHubToolsFileViewedState::Viewed;
-        } ) == nullptr)
+        if ( files.FindByPredicate( []( const FGithubToolsPullRequestFileInfosPtr & file_infos ) {
+                 return file_infos != nullptr && file_infos->ViewedState != EGitHubToolsFileViewedState::Viewed;
+             } ) == nullptr )
         {
             callback( files );
             return;
@@ -360,14 +359,14 @@ namespace GitHubToolsUtils
 
         Async( EAsyncExecution::TaskGraph,
             [ pr_id = MoveTemp( pr_id ), callback = MoveTemp( callback ), files = MoveTemp( files ) ]() mutable {
-                for (auto file_infos : files)
+                for ( auto file_infos : files )
                 {
-                    if (file_infos == nullptr)
+                    if ( file_infos == nullptr )
                     {
                         continue;
                     }
 
-                    if (file_infos->ViewedState == EGitHubToolsFileViewedState::Viewed)
+                    if ( file_infos->ViewedState == EGitHubToolsFileViewedState::Viewed )
                     {
                         continue;
                     }
@@ -378,7 +377,7 @@ namespace GitHubToolsUtils
                     request->ProcessRequest();
 
                     auto request_future_result = request->GetFuture().Get();
-                    if (request_future_result.GetResult().Get( false ))
+                    if ( request_future_result.GetResult().Get( false ) )
                     {
                         file_infos->UpdateViewedState( EGitHubToolsFileViewedState::Viewed );
                     }
@@ -395,21 +394,21 @@ namespace GitHubToolsUtils
 
     void OpenAssets( const TArray< FGithubToolsPullRequestFileInfosPtr > & files )
     {
-        for (auto file : files)
+        for ( auto file : files )
         {
-            if (file == nullptr)
+            if ( file == nullptr )
             {
                 continue;
             }
 
-            if (!file->IsUAsset())
+            if ( !file->IsUAsset() )
             {
                 DiffTextFile( file );
                 continue;
             }
 
             const auto asset_data = GitHubToolsUtils::GetAssetDataFromFileInfos( *file );
-            if (asset_data.IsSet())
+            if ( asset_data.IsSet() )
             {
                 const auto & asset_tools_module = FModuleManager::GetModuleChecked< FAssetToolsModule >( "AssetTools" );
                 asset_tools_module.Get().OpenEditorForAssets( { asset_data.GetValue().GetAsset() } );
@@ -423,12 +422,12 @@ namespace GitHubToolsUtils
         TMap< FString, FSourceControlStatePtr > PackageStates;
         FEditorFileUtils::FindAllSubmittablePackageFiles( PackageStates, true );
 
-        for (TMap< FString, FSourceControlStatePtr >::TConstIterator PackageIter( PackageStates ); PackageIter; ++PackageIter)
+        for ( TMap< FString, FSourceControlStatePtr >::TConstIterator PackageIter( PackageStates ); PackageIter; ++PackageIter )
         {
             const FString PackageName = *PackageIter.Key();
 
             UPackage * Package = FindPackage( nullptr, *PackageName );
-            if (Package != nullptr)
+            if ( Package != nullptr )
             {
                 LoadedPackages.Add( Package );
             }
@@ -439,7 +438,7 @@ namespace GitHubToolsUtils
         // Get a list of all the checked out project files
         TMap< FString, FSourceControlStatePtr > ProjectFileStates;
         FEditorFileUtils::FindAllSubmittableProjectFiles( ProjectFileStates );
-        for (TMap< FString, FSourceControlStatePtr >::TConstIterator It( ProjectFileStates ); It; ++It)
+        for ( TMap< FString, FSourceControlStatePtr >::TConstIterator It( ProjectFileStates ); It; ++It )
         {
             package_names.Add( It.Key() );
         }
@@ -447,7 +446,7 @@ namespace GitHubToolsUtils
         // Get a list of all the checked out config files
         TMap< FString, FSourceControlStatePtr > ConfigFileStates;
         FEditorFileUtils::FindAllSubmittableConfigFiles( ConfigFileStates );
-        for (TMap< FString, FSourceControlStatePtr >::TConstIterator It( ConfigFileStates ); It; ++It)
+        for ( TMap< FString, FSourceControlStatePtr >::TConstIterator It( ConfigFileStates ); It; ++It )
         {
             package_names.Add( It.Key() );
         }
@@ -458,12 +457,12 @@ namespace GitHubToolsUtils
         TArray< FString > modified_files;
         GetModifiedFiles( modified_files );
 
-        if (!modified_files.IsEmpty())
+        if ( !modified_files.IsEmpty() )
         {
             auto & source_control_module = ISourceControlModule::Get();
             ISourceControlProvider & source_control_provider = source_control_module.GetProvider();
             TSharedRef< FRevert, ESPMode::ThreadSafe > RevertOperation = ISourceControlOperation::Create< FRevert >();
-            if (source_control_provider.Execute( RevertOperation, modified_files ) != ECommandResult::Succeeded)
+            if ( source_control_provider.Execute( RevertOperation, modified_files ) != ECommandResult::Succeeded )
             {
                 return false;
             }
@@ -485,7 +484,7 @@ namespace GitHubToolsUtils
             TArray< FString > Parameters = { branch_name, "-f" };
             TArray< FString > Files;
             TArray< FString > OutErrorMessages;
-            if (!GitSourceControlUtils::RunCommand( TEXT( "switch" ), path_to_git_binary, path_to_repository_root, Parameters, Files, Results, OutErrorMessages ))
+            if ( !GitSourceControlUtils::RunCommand( TEXT( "switch" ), path_to_git_binary, path_to_repository_root, Parameters, Files, Results, OutErrorMessages ) )
             {
                 FGitHubToolsModule::Get().GetNotificationManager().DisplayFailureNotification( LOCTEXT( "CantSwitchBranch", "Impossible to switch to the new branch" ) );
                 return false;
@@ -493,7 +492,7 @@ namespace GitHubToolsUtils
 
             Parameters = { "--init", "--recursive" };
 
-            if (!GitSourceControlUtils::RunCommand( TEXT( "submodule update" ), path_to_git_binary, path_to_repository_root, Parameters, Files, Results, OutErrorMessages ))
+            if ( !GitSourceControlUtils::RunCommand( TEXT( "submodule update" ), path_to_git_binary, path_to_repository_root, Parameters, Files, Results, OutErrorMessages ) )
             {
                 FGitHubToolsModule::Get().GetNotificationManager().DisplayFailureNotification( LOCTEXT( "CantSwitchBranch", "Impossible to update the submodules" ) );
                 return false;
@@ -505,10 +504,10 @@ namespace GitHubToolsUtils
             const auto compile = []() {
 #if WITH_LIVE_CODING
                 ILiveCodingModule * LiveCoding = FModuleManager::GetModulePtr< ILiveCodingModule >( LIVE_CODING_MODULE_NAME );
-                if (LiveCoding != nullptr && LiveCoding->IsEnabledByDefault())
+                if ( LiveCoding != nullptr && LiveCoding->IsEnabledByDefault() )
                 {
                     LiveCoding->EnableForSession( true );
-                    if (LiveCoding->IsEnabledForSession())
+                    if ( LiveCoding->IsEnabledForSession() )
                     {
                         return LiveCoding->Compile( ELiveCodingCompileFlags::WaitForCompletion, nullptr );
                     }
@@ -518,7 +517,7 @@ namespace GitHubToolsUtils
                 {
 #if WITH_HOT_RELOAD
                     IHotReloadInterface * HotReload = IHotReloadModule::GetPtr();
-                    if (HotReload != nullptr && !HotReload->IsCurrentlyCompiling())
+                    if ( HotReload != nullptr && !HotReload->IsCurrentlyCompiling() )
                     {
                         const auto result = HotReload->DoHotReloadFromEditor( EHotReloadFlags::None );
                         return result == ECompilationResult::Succeeded || result == ECompilationResult::UpToDate;
@@ -528,7 +527,7 @@ namespace GitHubToolsUtils
                 return true;
             };
 
-            if (!compile())
+            if ( !compile() )
             {
                 FGitHubToolsModule::Get().GetNotificationManager().DisplayFailureNotification( LOCTEXT( "CantSwitchBranch", "Impossible to compile the code" ) );
                 return false;
@@ -547,9 +546,9 @@ namespace GitHubToolsUtils
             TArray< FString > PathsToScan;
             PathsToScan.Add( FPaths::ProjectContentDir() ); // Or additional directories if needed
 
-            UE_LOG( LogTemp, Log, TEXT("Rescanning all asset files...") );
+            UE_LOG( LogTemp, Log, TEXT( "Rescanning all asset files..." ) );
             AssetRegistry.ScanPathsSynchronous( PathsToScan, true ); // true = force rescan
-            UE_LOG( LogTemp, Log, TEXT("Rescan complete.") );
+            UE_LOG( LogTemp, Log, TEXT( "Rescan complete." ) );
         }
 
         return true;

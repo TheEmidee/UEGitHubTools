@@ -1,8 +1,7 @@
 #pragma once
 
-#include "GitHubToolsTypes.h"
-#include "ISourceControlProvider.h"
 #include "AssetRegistry/AssetData.h"
+#include "GitHubToolsTypes.h"
 
 namespace GitHubToolsUtils
 {
