@@ -4,7 +4,8 @@
 #include "GitHubToolsStyle.h"
 #include "SGitHubToolsAddCommentForm.h"
 #include "SGitHubToolsPRReviewThreadTableRow.h"
-
+#include "Styling/StyleColors.h"
+#include "Widgets/Input/SButton.h"
 #include "Widgets/Text/SRichTextBlock.h"
 
 #define LOCTEXT_NAMESPACE "SGitHubToolsFilePatch"

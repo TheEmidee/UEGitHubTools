@@ -1,30 +1,23 @@
 #include "SGitHubToolsPRInfosHeader.h"
 
-#include "UObject/Package.h"
-#include "FileHelpers.h"
-#include "GitSourceControlUtils.h"
-#include "GitHubTools.h"
-#include "GitHubToolsGitUtils.h"
-#include "GitSourceControlModule.h"
-#include "IHotReload.h"
-#include "ISourceControlModule.h"
-#include "ISourceControlOperation.h"
-#include "ISourceControlProvider.h"
-#include "SourceControlHelpers.h"
-#include "SourceControlOperations.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Components/VerticalBox.h"
+#include "FileHelpers.h"
+#include "GitHubTools.h"
+#include "GitHubToolsGitUtils.h"
 #include "HAL/FileManagerGeneric.h"
 #include "HttpRequests/GitHubToolsHttpRequest_AddPRReview.h"
 #include "HttpRequests/GitHubToolsHttpRequest_MergePR.h"
 #include "Misc/MessageDialog.h"
 #include "RevisionControlStyle/RevisionControlStyle.h"
+#include "SourceControlHelpers.h"
+#include "SourceControlOperations.h"
 #include "Textures/SlateIcon.h"
 #include "UObject/LinkerLoad.h"
-#include "Widgets/SToolTip.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Layout/SBorder.h"
+#include "Widgets/SToolTip.h"
 #include "Widgets/Text/STextBlock.h"
 
 #if SOURCE_CONTROL_WITH_SLATE
@@ -115,10 +108,9 @@ void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
                                                                 .Text( FText::FromString( PRInfos->CreatedAt ) )
                                                                 .Justification( ETextJustify::Type::Left ) ] +
                                                 SVerticalBox::Slot()
-                                                        .AutoHeight()
-                                                            [ SNew( SBorder )
-                                                                .Padding( FMargin( 10.0f ) )[
-                                                                    SNew( STextBlock )
+                                                    .AutoHeight()
+                                                        [ SNew( SBorder )
+                                                                .Padding( FMargin( 10.0f ) )[ SNew( STextBlock )
                                                                         .Text( LOCTEXT( "Description", "Description" ) )
                                                                         .Justification( ETextJustify::Type::Left )
                                                                         .ToolTipText( FText::FromString( PRInfos->Body ) ) ] ] ] +

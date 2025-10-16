@@ -1,6 +1,14 @@
 #include "SGitHubToolsPRInfosMessageDisplay.h"
 
+#include "Components/HorizontalBox.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Framework/Docking/TabManager.h"
 #include "SGitHubToolsPRInfosPendingReviews.h"
+#include "Widgets/Input/SButton.h"
+#include "Widgets/Layout/SBorder.h"
+#include "Widgets/Layout/SSpacer.h"
+#include "Widgets/SWindow.h"
+#include "Widgets/Text/STextBlock.h"
 
 #if SOURCE_CONTROL_WITH_SLATE
 
@@ -21,12 +29,12 @@ void SGitHubToolsPRInfosMessageDisplay::Construct( const FArguments & arguments 
     if ( PRInfos->State != EGitHubToolsPullRequestsState::Open )
     {
         border->SetContent( SNew( STextBlock )
-                                .Justification( ETextJustify::Type::Center )
-                                .ColorAndOpacity( FCoreStyle::Get().GetColor( "ErrorReporting.ForegroundColor" ) )
-                                .Margin( FMargin( 5.0f ) )
-                                .Text( PRInfos->State == EGitHubToolsPullRequestsState::Closed
-                                           ? LOCTEXT( "PRClosed", "The PR is closed" )
-                                           : LOCTEXT( "PRMerged", "The PR is merged" ) ) );
+                .Justification( ETextJustify::Type::Center )
+                .ColorAndOpacity( FCoreStyle::Get().GetColor( "ErrorReporting.ForegroundColor" ) )
+                .Margin( FMargin( 5.0f ) )
+                .Text( PRInfos->State == EGitHubToolsPullRequestsState::Closed
+                           ? LOCTEXT( "PRClosed", "The PR is closed" )
+                           : LOCTEXT( "PRMerged", "The PR is merged" ) ) );
     }
     else if ( PRInfos->HasPendingReviews() )
     {
@@ -67,11 +75,11 @@ FReply SGitHubToolsPRInfosMessageDisplay::OnOpenPendingReviewsClicked()
     } ) );
 
     PendingReviewsWindow->SetContent( SNew( SGitHubToolsPRInfosPendingReviews )
-                                          .ParentWindow( PendingReviewsWindow )
-                                          .PRInfos( PRInfos ) );
+            .ParentWindow( PendingReviewsWindow )
+            .PRInfos( PRInfos ) );
 
     if ( const TSharedPtr< SWindow > root_window = FGlobalTabmanager::Get()->GetRootWindow();
-         root_window.IsValid() )
+        root_window.IsValid() )
     {
         FSlateApplication::Get().AddModalWindow( PendingReviewsWindow.ToSharedRef(), root_window );
     }

@@ -1,14 +1,13 @@
 #pragma once
 
-#include "GitHubToolsTypes.h"
-
 #include "CoreMinimal.h"
+#include "GitHubToolsTypes.h"
+#include "Widgets/SCompoundWidget.h"
 
 class SGitHubToolsPRInfosMessageDisplay : public SCompoundWidget
 {
 public:
-    SLATE_BEGIN_ARGS( SGitHubToolsPRInfosMessageDisplay ) :
-        _PRInfos()
+    SLATE_BEGIN_ARGS( SGitHubToolsPRInfosMessageDisplay )
     {}
 
     SLATE_ATTRIBUTE( FGithubToolsPullRequestInfosPtr, PRInfos )

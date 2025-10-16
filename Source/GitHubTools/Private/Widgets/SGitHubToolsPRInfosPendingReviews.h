@@ -1,14 +1,16 @@
 #pragma once
 
-#include "GitHubToolsTypes.h"
-
 #include "CoreMinimal.h"
+#include "GitHubToolsTypes.h"
+#include "Widgets/SCompoundWidget.h"
+
+class STableViewBase;
+class ITableRow;
 
 class SGitHubToolsPRInfosPendingReviews : public SCompoundWidget
 {
 public:
-    SLATE_BEGIN_ARGS( SGitHubToolsPRInfosPendingReviews ) :
-        _PRInfos()
+    SLATE_BEGIN_ARGS( SGitHubToolsPRInfosPendingReviews )
     {}
 
     SLATE_ATTRIBUTE( TSharedPtr< SWindow >, ParentWindow )
