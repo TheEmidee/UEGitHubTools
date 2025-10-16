@@ -1,7 +1,7 @@
 #include "GitHubToolsTypes.h"
 
-#include "GitHubToolsGitUtils.h"
 #include "Dom/JsonObject.h"
+#include "GitHubToolsGitUtils.h"
 #include "Misc/Paths.h"
 #include "Styling/CoreStyle.h"
 
@@ -320,7 +320,7 @@ void FGithubToolsPullRequestInfos::SetFiles( const TArray< FGithubToolsPullReque
     }
 }
 
-FGitHubToolsOpenedPullRequestInfos::FGitHubToolsOpenedPullRequestInfos( const TSharedRef<FJsonObject> & json )
+FGitHubToolsOpenedPullRequestInfos::FGitHubToolsOpenedPullRequestInfos( const TSharedRef< FJsonObject > & json )
 {
     const auto author_object = json->GetObjectField( TEXT( "author" ) );
 
