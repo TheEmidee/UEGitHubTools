@@ -31,24 +31,24 @@ namespace GitHubToolsUtils
         auto & provider = git_source_control.GetProvider();
         const auto & path_to_repository_root = provider.GetPathToRepositoryRoot();
         const auto & path_to_git_binary = git_source_control.AccessSettings().GetBinaryPath();
-	
-        TArray<FString> InfoMessages;
-        TArray<FString> ErrorMessages;
-        TArray<FString> Parameters;
-        Parameters.Add(TEXT("--short"));
-        Parameters.Add(TEXT("--quiet")); // no error message while in detached HEAD
-        Parameters.Add(TEXT("HEAD"));
-        if (GitSourceControlUtils::RunCommand(TEXT("symbolic-ref"), path_to_git_binary, path_to_repository_root, Parameters, FGitSourceControlModule::GetEmptyStringArray(), InfoMessages, ErrorMessages) && InfoMessages.Num() > 0)
+
+        TArray< FString > InfoMessages;
+        TArray< FString > ErrorMessages;
+        TArray< FString > Parameters;
+        Parameters.Add( TEXT( "--short" ) );
+        Parameters.Add( TEXT( "--quiet" ) ); // no error message while in detached HEAD
+        Parameters.Add( TEXT( "HEAD" ) );
+        if (GitSourceControlUtils::RunCommand( TEXT( "symbolic-ref" ), path_to_git_binary, path_to_repository_root, Parameters, FGitSourceControlModule::GetEmptyStringArray(), InfoMessages, ErrorMessages ) && InfoMessages.Num() > 0)
         {
-            return InfoMessages[0];
+            return InfoMessages[ 0 ];
         }
 
-        Parameters.Reset(2);
-        Parameters.Add(TEXT("-1"));
-        Parameters.Add(TEXT("--format=\"%h\"")); // no error message while in detached HEAD
-        if (GitSourceControlUtils::RunCommand(TEXT("log"), path_to_git_binary, path_to_repository_root, Parameters, FGitSourceControlModule::GetEmptyStringArray(), InfoMessages, ErrorMessages) && InfoMessages.Num() > 0)
+        Parameters.Reset( 2 );
+        Parameters.Add( TEXT( "-1" ) );
+        Parameters.Add( TEXT( "--format=\"%h\"" ) ); // no error message while in detached HEAD
+        if (GitSourceControlUtils::RunCommand( TEXT( "log" ), path_to_git_binary, path_to_repository_root, Parameters, FGitSourceControlModule::GetEmptyStringArray(), InfoMessages, ErrorMessages ) && InfoMessages.Num() > 0)
         {
-            return "HEAD detached at " + InfoMessages[0];
+            return "HEAD detached at " + InfoMessages[ 0 ];
         }
 
         return "";
@@ -458,12 +458,12 @@ namespace GitHubToolsUtils
         TArray< FString > modified_files;
         GetModifiedFiles( modified_files );
 
-        if ( !modified_files.IsEmpty() )
+        if (!modified_files.IsEmpty())
         {
             auto & source_control_module = ISourceControlModule::Get();
             ISourceControlProvider & source_control_provider = source_control_module.GetProvider();
             TSharedRef< FRevert, ESPMode::ThreadSafe > RevertOperation = ISourceControlOperation::Create< FRevert >();
-            if ( source_control_provider.Execute( RevertOperation, modified_files ) != ECommandResult::Succeeded )
+            if (source_control_provider.Execute( RevertOperation, modified_files ) != ECommandResult::Succeeded)
             {
                 return false;
             }
@@ -492,7 +492,7 @@ namespace GitHubToolsUtils
             }
 
             Parameters = { "--init", "--recursive" };
-            
+
             if (!GitSourceControlUtils::RunCommand( TEXT( "submodule update" ), path_to_git_binary, path_to_repository_root, Parameters, Files, Results, OutErrorMessages ))
             {
                 FGitHubToolsModule::Get().GetNotificationManager().DisplayFailureNotification( LOCTEXT( "CantSwitchBranch", "Impossible to update the submodules" ) );
@@ -502,32 +502,31 @@ namespace GitHubToolsUtils
 
         // Recompile the code
         {
-            const auto compile = []()
-                {
+            const auto compile = []() {
 #if WITH_LIVE_CODING
-                    ILiveCodingModule * LiveCoding = FModuleManager::GetModulePtr< ILiveCodingModule >( LIVE_CODING_MODULE_NAME );
-                    if (LiveCoding != nullptr && LiveCoding->IsEnabledByDefault())
+                ILiveCodingModule * LiveCoding = FModuleManager::GetModulePtr< ILiveCodingModule >( LIVE_CODING_MODULE_NAME );
+                if (LiveCoding != nullptr && LiveCoding->IsEnabledByDefault())
+                {
+                    LiveCoding->EnableForSession( true );
+                    if (LiveCoding->IsEnabledForSession())
                     {
-                        LiveCoding->EnableForSession( true );
-                        if (LiveCoding->IsEnabledForSession())
-                        {
-                            return LiveCoding->Compile(ELiveCodingCompileFlags::WaitForCompletion, nullptr);
-                        }
+                        return LiveCoding->Compile( ELiveCodingCompileFlags::WaitForCompletion, nullptr );
                     }
-                    else
+                }
+                else
 #endif
-                    {
+                {
 #if WITH_HOT_RELOAD
-                        IHotReloadInterface * HotReload = IHotReloadModule::GetPtr();
-                        if (HotReload != nullptr && !HotReload->IsCurrentlyCompiling())
-                        {
-                            const auto result = HotReload->DoHotReloadFromEditor( EHotReloadFlags::None );
-                            return result == ECompilationResult::Succeeded || result == ECompilationResult::UpToDate;
-                        }
-#endif
+                    IHotReloadInterface * HotReload = IHotReloadModule::GetPtr();
+                    if (HotReload != nullptr && !HotReload->IsCurrentlyCompiling())
+                    {
+                        const auto result = HotReload->DoHotReloadFromEditor( EHotReloadFlags::None );
+                        return result == ECompilationResult::Succeeded || result == ECompilationResult::UpToDate;
                     }
-                    return true;
-                };
+#endif
+                }
+                return true;
+            };
 
             if (!compile())
             {
