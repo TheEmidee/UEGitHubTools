@@ -1,7 +1,7 @@
 #include "GitHubToolsTypes.h"
 
-#include "GitHubToolsGitUtils.h"
 #include "Dom/JsonObject.h"
+#include "GitHubToolsGitUtils.h"
 #include "Misc/Paths.h"
 #include "Styling/CoreStyle.h"
 
@@ -318,6 +318,16 @@ void FGithubToolsPullRequestInfos::SetFiles( const TArray< FGithubToolsPullReque
 
         FileInfos.Add( file );
     }
+}
+
+FGitHubToolsOpenedPullRequestInfos::FGitHubToolsOpenedPullRequestInfos( const TSharedRef< FJsonObject > & json )
+{
+    const auto author_object = json->GetObjectField( TEXT( "author" ) );
+
+    Number = json->GetIntegerField( TEXT( "number" ) );
+    Title = json->GetStringField( TEXT( "title" ) );
+    HeadRefName = json->GetStringField( TEXT( "headRefName" ) );
+    Author = FText::FromString( author_object->GetStringField( TEXT( "login" ) ) );
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -1,8 +1,7 @@
 #pragma once
 
-#include "GitHubToolsTypes.h"
-
 #include "CoreMinimal.h"
+#include "GitHubToolsTypes.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 
 class FGitHubToolsHttpRequestData_AddPRReviewThread;

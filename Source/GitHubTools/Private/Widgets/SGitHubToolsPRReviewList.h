@@ -1,17 +1,18 @@
 #pragma once
 
+#include "CoreMinimal.h"
 #include "GitHubToolsTypes.h"
 #include "SGitHubToolsAddCommentForm.h"
-
-#include "CoreMinimal.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
+#include "Widgets/Views/SListView.h"
 
+class SWidgetSwitcher;
+class SCheckBox;
+class SVerticalBox;
 class SGitHubToolsPRReviewList final : public SCompoundWidget
 {
 public:
-    SLATE_BEGIN_ARGS( SGitHubToolsPRReviewList ) :
-        _ParentWindow(),
-        _PRInfos()
+    SLATE_BEGIN_ARGS( SGitHubToolsPRReviewList )
     {}
 
     SLATE_ATTRIBUTE( TSharedPtr< SWindow >, ParentWindow )

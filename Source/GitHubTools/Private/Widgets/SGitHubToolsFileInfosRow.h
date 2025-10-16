@@ -1,8 +1,7 @@
 #pragma once
 
-#include "SGitHubToolsPRInfos.h"
-
 #include "CoreMinimal.h"
+#include "SGitHubToolsPRInfos.h"
 #include "Widgets/Views/STableRow.h"
 
 class SGitHubToolsFileInfosRow final : public STableRow< FGitHubToolsFileInfosTreeItemPtr >

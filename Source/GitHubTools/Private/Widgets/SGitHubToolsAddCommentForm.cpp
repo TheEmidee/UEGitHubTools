@@ -1,13 +1,17 @@
 #include "SGitHubToolsAddCommentForm.h"
 
+#include "Components/VerticalBox.h"
 #include "GitHubTools.h"
 #include "HttpRequests/GitHubToolsHttpRequest_AddPRReview.h"
 #include "HttpRequests/GitHubToolsHttpRequest_AddPRReviewThread.h"
 #include "HttpRequests/GitHubToolsHttpRequest_AddPRReviewThreadReply.h"
 #include "HttpRequests/GitHubToolsHttpRequest_SubmitPRReview.h"
-
+#include "Widgets/Input/SButton.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
+#include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SUniformGridPanel.h"
+#include "Widgets/Notifications/SErrorText.h"
+#include "Widgets/Text/STextBlock.h"
 
 #if SOURCE_CONTROL_WITH_SLATE
 

@@ -1,9 +1,9 @@
 #pragma once
 
+#include "CoreMinimal.h"
 #include "GithubToolsTypes.h"
 #include "SGitHubToolsAddCommentForm.h"
-
-#include "CoreMinimal.h"
+#include "Widgets/Views/SListView.h"
 
 class SGitHubToolsAddCommentForm;
 

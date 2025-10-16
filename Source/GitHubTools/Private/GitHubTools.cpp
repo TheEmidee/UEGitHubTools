@@ -1,7 +1,6 @@
 #include "GitHubTools.h"
 
 #include "GitHubToolsStyle.h"
-
 #include "Misc/MessageDialog.h"
 #include "ToolMenus.h"
 
@@ -13,13 +12,13 @@ void FGitHubToolsModule::StartupModule()
     FGitHubToolsStyle::ReloadTextures();
 
     HttpRequestManager = MakeUnique< FGitHubToolsHttpRequestManager >();
-    GitSourceControlMenu.Register();
+    GitHubToolsMenu.Register();
 }
 
 void FGitHubToolsModule::ShutdownModule()
 {
     HttpRequestManager.Reset();
-    GitSourceControlMenu.Unregister();
+    GitHubToolsMenu.Unregister();
 
     UToolMenus::UnRegisterStartupCallback( this );
 
@@ -36,6 +35,11 @@ FGitHubToolsHttpRequestManager & FGitHubToolsModule::GetRequestManager() const
 FGitHubToolsNotificationManager & FGitHubToolsModule::GetNotificationManager()
 {
     return NotificationManager;
+}
+
+FGitHubToolsMenu & FGitHubToolsModule::GetMenu()
+{
+    return GitHubToolsMenu;
 }
 
 FGitHubToolsModule & FGitHubToolsModule::Get()

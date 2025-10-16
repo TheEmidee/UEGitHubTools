@@ -1,7 +1,10 @@
 #pragma once
 
+#include "Async/Future.h"
 #include "CoreMinimal.h"
 #include "Interfaces/IHttpRequest.h"
+
+class FJsonObject;
 
 class IGitHubToolsHttpRequest
 {

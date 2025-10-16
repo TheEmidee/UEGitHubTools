@@ -1,9 +1,11 @@
 #pragma once
 
+#include "AssetRegistry/AssetData.h"
 #include "GitHubToolsTypes.h"
 
 namespace GitHubToolsUtils
 {
+    FString GetBranchName();
     TOptional< FAssetData > GetAssetDataFromFileInfos( const FGithubToolsPullRequestFileInfos & file_infos );
     void DiffFileAgainstOriginStatusBranch( const FGithubToolsPullRequestFileInfosPtr & file_infos );
     void DiffFilesAgainstOriginStatusBranch( const TArray< FGithubToolsPullRequestFileInfosPtr > & file_infos );
@@ -16,4 +18,7 @@ namespace GitHubToolsUtils
     void MarkFileAsViewedAndExecuteCallback( const FString & pr_id, FGithubToolsPullRequestFileInfosPtr file_infos, TFunction< void( FGithubToolsPullRequestFileInfosPtr ) > callback );
     void MarkFilesAsViewedAndExecuteCallback( ::FString pr_id, TArray< FGithubToolsPullRequestFileInfosPtr > && files, TFunction< void( const TArray< FGithubToolsPullRequestFileInfosPtr > & ) > && callback );
     void OpenAssets( const TArray< FGithubToolsPullRequestFileInfosPtr > & files );
+    void GetModifiedFiles( TArray< FString > & package_names );
+    bool RevertFiles();
+    bool SwitchGitBranch( const FString & branch_name );
 }

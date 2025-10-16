@@ -1,8 +1,7 @@
 #pragma once
 
-#include "GitHubToolsTypes.h"
-
 #include "CoreMinimal.h"
+#include "GitHubToolsTypes.h"
 #include "Widgets/Views/STableRow.h"
 
 DECLARE_DELEGATE_OneParam( FGitHubToolsOnPendingReviewUpdated, FGithubToolsPullRequestPendingReviewInfosPtr );

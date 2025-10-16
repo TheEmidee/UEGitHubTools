@@ -1,10 +1,13 @@
 #include "SGitHubToolsPRReviewList.h"
 
+#include "Widgets/Input/SButton.h"
+#include "Widgets/Input/SCheckBox.h"
+#include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Layout/SWidgetSwitcher.h"
 #include "Widgets/SGitHubToolsAddCommentForm.h"
 #include "Widgets/SGitHubToolsPRReviewThreadTableRow.h"
-
-#include "Widgets/Input/SMultiLineEditableTextBox.h"
+#include "Widgets/Text/STextBlock.h"
+#include "Widgets/Views/SListView.h"
 
 #define LOCTEXT_NAMESPACE "SGitHubToolsAddCommentToFile"
 

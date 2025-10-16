@@ -1,9 +1,10 @@
 #pragma once
 
-#include "Misc/TextFilterExpressionEvaluator.h"
-
 #include "CoreMinimal.h"
+#include "Misc/TextFilterExpressionEvaluator.h"
+#include "Widgets/SCompoundWidget.h"
 
+class SCheckBox;
 struct FGitHubToolsTreeViewFilters
 {
     bool bShowOnlyUAssets = false;

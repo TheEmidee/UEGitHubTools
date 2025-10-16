@@ -1,10 +1,13 @@
 #pragma once
 
+#include "CoreMinimal.h"
 #include "GitHubToolsTypes.h"
 #include "SGitHubToolsPRInfosTreeFilters.h"
+#include "Widgets/SCompoundWidget.h"
+#include "Widgets/Views/STreeView.h"
 
-#include "CoreMinimal.h"
-
+class STableViewBase;
+class ITableRow;
 class SGitHubToolsMultipleAssetActions;
 class SGitHubToolsPRReviewList;
 class SGitSourceControlReviewFilesListRow;
@@ -19,8 +22,8 @@ public:
 
     SLATE_BEGIN_ARGS( SGitHubToolsPRInfos )
     {}
-
     SLATE_ATTRIBUTE( FGithubToolsPullRequestInfosPtr, Infos )
+    SLATE_ATTRIBUTE( TArray< FGitHubToolsOpenedPullRequestInfosPtr >, OpenedPrs )
 
     SLATE_END_ARGS()
 

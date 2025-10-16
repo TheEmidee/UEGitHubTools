@@ -1,10 +1,12 @@
 #include "GitHubToolsHttpRequestManager.h"
 
+#include "Async/Async.h"
 #include "GitHubTools.h"
 #include "GitHubToolsSettings.h"
-
 #include "HttpModule.h"
 #include "Interfaces/IHttpResponse.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
 
 template < typename TRequest >
 bool TGitHubToolsHttpRequestWrapper< TRequest >::ProcessRequest()

@@ -1,10 +1,9 @@
 #pragma once
 
+#include "CoreMinimal.h"
 #include "GitHubToolsHttpRequestManager.h"
 #include "GitHubToolsMenu.h"
 #include "GitHubToolsNotificationManager.h"
-
-#include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
 class FToolBarBuilder;
@@ -18,11 +17,12 @@ public:
 
     FGitHubToolsHttpRequestManager & GetRequestManager() const;
     FGitHubToolsNotificationManager & GetNotificationManager();
+    FGitHubToolsMenu & GetMenu();
 
     static FGitHubToolsModule & Get();
 
 private:
-    FGitHubToolsMenu GitSourceControlMenu;
+    FGitHubToolsMenu GitHubToolsMenu;
     TUniquePtr< FGitHubToolsHttpRequestManager > HttpRequestManager;
     FGitHubToolsNotificationManager NotificationManager;
 };

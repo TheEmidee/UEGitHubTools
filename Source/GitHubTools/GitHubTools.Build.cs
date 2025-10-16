@@ -47,7 +47,10 @@ public class GitHubTools : ModuleRules
                 "HTTP",
                 "SourceControl",
                 "DeveloperSettings",
-                "Json"
+                "Json", 
+                "HotReload",
+                "ToolWidgets", 
+                "LiveCoding"
             }
             );
 

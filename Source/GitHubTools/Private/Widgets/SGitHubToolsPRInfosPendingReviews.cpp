@@ -1,6 +1,8 @@
 #include "SGitHubToolsPRInfosPendingReviews.h"
 
 #include "SGitHubToolsPRPendingReviewTableRow.h"
+#include "Widgets/SWindow.h"
+#include "Widgets/Views/SListView.h"
 
 #if SOURCE_CONTROL_WITH_SLATE
 
