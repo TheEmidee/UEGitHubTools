@@ -1,6 +1,9 @@
 #include "SGitHubToolsPRInfosTreeFilters.h"
 
+#include "Components/VerticalBox.h"
+#include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Input/SSearchBox.h"
+#include "Widgets/Text/STextBlock.h"
 
 #define LOCTEXT_NAMESPACE "SGitHubToolsPRInfosTreeFilters"
 
@@ -134,7 +137,7 @@ void SGitHubToolsPRInfosTreeFilters::OnShowOnlyUnViewedFilesCheckStateChanged( E
     if ( TreeViewFilters->bShowOnlyUnViewed )
     {
         TreeViewFilters->bShowOnlyDismissed = false;
-        OnlyShowDismissedFilesCheckbox->SetIsChecked( false );
+        OnlyShowDismissedFilesCheckbox->SetIsChecked( ECheckBoxState::Unchecked );
     }
 
     OnFiltersChanged.Execute();
@@ -147,7 +150,7 @@ void SGitHubToolsPRInfosTreeFilters::OnShowOnlyDismissedFilesCheckStateChanged( 
     if ( TreeViewFilters->bShowOnlyUnViewed )
     {
         TreeViewFilters->bShowOnlyDismissed = false;
-        OnlyShowUnViewedFilesCheckbox->SetIsChecked( false );
+        OnlyShowUnViewedFilesCheckbox->SetIsChecked( ECheckBoxState::Unchecked );
     }
 
     OnFiltersChanged.Execute();

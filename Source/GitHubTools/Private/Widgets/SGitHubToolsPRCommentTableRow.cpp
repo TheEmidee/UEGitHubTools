@@ -1,5 +1,7 @@
 #include "SGitHubToolsPRCommentTableRow.h"
 
+#include "Widgets/Text/STextBlock.h"
+
 #if SOURCE_CONTROL_WITH_SLATE
 
 #define LOCTEXT_NAMESPACE "SGitHubToolsPRCommentTableRow"
