@@ -2,8 +2,10 @@
 
 #include "CoreMinimal.h"
 
+class FJsonObject;
 struct FGithubToolsPullRequestReviewThreadInfos;
 struct FGithubToolsPullRequestInfos;
+struct FSlateBrush;
 
 enum class EGitHubToolsSubjectType : uint8
 {

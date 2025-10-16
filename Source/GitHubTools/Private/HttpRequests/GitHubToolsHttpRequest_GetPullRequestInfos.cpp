@@ -2,8 +2,11 @@
 
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
+#include "Dom/JsonValue.h"
 
 #include "Interfaces/IHttpResponse.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 
@@ -36,6 +39,7 @@ FString FGitHubToolsHttpRequestData_GetPullRequestInfos::GetBody() const
     string_builder << TEXT( "      bodyText " );
     string_builder << TEXT( "      changedFiles " );
     string_builder << TEXT( "      createdAt " );
+    string_builder << TEXT( "      body " );
     string_builder << TEXT( "      headRefName " );
     string_builder << TEXT( "      isDraft " );
     string_builder << TEXT( "      mergeable " );
