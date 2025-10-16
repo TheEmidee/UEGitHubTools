@@ -6,8 +6,8 @@
 class FGitHubToolsHttpRequest_GetOpenedPullRequests final : public FGitHubToolsHttpRequest< TArray< FGitHubToolsOpenedPullRequestInfosPtr > >
 {
 public:
-    typedef TArray< FGitHubToolsOpenedPullRequestInfosPtr > ResponseType;
-    
+    using ResponseType = TArray< FGitHubToolsOpenedPullRequestInfosPtr >;
+
     FString GetBody() const override;
 
 private:

@@ -1,9 +1,13 @@
 #include "GitHubToolsNotificationManager.h"
 
-#include "GitHubToolsLog.h"
-
+#include "Framework/Application/SlateApplication.h"
+#include "Framework/Docking/TabManager.h"
 #include "Framework/Notifications/NotificationManager.h"
+#include "GitHubToolsLog.h"
+#include "Widgets/Layout/SBorder.h"
+#include "Widgets/Layout/SBox.h"
 #include "Widgets/Notifications/SNotificationList.h"
+#include "Widgets/Text/STextBlock.h"
 
 bool FGitHubToolsNotificationManager::IsOperationInProgress() const
 {
@@ -38,7 +42,7 @@ void FGitHubToolsNotificationManager::RemoveInProgressNotification()
     }
 }
 
-void FGitHubToolsNotificationManager::DisplaySucessNotification( const FText & message )
+void FGitHubToolsNotificationManager::DisplaySuccessNotification( const FText & message )
 {
     RemoveInProgressNotification();
 

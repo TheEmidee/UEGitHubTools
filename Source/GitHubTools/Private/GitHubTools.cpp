@@ -1,7 +1,6 @@
 #include "GitHubTools.h"
 
 #include "GitHubToolsStyle.h"
-
 #include "Misc/MessageDialog.h"
 #include "ToolMenus.h"
 

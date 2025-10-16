@@ -1,9 +1,9 @@
-#include <HttpRequests/GitHubToolsHttpRequest_GetPullRequestFilePatches.h>
-
 #include "Dom/JsonValue.h"
 #include "Interfaces/IHttpResponse.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
+
+#include <HttpRequests/GitHubToolsHttpRequest_GetPullRequestFilePatches.h>
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 

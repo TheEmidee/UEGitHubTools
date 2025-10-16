@@ -1,6 +1,9 @@
 #include "GitHubToolsHttpRequest_ResolveReviewThread.h"
 
+#include "Dom/JsonValue.h"
 #include "Interfaces/IHttpResponse.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 

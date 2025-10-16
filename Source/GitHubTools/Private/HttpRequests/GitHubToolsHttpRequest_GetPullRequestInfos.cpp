@@ -1,9 +1,8 @@
 #include "GitHubToolsHttpRequest_GetPullRequestInfos.h"
 
+#include "Dom/JsonValue.h"
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
-#include "Dom/JsonValue.h"
-
 #include "Interfaces/IHttpResponse.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"

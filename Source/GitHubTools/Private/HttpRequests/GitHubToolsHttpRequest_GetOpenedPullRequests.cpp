@@ -1,10 +1,9 @@
 #include "GitHubToolsHttpRequest_GetOpenedPullRequests.h"
 
+#include "Dom/JsonValue.h"
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
 #include "GitSourceControlModule.h"
-#include "Dom/JsonValue.h"
-
 #include "Interfaces/IHttpResponse.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
@@ -47,10 +46,10 @@ FString FGitHubToolsHttpRequest_GetOpenedPullRequests::GetBody() const
 void FGitHubToolsHttpRequest_GetOpenedPullRequests::ParseResponse( FHttpResponsePtr response_ptr )
 {
     const auto json_response = response_ptr->GetContentAsString();
-    const auto json_reader = TJsonReaderFactory< >::Create( json_response );
+    const auto json_reader = TJsonReaderFactory<>::Create( json_response );
 
     TSharedPtr< FJsonValue > data_node;
-    if (!FJsonSerializer::Deserialize( json_reader, data_node ))
+    if ( !FJsonSerializer::Deserialize( json_reader, data_node ) )
     {
         return;
     }
@@ -63,7 +62,7 @@ void FGitHubToolsHttpRequest_GetOpenedPullRequests::ParseResponse( FHttpResponse
     TArray< FGitHubToolsOpenedPullRequestInfosPtr > opened_prs;
     opened_prs.Reserve( pull_requests_edges_objects.Num() );
 
-    for (const auto pull_request_infos : pull_requests_edges_objects)
+    for ( const auto pull_request_infos : pull_requests_edges_objects )
     {
         const auto pr_object = pull_request_infos->AsObject();
         const auto node_object = pr_object->GetObjectField( TEXT( "node" ) );
