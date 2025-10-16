@@ -3,6 +3,7 @@
 #include "SGitHubToolsPRInfos.h"
 
 #include "CoreMinimal.h"
+#include "Widgets/Views/STableRow.h"
 
 class SGitHubToolsFileInfosRow final : public STableRow< FGitHubToolsFileInfosTreeItemPtr >
 {

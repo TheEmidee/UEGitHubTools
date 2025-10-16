@@ -300,8 +300,6 @@ namespace GitHubToolsUtils
             return;
         }
 
-        FGitHubToolsModule::Get().GetNotificationManager().DisplayModalNotification( LOCTEXT( "MarkFileAsViewed", "Marking file as viewed" ) );
-
         FGitHubToolsModule::Get()
             .GetRequestManager()
             .SendRequest< FGitHubToolsHttpRequest_MarkFileAsViewed >( pr_id, file_infos->Path )
@@ -325,8 +323,6 @@ namespace GitHubToolsUtils
             callback( files );
             return;
         }
-
-        FGitHubToolsModule::Get().GetNotificationManager().DisplayModalNotification( LOCTEXT( "MarkFilesAsViewed", "Marking files as viewed" ) );
 
         Async( EAsyncExecution::TaskGraph, [ pr_id = MoveTemp( pr_id ), callback = MoveTemp( callback ), files = MoveTemp( files ) ]() mutable {
             for ( auto file_infos : files )

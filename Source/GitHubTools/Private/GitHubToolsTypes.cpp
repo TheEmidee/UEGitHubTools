@@ -2,6 +2,8 @@
 
 #include "GitHubToolsGitUtils.h"
 #include "Dom/JsonObject.h"
+#include "Misc/Paths.h"
+#include "Styling/CoreStyle.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools"
 
