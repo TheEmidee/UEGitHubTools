@@ -10,8 +10,7 @@ class SButton;
 class SGitHubToolsPRHeader : public SCompoundWidget
 {
 public:
-    SLATE_BEGIN_ARGS( SGitHubToolsPRHeader ) :
-        _PRInfos()
+    SLATE_BEGIN_ARGS( SGitHubToolsPRHeader )
     {}
 
     SLATE_ATTRIBUTE( FGithubToolsPullRequestInfosPtr, PRInfos )

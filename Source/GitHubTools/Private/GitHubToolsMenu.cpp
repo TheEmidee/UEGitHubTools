@@ -4,9 +4,14 @@
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
 #include "GitSourceControlModule.h"
-#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestFiles.h"
-#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestNumber.h"
+#include "ToolMenus.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Framework/Commands/UIAction.h"
+#include "Framework/Docking/TabManager.h"
+#include "HttpRequests/GitHubToolsHttpRequest_GetOpenedPullRequests.h"
+#include "Widgets/DeclarativeSyntaxSupport.h"
 #include "Widgets/SGitHubToolsPRInfos.h"
+#include "Widgets/SWindow.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools"
 
@@ -20,7 +25,7 @@ namespace
 void FGitHubToolsMenu::Register()
 {
     FToolMenuOwnerScoped SourceControlMenuOwner( MenuTabName );
-    if ( auto * tool_menus = UToolMenus::Get() )
+    if (auto * tool_menus = UToolMenus::Get())
     {
         auto * source_control_menu = tool_menus->ExtendMenu( "StatusBar.ToolBar.SourceControl" );
         auto & section = source_control_menu->AddSection( "GitHubToolsActions", LOCTEXT( "GitHubToolsMenuHeadingActions", "GitHub Tools" ), FToolMenuInsert( NAME_None, EToolMenuInsertType::First ) );
@@ -31,47 +36,78 @@ void FGitHubToolsMenu::Register()
 
 void FGitHubToolsMenu::Unregister()
 {
-    if ( auto * tool_menus = UToolMenus::Get() )
+    if (auto * tool_menus = UToolMenus::Get())
     {
         tool_menus->UnregisterOwnerByName( MenuTabName );
     }
 }
 
-void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
+void FGitHubToolsMenu::CloseReviewWindow()
 {
-    if ( FGitHubToolsModule::Get().GetNotificationManager().IsOperationInProgress() )
+    if (ReviewWindowPtr.IsValid())
+    {
+        ReviewWindowPtr->RequestDestroyWindow();
+        ReviewWindowPtr.Reset();
+    }
+}
+
+void FGitHubToolsMenu::OpenReviewWindow( bool close_opened_window )
+{
+    if (FGitHubToolsModule::Get().GetNotificationManager().IsOperationInProgress())
     {
         FGitHubToolsModule::Get().GetNotificationManager().DisplayFailureNotification( LOCTEXT( "SourceControlMenu_InProgress", "Revision control operation already in progress" ) );
         return;
     }
 
-    if ( !ValidateSettings() )
+    if (close_opened_window)
+    {
+        CloseReviewWindow();
+    }
+
+    if (!ValidateSettings())
     {
         return;
     }
 
-    FGitHubToolsModule::Get().GetNotificationManager().DisplayInProgressNotification( LOCTEXT( "FetchPRInfos", "Fetching Pull Request informations" ) );
+    FGitHubToolsModule::Get().GetNotificationManager().DisplayInProgressNotification( LOCTEXT( "FetchPRInfos", "Fetching Pull Request information" ) );
 
     FGitHubToolsModule::Get()
         .GetRequestManager()
-        .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestNumber >()
-        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestNumber > & result ) {
+        .SendRequest< FGitHubToolsHttpRequest_GetOpenedPullRequests >()
+        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_GetOpenedPullRequests > & result ) {
             const auto & result_data = result.Get();
+            TArray< FGitHubToolsOpenedPullRequestInfosPtr > opened_prs = result_data.GetResult().Get( {} );
 
-            const auto pr_number = result_data.GetResult().Get( INDEX_NONE );
+            const auto local_branch_name = GitHubToolsUtils::GetBranchName();
 
-            if ( pr_number == INDEX_NONE )
+            if (local_branch_name.IsEmpty())
+            {
+                FGitHubToolsModule::Get().GetNotificationManager().DisplayFailureNotification( LOCTEXT( "FetchPrInfosError_NoPRNumber", "Unable to get the local branch name" ) );
+                return;
+            }
+            const FGitHubToolsOpenedPullRequestInfosPtr * found_pr = opened_prs.FindByPredicate( [&]( const TSharedPtr< FGitHubToolsOpenedPullRequestInfos > & opened_pr_infos ) {
+                return opened_pr_infos->HeadRefName == *local_branch_name;
+            } );
+
+            if (found_pr == nullptr)
             {
                 FGitHubToolsModule::Get().GetNotificationManager().DisplayFailureNotification( LOCTEXT( "FetchPrInfosError_NoPRNumber", "Unable to get the PR number" ) );
                 return;
             }
 
-            GitHubToolsUtils::GetPullRequestInfos( pr_number )
-                .Then( [ & ]( TFuture< FGithubToolsPullRequestInfosPtr > pr_infos ) {
+            ( *found_pr )->bIsCurrentPR = true;
+
+            GitHubToolsUtils::GetPullRequestInfos( ( *found_pr )->Number )
+                .Then( [ &, prs = MoveTemp( opened_prs ) ]( TFuture< FGithubToolsPullRequestInfosPtr > pr_infos ) {
                     FGitHubToolsModule::Get().GetNotificationManager().RemoveInProgressNotification();
-                    ShowPullRequestReviewWindow( pr_infos.Get() );
+                    ShowPullRequestReviewWindow( pr_infos.Get(), prs );
                 } );
         } );
+}
+
+void FGitHubToolsMenu::ReviewToolButtonMenuEntryClicked()
+{
+    OpenReviewWindow();
 }
 
 bool FGitHubToolsMenu::HasGitRemoteUrl() const
@@ -96,26 +132,27 @@ void FGitHubToolsMenu::OnReviewWindowDialogClosed( const TSharedRef< SWindow > &
     ReviewWindowPtr = nullptr;
 }
 
-void FGitHubToolsMenu::ShowPullRequestReviewWindow( const FGithubToolsPullRequestInfosPtr & pr_infos )
+void FGitHubToolsMenu::ShowPullRequestReviewWindow( const FGithubToolsPullRequestInfosPtr & pr_infos, TArray< FGitHubToolsOpenedPullRequestInfosPtr > opened_prs )
 {
     ReviewWindowPtr = SNew( SWindow )
-                          .Title( LOCTEXT( "SourceControlLoginTitle", "Review Window" ) )
-                          .ClientSize( FVector2D( 1280, 1024 ) )
-                          .HasCloseButton( true )
-                          .SupportsMaximize( true )
-                          .SupportsMinimize( true )
-                          .SizingRule( ESizingRule::UserSized );
+        .Title( LOCTEXT( "SourceControlLoginTitle", "Review Window" ) )
+        .ClientSize( FVector2D( 1280, 1024 ) )
+        .HasCloseButton( true )
+        .SupportsMaximize( true )
+        .SupportsMinimize( true )
+        .SizingRule( ESizingRule::UserSized );
 
     ReviewWindowPtr->SetOnWindowClosed( FOnWindowClosed::CreateRaw( this, &FGitHubToolsMenu::OnReviewWindowDialogClosed ) );
 
     const TSharedRef< SGitHubToolsPRInfos > pull_request_review_widget =
         SNew( SGitHubToolsPRInfos )
-            .Infos( pr_infos );
+        .Infos( pr_infos )
+        .OpenedPrs( opened_prs );
 
     ReviewWindowPtr->SetContent( pull_request_review_widget );
 
     const TSharedPtr< SWindow > RootWindow = FGlobalTabmanager::Get()->GetRootWindow();
-    if ( RootWindow.IsValid() )
+    if (RootWindow.IsValid())
     {
         FSlateApplication::Get().AddWindowAsNativeChild( ReviewWindowPtr.ToSharedRef(), RootWindow.ToSharedRef() );
     }
@@ -127,9 +164,9 @@ void FGitHubToolsMenu::ShowPullRequestReviewWindow( const FGithubToolsPullReques
 
 bool FGitHubToolsMenu::ValidateSettings() const
 {
-    if ( auto * settings = GetDefault< UGitHubToolsSettings >() )
+    if (auto * settings = GetDefault< UGitHubToolsSettings >())
     {
-        if ( settings->Token.IsEmpty() )
+        if (settings->Token.IsEmpty())
         {
             FGitHubToolsModule::Get()
                 .GetNotificationManager()
@@ -137,7 +174,7 @@ bool FGitHubToolsMenu::ValidateSettings() const
             return false;
         }
 
-        if ( settings->RepositoryName.IsEmpty() )
+        if (settings->RepositoryName.IsEmpty())
         {
             FGitHubToolsModule::Get()
                 .GetNotificationManager()
@@ -145,7 +182,7 @@ bool FGitHubToolsMenu::ValidateSettings() const
             return false;
         }
 
-        if ( settings->RepositoryOwner.IsEmpty() )
+        if (settings->RepositoryOwner.IsEmpty())
         {
             FGitHubToolsModule::Get()
                 .GetNotificationManager()

@@ -18,11 +18,12 @@ public:
 
     FGitHubToolsHttpRequestManager & GetRequestManager() const;
     FGitHubToolsNotificationManager & GetNotificationManager();
+    FGitHubToolsMenu & GetMenu();
 
     static FGitHubToolsModule & Get();
 
 private:
-    FGitHubToolsMenu GitSourceControlMenu;
+    FGitHubToolsMenu GitHubToolsMenu;
     TUniquePtr< FGitHubToolsHttpRequestManager > HttpRequestManager;
     FGitHubToolsNotificationManager NotificationManager;
 };

@@ -210,6 +210,20 @@ FORCEINLINE bool FGithubToolsPullRequestInfos::HasPendingReviews() const
 
 typedef TSharedPtr< FGithubToolsPullRequestInfos > FGithubToolsPullRequestInfosPtr;
 
+struct FGitHubToolsOpenedPullRequestInfos
+{
+    FGitHubToolsOpenedPullRequestInfos() = default;
+    explicit FGitHubToolsOpenedPullRequestInfos( const TSharedRef< FJsonObject > & json );
+
+    int Number;
+    FString Title;
+    FText Author;
+    FString HeadRefName;
+    bool bIsCurrentPR = false;
+};
+
+typedef TSharedPtr< FGitHubToolsOpenedPullRequestInfos > FGitHubToolsOpenedPullRequestInfosPtr;
+
 struct FGitHubToolsFileInfosTreeItem
 {
     explicit FGitHubToolsFileInfosTreeItem( const FString & path ) :

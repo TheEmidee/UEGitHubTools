@@ -1,14 +1,17 @@
-#include "GitHubToolsHttpRequest_GetPullRequestNumber.h"
+#include "GitHubToolsHttpRequest_GetOpenedPullRequests.h"
 
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
 #include "GitSourceControlModule.h"
+#include "Dom/JsonValue.h"
 
 #include "Interfaces/IHttpResponse.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 
-FString FGitHubToolsHttpRequestData_GetPullRequestNumber::GetBody() const
+FString FGitHubToolsHttpRequest_GetOpenedPullRequests::GetBody() const
 {
     const auto * settings = GetDefault< UGitHubToolsSettings >();
 
@@ -16,12 +19,15 @@ FString FGitHubToolsHttpRequestData_GetPullRequestNumber::GetBody() const
 
     string_builder << TEXT( "{ \"query\" : \"query ( $repoOwner: String!, $repoName: String! ) {" );
     string_builder << TEXT( "  repository( owner: $repoOwner, name: $repoName) {" );
-    string_builder << TEXT( "    pullRequests( last: 100 ) {" );
+    string_builder << TEXT( "    pullRequests( last: 100, states: OPEN ) {" );
     string_builder << TEXT( "      edges {" );
     string_builder << TEXT( "        node {" );
     string_builder << TEXT( "          headRefName" );
     string_builder << TEXT( "          number" );
-    string_builder << TEXT( "          state" );
+    string_builder << TEXT( "          title" );
+    string_builder << TEXT( "          author {" );
+    string_builder << TEXT( "            login" );
+    string_builder << TEXT( "          }" );
     string_builder << TEXT( "        }" );
     string_builder << TEXT( "      }" );
     string_builder << TEXT( "    }" );
@@ -38,14 +44,13 @@ FString FGitHubToolsHttpRequestData_GetPullRequestNumber::GetBody() const
     return *string_builder;
 }
 
-void FGitHubToolsHttpRequestData_GetPullRequestNumber::ParseResponse( FHttpResponsePtr response_ptr )
+void FGitHubToolsHttpRequest_GetOpenedPullRequests::ParseResponse( FHttpResponsePtr response_ptr )
 {
-    const auto local_branch_name = FGitSourceControlModule::Get().GetProvider().GetBranchName();
     const auto json_response = response_ptr->GetContentAsString();
-    const auto json_reader = TJsonReaderFactory<>::Create( json_response );
+    const auto json_reader = TJsonReaderFactory< >::Create( json_response );
 
     TSharedPtr< FJsonValue > data_node;
-    if ( !FJsonSerializer::Deserialize( json_reader, data_node ) )
+    if (!FJsonSerializer::Deserialize( json_reader, data_node ))
     {
         return;
     }
@@ -55,41 +60,18 @@ void FGitHubToolsHttpRequestData_GetPullRequestNumber::ParseResponse( FHttpRespo
     const auto pull_requests_objects = repository_object->GetObjectField( TEXT( "pullRequests" ) );
     const auto pull_requests_edges_objects = pull_requests_objects->GetArrayField( TEXT( "edges" ) );
 
-    struct MatchingPRInfos
-    {
-        int Number;
-        FString State;
-    };
+    TArray< FGitHubToolsOpenedPullRequestInfosPtr > opened_prs;
+    opened_prs.Reserve( pull_requests_edges_objects.Num() );
 
-    TArray< MatchingPRInfos > matching_prs;
-
-    for ( const auto pull_request_infos : pull_requests_edges_objects )
+    for (const auto pull_request_infos : pull_requests_edges_objects)
     {
         const auto pr_object = pull_request_infos->AsObject();
         const auto node_object = pr_object->GetObjectField( TEXT( "node" ) );
 
-        const int number = node_object->GetIntegerField( TEXT( "number" ) );
-        const auto ref = node_object->GetStringField( TEXT( "headRefName" ) );
-        const auto state = node_object->GetStringField( TEXT( "state" ) );
-
-        if ( ref == local_branch_name )
-        {
-            matching_prs.Emplace( number, state );
-        }
+        opened_prs.Emplace( MakeShared< FGitHubToolsOpenedPullRequestInfos >( node_object.ToSharedRef() ) );
     }
 
-    matching_prs.RemoveAll( []( const auto & pr_infos ) {
-        return GitHubToolsUtils::GetPullRequestState( pr_infos.State ) != EGitHubToolsPullRequestsState::Open;
-    } );
-
-    if ( matching_prs.Num() == 1 )
-    {
-        Result = matching_prs.Last().Number;
-    }
-    else
-    {
-        Result = INDEX_NONE;
-    }
+    Result = opened_prs;
 }
 
 #undef LOCTEXT_NAMESPACE

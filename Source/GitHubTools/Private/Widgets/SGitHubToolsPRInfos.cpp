@@ -9,6 +9,9 @@
 #include "SGitHubToolsPRInfosMessageDisplay.h"
 #include "SGitHubToolsPRInfosTreeFilters.h"
 #include "SGitHubToolsPRReviewList.h"
+#include "SGitHubToolsPRSelector.h"
+#include "Widgets/Input/SButton.h"
+#include "Widgets/Notifications/SErrorText.h"
 
 #define LOCTEXT_NAMESPACE "GitHubToolsPullRequestReviewWidget"
 
@@ -55,6 +58,14 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
                 .BorderImage( FAppStyle::GetBrush( "ToolPanel.GroupBorder" ) )
                     [ SAssignNew( contents, SVerticalBox ) ] ];
 
+    contents->AddSlot()
+        .Padding( FMargin( 5 ) )
+        .AutoHeight()
+            [
+                SNew( SGitHubToolsPRSelector )
+                    .OpenedPRs( arguments._OpenedPrs.Get() )
+            ];
+    
     contents->AddSlot()
         .Padding( FMargin( 5 ) )
         .AutoHeight()
