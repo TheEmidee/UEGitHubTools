@@ -3,7 +3,7 @@
 #include "GitHubToolsHttpRequestManager.h"
 #include "GitHubToolsTypes.h"
 
-class FGitHubToolsHttpRequest_GetOpenedPullRequests final : public FGitHubToolsHttpRequest< TArray< FGitHubToolsOpenedPullRequestInfosPtr > >
+class FGitHubToolsHttpRequest_GetOpenedPullRequests final : public FGitHubToolsHttpRequestQueryGraphQL< TArray< FGitHubToolsOpenedPullRequestInfosPtr > >
 {
 public:
     using ResponseType = TArray< FGitHubToolsOpenedPullRequestInfosPtr >;

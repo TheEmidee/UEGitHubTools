@@ -17,11 +17,6 @@ FString FGitHubToolsHttpRequestData_GetPullRequestFilePatches::GetEndPoint() con
     return FString::Printf( TEXT( "pulls/%i/files?per_page=100" ), PullRequestNumber );
 }
 
-bool FGitHubToolsHttpRequestData_GetPullRequestFilePatches::UsesGraphQL() const
-{
-    return false;
-}
-
 void FGitHubToolsHttpRequestData_GetPullRequestFilePatches::ParseResponse( FHttpResponsePtr response_ptr )
 {
     const auto json_response = response_ptr->GetContentAsString();

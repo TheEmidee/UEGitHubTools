@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 
 FGitHubToolsHttpRequestData_GetPullRequestFiles::FGitHubToolsHttpRequestData_GetPullRequestFiles( int pull_request_number, const FString & after_cursor ) :
-    FGitHubToolsHttpRequestWithPagination( after_cursor ),
+    FGitHubToolsHttpRequestGraphQLQueryWithPagination( after_cursor ),
     PullRequestNumber( pull_request_number )
 {
 }

@@ -60,22 +60,14 @@ public:
 
     virtual ~FGitHubToolsHttpRequest() = default;
 
+    virtual void SetupHttpRequest( TSharedRef< IHttpRequest > http_request );
+
     FORCEINLINE const TOptional< TResultType > & GetResult() const
     {
         return Result;
     }
 
-    virtual bool UsesGraphQL() const
-    {
-        return true;
-    }
-
     FString GetQuery() const;
-
-    virtual FString GetEndPoint() const
-    {
-        return TEXT( "" );
-    }
 
     bool HasErrorMessage() const
     {
@@ -91,6 +83,8 @@ public:
     virtual void AddParameters( TSharedPtr< FJsonObject > & variables_object ) const;
 
 protected:
+    virtual FString GetVerb() const = 0; 
+    virtual FString GetURL() const = 0;
     virtual void ProcessRawQuery( FString & query ) const;
     virtual FString GetRawQuery() const = 0;
     virtual void ParseResponse( FHttpResponsePtr response_ptr ) = 0;
@@ -100,10 +94,46 @@ protected:
 };
 
 template < typename TResultType >
-class FGitHubToolsHttpRequestWithPagination : public FGitHubToolsHttpRequest< TResultType >
+class FGitHubToolsHttpRequestGraphQL : public FGitHubToolsHttpRequest< TResultType >
 {
 public:
-    explicit FGitHubToolsHttpRequestWithPagination( const FString & after_cursor = TEXT( "" ) );
+    void SetupHttpRequest( TSharedRef< IHttpRequest > http_request ) override;
+
+protected:
+    virtual void SetupBodyJSON( TSharedRef< FJsonObject > body_object ) const = 0;
+    FString GetVerb() const override;
+    FString GetURL() const override;
+};
+
+template < typename TResultType >
+class FGitHubToolsHttpRequestGraphQLQuery : public FGitHubToolsHttpRequestGraphQL< TResultType >
+{
+public:
+    void SetupHttpRequest( TSharedRef< IHttpRequest > http_request ) override;
+
+protected:
+    virtual void SetupBodyJSON( TSharedRef< FJsonObject > body_object ) const = 0;
+    FString GetVerb() const override;
+    FString GetURL() const override;
+};
+
+template < typename TResultType >
+class FGitHubToolsHttpRequestGraphQLMutation : public FGitHubToolsHttpRequestGraphQL< TResultType >
+{
+public:
+    void SetupHttpRequest( TSharedRef< IHttpRequest > http_request ) override;
+
+protected:
+    virtual void SetupBodyJSON( TSharedRef< FJsonObject > body_object ) const = 0;
+    FString GetVerb() const override;
+    FString GetURL() const override;
+};
+
+template < typename TResultType >
+class FGitHubToolsHttpRequestGraphQLQueryWithPagination : public FGitHubToolsHttpRequestGraphQLQuery< TResultType >
+{
+public:
+    explicit FGitHubToolsHttpRequestGraphQLQueryWithPagination( const FString & after_cursor = TEXT( "" ) );
 
     FORCEINLINE bool HasNextPage() const
     {
@@ -124,6 +154,15 @@ private:
     FString AfterCursor;
     bool bHasNextPage;
     FString EndCursor;
+};
+
+template < typename TResultType >
+class FGitHubToolsHttpRequestRest : public FGitHubToolsHttpRequest< TResultType >
+{
+protected:
+    FString GetVerb() const override;
+    FString GetURL() const override;
+    virtual FString GetEndPoint() const = 0;
 };
 
 class FGitHubToolsHttpRequestManager final : public TSharedFromThis< FGitHubToolsHttpRequestManager >
