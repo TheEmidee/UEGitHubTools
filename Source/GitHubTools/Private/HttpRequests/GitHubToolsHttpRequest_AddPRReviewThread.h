@@ -6,7 +6,7 @@
 class FGitHubToolsHttpRequestData_AddPRReviewThread : public FGitHubToolsHttpRequest< FGithubToolsPullRequestReviewThreadInfosPtr >
 {
 public:
-    FString GetBody() const override;
+    FString GetRawQuery() const override;
 
 protected:
     FGitHubToolsHttpRequestData_AddPRReviewThread( const FString & pull_request_id, const FString & pull_request_review_id, const FString & file_path, const FString & comment );

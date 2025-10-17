@@ -14,7 +14,7 @@ FGitHubToolsHttpRequestData_AddPRReviewThreadReply::FGitHubToolsHttpRequestData_
 {
 }
 
-FString FGitHubToolsHttpRequestData_AddPRReviewThreadReply::GetBody() const
+FString FGitHubToolsHttpRequestData_AddPRReviewThreadReply::GetRawQuery() const
 {
     TStringBuilder< 512 > string_builder;
 

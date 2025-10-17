@@ -7,7 +7,7 @@ class FGitHubToolsHttpRequest_DeletePullRequestReview final : public FGitHubTool
 public:
     explicit FGitHubToolsHttpRequest_DeletePullRequestReview( const FString & review_id );
 
-    FString GetBody() const override;
+    FString GetRawQuery() const override;
 
 private:
     void ParseResponse( FHttpResponsePtr response_ptr ) override;

@@ -12,7 +12,7 @@ FGitHubToolsHttpRequest_DeletePullRequestReview::FGitHubToolsHttpRequest_DeleteP
 {
 }
 
-FString FGitHubToolsHttpRequest_DeletePullRequestReview::GetBody() const
+FString FGitHubToolsHttpRequest_DeletePullRequestReview::GetRawQuery() const
 {
     TStringBuilder< 512 > string_builder;
 

@@ -12,7 +12,7 @@ FGitHubToolsHttpRequestData_ResolveReviewThread::FGitHubToolsHttpRequestData_Res
 {
 }
 
-FString FGitHubToolsHttpRequestData_ResolveReviewThread::GetBody() const
+FString FGitHubToolsHttpRequestData_ResolveReviewThread::GetRawQuery() const
 {
     TStringBuilder< 512 > string_builder;
 

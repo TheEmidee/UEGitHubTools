@@ -15,7 +15,7 @@ FGitHubToolsHttpRequestData_SubmitPRReview::FGitHubToolsHttpRequestData_SubmitPR
 {
 }
 
-FString FGitHubToolsHttpRequestData_SubmitPRReview::GetBody() const
+FString FGitHubToolsHttpRequestData_SubmitPRReview::GetRawQuery() const
 {
     TStringBuilder< 512 > string_builder;
 

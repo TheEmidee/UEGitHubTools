@@ -14,6 +14,9 @@ public:
     bool UsesGraphQL() const override;
     void ParseResponse( FHttpResponsePtr response_ptr ) override;
 
+protected:
+    FString GetRawQuery() const override;
+
 private:
     int PullRequestNumber;
 };

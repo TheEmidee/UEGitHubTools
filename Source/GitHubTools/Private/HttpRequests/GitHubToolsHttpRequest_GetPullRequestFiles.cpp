@@ -14,37 +14,27 @@ FGitHubToolsHttpRequestData_GetPullRequestFiles::FGitHubToolsHttpRequestData_Get
 {
 }
 
-FString FGitHubToolsHttpRequestData_GetPullRequestFiles::GetBody() const
+FString FGitHubToolsHttpRequestData_GetPullRequestFiles::GetRawQuery() const
 {
-    TStringBuilder< 512 > string_builder;
-    const auto * settings = GetDefault< UGitHubToolsSettings >();
-
-    string_builder << TEXT( "{ \"query\" : \"query ($repoOwner: String!, $repoName: String!, $pullNumber: Int!) {" );
-    string_builder << TEXT( "  repository(owner: $repoOwner, name: $repoName) {" );
-    string_builder << TEXT( "    pullRequest( number : $pullNumber ) {" );
-    string_builder << TEXT( "      files(" ) << GetCursorInfo() << TEXT( " ) {" );
-    string_builder << TEXT( "        nodes {" );
-    string_builder << TEXT( "          path" );
-    string_builder << TEXT( "          changeType" );
-    string_builder << TEXT( "          viewerViewedState" );
-    string_builder << TEXT( "        }" );
-
-    string_builder << GetPageInfoJson();
-
-    string_builder << TEXT( "      }" );
-    string_builder << TEXT( "    }" );
-    string_builder << TEXT( "  }" );
-    string_builder << TEXT( "}" );
-    string_builder << TEXT( "\"," );
-    string_builder << TEXT( "\"variables\": " );
-    string_builder << TEXT( "  {" );
-    string_builder << TEXT( "    \"repoOwner\": \"" << settings->RepositoryOwner << "\"," );
-    string_builder << TEXT( "    \"repoName\": \"" << settings->RepositoryName << "\"," );
-    string_builder << TEXT( "    \"pullNumber\": " << PullRequestNumber );
-    string_builder << TEXT( "  }" );
-    string_builder << TEXT( "}" );
-
-    return *string_builder;
+    return R"(
+query ($repoOwner: String!, $repoName: String!, $pullNumber: Int!) {
+  repository(owner: $repoOwner, name: $repoName) {
+    pullRequest( number : $pullNumber ) {
+      files( __CURSOR_INFO__ ) {
+        nodes {
+          path
+          changeType
+          viewerViewedState
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+      }
+    }
+  }
+}
+)";
 }
 
 void FGitHubToolsHttpRequestData_GetPullRequestFiles::ParseResponse( FHttpResponsePtr response_ptr )
@@ -80,6 +70,11 @@ void FGitHubToolsHttpRequestData_GetPullRequestFiles::ParseResponse( FHttpRespon
     ParsePageInfo( files_object );
 
     Result = files;
+}
+
+void FGitHubToolsHttpRequestData_GetPullRequestFiles::AddParameters( TSharedPtr< FJsonObject > & variables_object ) const
+{
+    variables_object->SetNumberField( TEXT( "pullNumber" ), PullRequestNumber );
 }
 
 #undef LOCTEXT_NAMESPACE

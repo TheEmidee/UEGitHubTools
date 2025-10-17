@@ -7,7 +7,7 @@ class FGitHubToolsHttpRequestData_ResolveReviewThread final : public FGitHubTool
 public:
     explicit FGitHubToolsHttpRequestData_ResolveReviewThread( const FString & thread_id );
 
-    FString GetBody() const override;
+    FString GetRawQuery() const override;
 
 private:
     void ParseResponse( FHttpResponsePtr response_ptr ) override;

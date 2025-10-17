@@ -7,7 +7,7 @@ class FGitHubToolsHttpRequest_MarkFileAsViewed final : public FGitHubToolsHttpRe
 public:
     FGitHubToolsHttpRequest_MarkFileAsViewed( const FString & pull_request_id, const FString & path );
 
-    FString GetBody() const override;
+    FString GetRawQuery() const override;
 
 private:
     void ParseResponse( FHttpResponsePtr response_ptr ) override;

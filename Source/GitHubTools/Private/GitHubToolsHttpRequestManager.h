@@ -70,10 +70,7 @@ public:
         return true;
     }
 
-    virtual FString GetBody() const
-    {
-        return TEXT( "" );
-    }
+    FString GetQuery() const;
 
     virtual FString GetEndPoint() const
     {
@@ -91,9 +88,13 @@ public:
     }
 
     void ProcessResponse( const FHttpResponsePtr & response_ptr );
+    virtual void AddParameters( TSharedPtr< FJsonObject > & variables_object ) const;
 
 protected:
+    virtual void ProcessRawQuery( FString & query ) const;
+    virtual FString GetRawQuery() const = 0;
     virtual void ParseResponse( FHttpResponsePtr response_ptr ) = 0;
+
     FString ErrorMessage;
     TOptional< TResultType > Result;
 };
@@ -115,8 +116,8 @@ public:
     }
 
 protected:
+    void ProcessRawQuery( FString & query ) const override;
     FString GetCursorInfo() const;
-    FString GetPageInfoJson() const;
     void ParsePageInfo( const TSharedPtr< FJsonObject > & json_object );
 
 private:

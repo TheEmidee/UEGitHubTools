@@ -8,7 +8,7 @@ class FGitHubToolsHttpRequestData_SubmitPRReview final : public FGitHubToolsHttp
 public:
     explicit FGitHubToolsHttpRequestData_SubmitPRReview( const FString & pull_request_id, const FString & pull_request_review_id, EGitHubToolsPullRequestReviewEvent event );
 
-    FString GetBody() const override;
+    FString GetRawQuery() const override;
 
 private:
     void ParseResponse( FHttpResponsePtr response_ptr ) override;

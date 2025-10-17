@@ -50,4 +50,9 @@ void FGitHubToolsHttpRequestData_GetPullRequestFilePatches::ParseResponse( FHttp
     Result = patches;
 }
 
+FString FGitHubToolsHttpRequestData_GetPullRequestFilePatches::GetRawQuery() const
+{
+    return TEXT( "" );
+}
+
 #undef LOCTEXT_NAMESPACE

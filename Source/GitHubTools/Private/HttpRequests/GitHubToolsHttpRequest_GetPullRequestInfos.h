@@ -10,8 +10,9 @@ public:
 
     explicit FGitHubToolsHttpRequestData_GetPullRequestInfos( int pull_request_number, TArray< FGithubToolsPullRequestFileInfosPtr > files, TArray< FGithubToolsPullRequestFilePatchPtr > patches );
 
-    FString GetBody() const override;
+    FString GetRawQuery() const override;
     void ParseResponse( FHttpResponsePtr response_ptr ) override;
+    void AddParameters( TSharedPtr< FJsonObject > & variables_object ) const override;
 
 private:
     int PullRequestNumber;

@@ -13,7 +13,7 @@ FGitHubToolsHttpRequest_MarkFileAsViewed::FGitHubToolsHttpRequest_MarkFileAsView
 {
 }
 
-FString FGitHubToolsHttpRequest_MarkFileAsViewed::GetBody() const
+FString FGitHubToolsHttpRequest_MarkFileAsViewed::GetRawQuery() const
 {
     TStringBuilder< 512 > string_builder;
 

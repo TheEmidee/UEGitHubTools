@@ -13,26 +13,45 @@ bool TGitHubToolsHttpRequestWrapper< TRequest >::ProcessRequest()
 {
     auto * settings = GetDefault< UGitHubToolsSettings >();
     const auto token = settings->Token;
-    const auto request = FHttpModule::Get().CreateRequest();
+    const auto http_request = FHttpModule::Get().CreateRequest();
 
     const auto verb = Request.UsesGraphQL() ? TEXT( "POST" ) : TEXT( "GET" );
 
-    request->SetVerb( verb );
-    request->SetHeader( TEXT( "Accept" ), TEXT( "application/json" ) );
-    request->SetHeader( TEXT( "Content-Type" ), TEXT( "application/vnd.github+json" ) );
+    http_request->SetVerb( verb );
+    http_request->SetHeader( TEXT( "Accept" ), TEXT( "application/json" ) );
+    http_request->SetHeader( TEXT( "Content-Type" ), TEXT( "application/vnd.github+json" ) );
 
     TStringBuilder< 128 > token_builder;
     token_builder << TEXT( "Bearer " );
     token_builder << token;
 
-    request->SetHeader( TEXT( "Authorization" ), *token_builder );
-    request->SetHeader( TEXT( "X-GitHub-Api-Version" ), TEXT( "2022-11-28" ) );
+    http_request->SetHeader( TEXT( "Authorization" ), *token_builder );
+    http_request->SetHeader( TEXT( "X-GitHub-Api-Version" ), TEXT( "2022-11-28" ) );
 
     TStringBuilder< 256 > url_string_builder;
 
     if ( Request.UsesGraphQL() )
     {
         url_string_builder << TEXT( "https://api.github.com/graphql" );
+
+        TSharedPtr< FJsonObject > body_object = MakeShared< FJsonObject >();
+        body_object->SetStringField( TEXT( "query" ), Request.GetQuery() );
+
+        TSharedPtr< FJsonObject > variables_object = MakeShared< FJsonObject >();
+        variables_object->SetStringField( TEXT( "repoOwner" ), settings->RepositoryOwner );
+        variables_object->SetStringField( TEXT( "repoName" ), settings->RepositoryName );
+        Request.AddParameters( variables_object );
+    
+        body_object->SetObjectField( TEXT( "variables" ), variables_object );
+
+        FString body;
+        TSharedRef< TJsonWriter<> > Writer = TJsonWriterFactory<>::Create( &body );
+        if ( !FJsonSerializer::Serialize( body_object.ToSharedRef(), Writer ) )
+        {
+            return false;
+        }
+
+        http_request->SetContentAsString( body );
     }
     else
     {
@@ -44,12 +63,12 @@ bool TGitHubToolsHttpRequestWrapper< TRequest >::ProcessRequest()
         url_string_builder << Request.GetEndPoint();
     }
 
-    request->SetURL( *url_string_builder );
-    request->SetContentAsString( Request.GetBody() );
-    request->OnProcessRequestComplete().BindRaw( this, &::TGitHubToolsHttpRequestWrapper< TRequest >::OnProcessRequestComplete );
-    request->SetDelegateThreadPolicy( EHttpRequestDelegateThreadPolicy::CompleteOnHttpThread );
+    http_request->SetURL( *url_string_builder );
+    
+    http_request->OnProcessRequestComplete().BindRaw( this, &::TGitHubToolsHttpRequestWrapper< TRequest >::OnProcessRequestComplete );
+    http_request->SetDelegateThreadPolicy( EHttpRequestDelegateThreadPolicy::CompleteOnHttpThread );
 
-    return request->ProcessRequest();
+    return http_request->ProcessRequest();
 }
 
 template < typename TRequest >
@@ -87,6 +106,14 @@ void TGitHubToolsHttpRequestWrapper< TRequest >::SetPromiseValue()
 }
 
 template < typename TResultType >
+FString FGitHubToolsHttpRequest< TResultType >::GetQuery() const
+{
+    FString query = GetRawQuery();
+    ProcessRawQuery( query );
+    return query;
+}
+
+template < typename TResultType >
 void FGitHubToolsHttpRequest< TResultType >::ProcessResponse( const FHttpResponsePtr & response_ptr )
 {
     const auto json_response = response_ptr->GetContentAsString();
@@ -119,10 +146,26 @@ void FGitHubToolsHttpRequest< TResultType >::ProcessResponse( const FHttpRespons
 }
 
 template < typename TResultType >
+void FGitHubToolsHttpRequest< TResultType >::AddParameters( TSharedPtr< FJsonObject > & variables_object ) const
+{
+}
+
+template < typename TResultType >
+void FGitHubToolsHttpRequest< TResultType >::ProcessRawQuery( FString & query ) const
+{
+}
+
+template < typename TResultType >
 FGitHubToolsHttpRequestWithPagination< TResultType >::FGitHubToolsHttpRequestWithPagination( const FString & after_cursor ) :
     AfterCursor( after_cursor ),
     bHasNextPage( false )
 {
+}
+
+template < typename TResultType >
+void FGitHubToolsHttpRequestWithPagination< TResultType >::ProcessRawQuery( FString & query ) const
+{
+    query.ReplaceInline( TEXT( "__CURSOR_INFO__" ), *GetCursorInfo() );
 }
 
 template < typename TResultType >
@@ -135,19 +178,6 @@ FString FGitHubToolsHttpRequestWithPagination< TResultType >::GetCursorInfo() co
     {
         string_builder << TEXT( ", after: \\\"" ) << AfterCursor << TEXT( "\\\"" );
     }
-
-    return *string_builder;
-}
-
-template < typename TResultType >
-FString FGitHubToolsHttpRequestWithPagination< TResultType >::GetPageInfoJson() const
-{
-    TStringBuilder< 128 > string_builder;
-
-    string_builder << TEXT( "pageInfo { " );
-    string_builder << TEXT( "  endCursor " );
-    string_builder << TEXT( "  hasNextPage " );
-    string_builder << TEXT( "}" );
 
     return *string_builder;
 }

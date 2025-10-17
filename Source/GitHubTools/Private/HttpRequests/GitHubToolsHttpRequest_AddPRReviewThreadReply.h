@@ -8,7 +8,7 @@ class FGitHubToolsHttpRequestData_AddPRReviewThreadReply final : public FGitHubT
 public:
     explicit FGitHubToolsHttpRequestData_AddPRReviewThreadReply( const FString & thread_id, const FString & comment );
 
-    FString GetBody() const override;
+    FString GetRawQuery() const override;
 
 private:
     void ParseResponse( FHttpResponsePtr response_ptr ) override;

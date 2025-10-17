@@ -8,7 +8,7 @@ class FGitHubToolsHttpRequest_GetOpenedPullRequests final : public FGitHubToolsH
 public:
     using ResponseType = TArray< FGitHubToolsOpenedPullRequestInfosPtr >;
 
-    FString GetBody() const override;
+    FString GetRawQuery() const override;
 
 private:
     void ParseResponse( FHttpResponsePtr response_ptr ) override;

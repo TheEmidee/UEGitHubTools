@@ -2,7 +2,6 @@
 
 #include "Dom/JsonValue.h"
 #include "GitHubToolsGitUtils.h"
-#include "GitHubToolsSettings.h"
 #include "Interfaces/IHttpResponse.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
@@ -16,114 +15,102 @@ FGitHubToolsHttpRequestData_GetPullRequestInfos::FGitHubToolsHttpRequestData_Get
 {
 }
 
-FString FGitHubToolsHttpRequestData_GetPullRequestInfos::GetBody() const
+FString FGitHubToolsHttpRequestData_GetPullRequestInfos::GetRawQuery() const
 {
-    const auto * settings = GetDefault< UGitHubToolsSettings >();
-
-    TStringBuilder< 512 > string_builder;
-
-    string_builder << TEXT( "{ \"query\" : \"query ($repoOwner: String!, $repoName: String!, $pullNumber: Int!) {" );
-    string_builder << TEXT( "  viewer {" );
-    string_builder << TEXT( "    login" );
-    string_builder << TEXT( "  }" );
-    string_builder << TEXT( "  repository( owner: $repoOwner, name: $repoName) {" );
-    string_builder << TEXT( "    pullRequest( number : $pullNumber ) {" );
-    string_builder << TEXT( "      number" );
-    string_builder << TEXT( "      id" );
-    string_builder << TEXT( "      title" );
-    string_builder << TEXT( "      author {" );
-    string_builder << TEXT( "        login" );
-    string_builder << TEXT( "      }" );
-    string_builder << TEXT( "      baseRefName" );
-    string_builder << TEXT( "      bodyText " );
-    string_builder << TEXT( "      changedFiles " );
-    string_builder << TEXT( "      createdAt " );
-    string_builder << TEXT( "      body " );
-    string_builder << TEXT( "      headRefName " );
-    string_builder << TEXT( "      isDraft " );
-    string_builder << TEXT( "      mergeable " );
-    string_builder << TEXT( "      state " );
-    string_builder << TEXT( "      url " );
-    string_builder << TEXT( "      commits {" );
-    string_builder << TEXT( "        totalCount" );
-    string_builder << TEXT( "      }" );
-    string_builder << TEXT( "      reviewThreads( first : 100 ) {" );
-    string_builder << TEXT( "        nodes {" );
-    string_builder << TEXT( "          resolvedBy {" );
-    string_builder << TEXT( "            login" );
-    string_builder << TEXT( "          } " );
-    string_builder << TEXT( "          id" );
-    string_builder << TEXT( "          isResolved" );
-    string_builder << TEXT( "          path" );
-    string_builder << TEXT( "          subjectType" );
-    string_builder << TEXT( "          diffSide" );
-    string_builder << TEXT( "          line" );
-    string_builder << TEXT( "          comments( first : 100 ) {" );
-    string_builder << TEXT( "            edges {" );
-    string_builder << TEXT( "              node {" );
-    string_builder << TEXT( "                author {" );
-    string_builder << TEXT( "                  login" );
-    string_builder << TEXT( "                } " );
-    string_builder << TEXT( "                id" );
-    string_builder << TEXT( "                body" );
-    string_builder << TEXT( "                createdAt" );
-    string_builder << TEXT( "              }" );
-    string_builder << TEXT( "            }" );
-    string_builder << TEXT( "          }" );
-    string_builder << TEXT( "        }" );
-    string_builder << TEXT( "      }" );
-    string_builder << TEXT( "      checks: commits( last: 1 ) {" );
-    string_builder << TEXT( "        edges {" );
-    string_builder << TEXT( "          node {" );
-    string_builder << TEXT( "            commit {" );
-    string_builder << TEXT( "              status {" );
-    string_builder << TEXT( "                contexts {" );
-    string_builder << TEXT( "                  context" );
-    string_builder << TEXT( "                  state" );
-    string_builder << TEXT( "                  description" );
-    string_builder << TEXT( "                }" );
-    string_builder << TEXT( "              }" );
-    string_builder << TEXT( "            }" );
-    string_builder << TEXT( "          }" );
-    string_builder << TEXT( "        }" );
-    string_builder << TEXT( "      }" );
-    string_builder << TEXT( "      reviews( first : 100 ) {" );
-    string_builder << TEXT( "        edges {" );
-    string_builder << TEXT( "          node {" );
-    string_builder << TEXT( "            author {" );
-    string_builder << TEXT( "              login" );
-    string_builder << TEXT( "            }" );
-    string_builder << TEXT( "            id" );
-    string_builder << TEXT( "            state" );
-    string_builder << TEXT( "            comments( first : 100 ) {" );
-    string_builder << TEXT( "              edges {" );
-    string_builder << TEXT( "                node {" );
-    string_builder << TEXT( "                  author {" );
-    string_builder << TEXT( "                    login" );
-    string_builder << TEXT( "                  }" );
-    string_builder << TEXT( "                  id" );
-    string_builder << TEXT( "                  body" );
-    string_builder << TEXT( "                  createdAt" );
-    string_builder << TEXT( "                  path" );
-    string_builder << TEXT( "                }" );
-    string_builder << TEXT( "              }" );
-    string_builder << TEXT( "            }" );
-    string_builder << TEXT( "          }" );
-    string_builder << TEXT( "        }" );
-    string_builder << TEXT( "      }" );
-    string_builder << TEXT( "    }" );
-    string_builder << TEXT( "  }" );
-    string_builder << TEXT( "}" );
-    string_builder << TEXT( "\"," );
-    string_builder << TEXT( "\"variables\": " );
-    string_builder << TEXT( "  {" );
-    string_builder << TEXT( "    \"repoOwner\": \"" << settings->RepositoryOwner << "\"," );
-    string_builder << TEXT( "    \"repoName\": \"" << settings->RepositoryName << "\"," );
-    string_builder << TEXT( "    \"pullNumber\": " << PullRequestNumber );
-    string_builder << TEXT( "  }" );
-    string_builder << TEXT( "}" );
-
-    return *string_builder;
+    return R"(
+query ($repoOwner: String!, $repoName: String!, $pullNumber: Int!) {
+  viewer {
+    login
+  }
+  repository( owner: $repoOwner, name: $repoName) {
+    pullRequest( number : $pullNumber ) {
+      number
+      id
+      title
+      author {
+        login
+      }
+      baseRefName
+      bodyText 
+      changedFiles 
+      createdAt 
+      body 
+      headRefName 
+      isDraft 
+      mergeable 
+      state 
+      url 
+      commits {
+        totalCount
+      }
+      reviewThreads( first : 100 ) {
+        nodes {
+          resolvedBy {
+            login
+          } 
+          id
+          isResolved
+          path
+          subjectType
+          diffSide
+          line
+          comments( first : 100 ) {
+            edges {
+              node {
+                author {
+                  login
+                } 
+                id
+                body
+                createdAt
+              }
+            }
+          }
+        }
+      }
+      checks: commits( last: 1 ) {
+        edges {
+          node {
+            commit {
+              status {
+                contexts {
+                  context
+                  state
+                  description
+                }
+              }
+            }
+          }
+        }
+      }
+      reviews( first : 100 ) {
+        edges {
+          node {
+            author {
+              login
+            }
+            id
+            state
+            comments( first : 100 ) {
+              edges {
+                node {
+                  author {
+                    login
+                  }
+                  id
+                  body
+                  createdAt
+                  path
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+)";
 }
 
 void FGitHubToolsHttpRequestData_GetPullRequestInfos::ParseResponse( FHttpResponsePtr response_ptr )
@@ -247,6 +234,10 @@ void FGitHubToolsHttpRequestData_GetPullRequestInfos::ParseResponse( FHttpRespon
     }
 
     Result = pr_infos;
+}
+void FGitHubToolsHttpRequestData_GetPullRequestInfos::AddParameters( TSharedPtr< FJsonObject > & variables_object ) const
+{
+    variables_object->SetNumberField( TEXT( "pullNumber" ), PullRequestNumber );
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -9,7 +9,7 @@ public:
     FGitHubToolsHttpRequestData_AddPRReview( const FString & pull_request_id, EGitHubToolsPullRequestReviewEvent event );
     explicit FGitHubToolsHttpRequestData_AddPRReview( const FString & pull_request_id );
 
-    FString GetBody() const override;
+    FString GetRawQuery() const override;
 
 private:
     void ParseResponse( FHttpResponsePtr response_ptr ) override;

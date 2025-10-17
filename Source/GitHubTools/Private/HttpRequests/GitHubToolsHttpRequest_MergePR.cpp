@@ -12,7 +12,7 @@ FGitHubToolsHttpRequest_MergePR::FGitHubToolsHttpRequest_MergePR( const FString 
 {
 }
 
-FString FGitHubToolsHttpRequest_MergePR::GetBody() const
+FString FGitHubToolsHttpRequest_MergePR::GetRawQuery() const
 {
     TStringBuilder< 512 > string_builder;
 

@@ -7,7 +7,7 @@ class FGitHubToolsHttpRequest_MergePR final : public FGitHubToolsHttpRequest< bo
 public:
     FGitHubToolsHttpRequest_MergePR( const FString & pull_request_id );
 
-    FString GetBody() const override;
+    FString GetRawQuery() const override;
 
 private:
     void ParseResponse( FHttpResponsePtr response_ptr ) override;
