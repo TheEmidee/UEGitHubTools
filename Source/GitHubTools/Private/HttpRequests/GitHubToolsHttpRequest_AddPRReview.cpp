@@ -2,7 +2,6 @@
 
 #include "Dom/JsonValue.h"
 #include "GitHubToolsGitUtils.h"
-#include "Interfaces/IHttpResponse.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 
@@ -44,19 +43,9 @@ FString FGitHubToolsHttpRequestData_AddPRReview::GetRawQuery() const
     return *string_builder;
 }
 
-void FGitHubToolsHttpRequestData_AddPRReview::ParseResponse( FHttpResponsePtr response_ptr )
+void FGitHubToolsHttpRequestData_AddPRReview::ParseResponseData( const FJsonObject & json_data )
 {
-    const auto json_response = response_ptr->GetContentAsString();
-    const auto json_reader = TJsonReaderFactory<>::Create( json_response );
-
-    TSharedPtr< FJsonValue > data;
-    if ( !FJsonSerializer::Deserialize( json_reader, data ) )
-    {
-        return;
-    }
-
-    const auto data_object = data->AsObject()->GetObjectField( TEXT( "data" ) );
-    const auto result_object = data_object->GetObjectField( TEXT( "addPullRequestReview" ) );
+    const auto result_object = json_data.GetObjectField( TEXT( "addPullRequestReview" ) );
     const auto thread_object = result_object->GetObjectField( TEXT( "pullRequestReview" ) );
     Result = thread_object->GetStringField( TEXT( "id" ) );
 }

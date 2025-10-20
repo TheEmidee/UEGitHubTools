@@ -30,19 +30,9 @@ query ( $repoOwner: String!, $repoName: String! ) {
 )";
 }
 
-void FGitHubToolsHttpRequest_GetOpenedPullRequests::ParseResponse( FHttpResponsePtr response_ptr )
+void FGitHubToolsHttpRequest_GetOpenedPullRequests::ParseResponseData( const FJsonObject & json_data )
 {
-    const auto json_response = response_ptr->GetContentAsString();
-    const auto json_reader = TJsonReaderFactory<>::Create( json_response );
-
-    TSharedPtr< FJsonValue > data_node;
-    if ( !FJsonSerializer::Deserialize( json_reader, data_node ) )
-    {
-        return;
-    }
-
-    const auto data_node_object = data_node->AsObject()->GetObjectField( TEXT( "data" ) );
-    const auto repository_object = data_node_object->GetObjectField( TEXT( "repository" ) );
+    const auto repository_object = json_data.GetObjectField( TEXT( "repository" ) );
     const auto pull_requests_objects = repository_object->GetObjectField( TEXT( "pullRequests" ) );
     const auto pull_requests_edges_objects = pull_requests_objects->GetArrayField( TEXT( "edges" ) );
 

@@ -2,8 +2,6 @@
 
 #include "Dom/JsonValue.h"
 #include "GitHubToolsGitUtils.h"
-#include "Interfaces/IHttpResponse.h"
-#include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
@@ -113,22 +111,11 @@ query ($repoOwner: String!, $repoName: String!, $pullNumber: Int!) {
 )";
 }
 
-void FGitHubToolsHttpRequestData_GetPullRequestInfos::ParseResponse( FHttpResponsePtr response_ptr )
+void FGitHubToolsHttpRequestData_GetPullRequestInfos::ParseResponseData( const FJsonObject & json_data )
 {
-    const auto json_response = response_ptr->GetContentAsString();
-    const auto json_reader = TJsonReaderFactory<>::Create( json_response );
+    const auto viewer_object = json_data.GetObjectField( TEXT( "viewer" ) );
+    const auto repository_object = json_data.GetObjectField( TEXT( "repository" ) );
 
-    TSharedPtr< FJsonValue > data;
-    if ( !FJsonSerializer::Deserialize( json_reader, data ) )
-    {
-        return;
-    }
-
-    const auto data_object = data->AsObject()->GetObjectField( TEXT( "data" ) );
-
-    const auto viewer_object = data_object->GetObjectField( TEXT( "viewer" ) );
-
-    const auto repository_object = data_object->GetObjectField( TEXT( "repository" ) );
     const auto pull_request_object = repository_object->GetObjectField( TEXT( "pullRequest" ) );
 
     auto pr_infos = MakeShared< FGithubToolsPullRequestInfos >( pull_request_object.ToSharedRef() );
@@ -235,9 +222,11 @@ void FGitHubToolsHttpRequestData_GetPullRequestInfos::ParseResponse( FHttpRespon
 
     Result = pr_infos;
 }
-void FGitHubToolsHttpRequestData_GetPullRequestInfos::AddParameters( TSharedPtr< FJsonObject > & variables_object ) const
+
+void FGitHubToolsHttpRequestData_GetPullRequestInfos::AddParameters( FJsonObject & variables_object ) const
 {
-    variables_object->SetNumberField( TEXT( "pullNumber" ), PullRequestNumber );
+    FGitHubToolsHttpRequestGraphQLQuery::AddParameters( variables_object );
+    variables_object.SetNumberField( TEXT( "pullNumber" ), PullRequestNumber );
 }
 
 #undef LOCTEXT_NAMESPACE

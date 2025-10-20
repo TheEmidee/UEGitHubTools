@@ -2,8 +2,6 @@
 
 #include "Dom/JsonValue.h"
 #include "GitHubToolsSettings.h"
-#include "Interfaces/IHttpResponse.h"
-#include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
@@ -37,19 +35,9 @@ query ($repoOwner: String!, $repoName: String!, $pullNumber: Int!) {
 )";
 }
 
-void FGitHubToolsHttpRequestData_GetPullRequestFiles::ParseResponse( FHttpResponsePtr response_ptr )
+void FGitHubToolsHttpRequestData_GetPullRequestFiles::ParseResponseData( const FJsonObject & json_data )
 {
-    const auto json_response = response_ptr->GetContentAsString();
-    const auto json_reader = TJsonReaderFactory<>::Create( json_response );
-
-    TSharedPtr< FJsonValue > data;
-    if ( !FJsonSerializer::Deserialize( json_reader, data ) )
-    {
-        return;
-    }
-
-    const auto data_object = data->AsObject()->GetObjectField( TEXT( "data" ) );
-    const auto repository_object = data_object->GetObjectField( TEXT( "repository" ) );
+    const auto repository_object = json_data.GetObjectField( TEXT( "repository" ) );
     const auto pull_request_object = repository_object->GetObjectField( TEXT( "pullRequest" ) );
 
     const auto files_object = pull_request_object->GetObjectField( TEXT( "files" ) );
@@ -67,14 +55,15 @@ void FGitHubToolsHttpRequestData_GetPullRequestFiles::ParseResponse( FHttpRespon
             file_node_object->GetStringField( TEXT( "viewerViewedState" ) ) ) );
     }
 
-    ParsePageInfo( files_object );
+    ParsePageInfo( *files_object.Get() );
 
     Result = files;
 }
 
-void FGitHubToolsHttpRequestData_GetPullRequestFiles::AddParameters( TSharedPtr< FJsonObject > & variables_object ) const
+void FGitHubToolsHttpRequestData_GetPullRequestFiles::AddParameters( FJsonObject & variables_object ) const
 {
-    variables_object->SetNumberField( TEXT( "pullNumber" ), PullRequestNumber );
+    FGitHubToolsHttpRequestGraphQLQueryWithPagination< TArray< FGithubToolsPullRequestFileInfosPtr > >::AddParameters( variables_object );
+    variables_object.SetNumberField( TEXT( "pullNumber" ), PullRequestNumber );
 }
 
 #undef LOCTEXT_NAMESPACE

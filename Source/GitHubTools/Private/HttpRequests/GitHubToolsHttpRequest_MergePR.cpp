@@ -1,8 +1,6 @@
 #include "GitHubToolsHttpRequest_MergePR.h"
 
 #include "Dom/JsonValue.h"
-#include "Interfaces/IHttpResponse.h"
-#include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
@@ -14,36 +12,27 @@ FGitHubToolsHttpRequest_MergePR::FGitHubToolsHttpRequest_MergePR( const FString 
 
 FString FGitHubToolsHttpRequest_MergePR::GetRawQuery() const
 {
-    TStringBuilder< 512 > string_builder;
-
-    string_builder << TEXT( "{ \"query\" :" );
-    string_builder << TEXT( "  \"mutation {" );
-    string_builder << TEXT( "    mergePullRequest( input: {" );
-    string_builder << TEXT( "      pullRequestId: \\\"" ) << *PullRequestId << TEXT( "\\\", " );
-    string_builder << TEXT( "      mergeMethod: MERGE" );
-    string_builder << TEXT( "    } ) { " );
-    string_builder << TEXT( "      pullRequest {" );
-    string_builder << TEXT( "        id" );
-    string_builder << TEXT( "      }" );
-    string_builder << TEXT( "    }" );
-    string_builder << TEXT( "  }\"" );
-    string_builder << TEXT( "}" );
-
-    return *string_builder;
+    return R"(
+mutation MergePullRequest( $pullRequestId: ID! ){
+  mergePullRequest( input: { pullRequestId: $pullRequestId, mergeMethod: MERGE } ) { 
+        pullRequest {
+            id
+        }
+    }
+}
+)";
 }
 
-void FGitHubToolsHttpRequest_MergePR::ParseResponse( FHttpResponsePtr response_ptr )
+void FGitHubToolsHttpRequest_MergePR::ParseResponseData( const FJsonObject & json_data )
 {
-    const auto json_response = response_ptr->GetContentAsString();
-    const auto json_reader = TJsonReaderFactory<>::Create( json_response );
-
-    TSharedPtr< FJsonValue > data;
-    if ( !FJsonSerializer::Deserialize( json_reader, data ) )
-    {
-        return;
-    }
-
     Result = true;
+}
+
+void FGitHubToolsHttpRequest_MergePR::AddParameters( FJsonObject & variables_object ) const
+{
+    FGitHubToolsHttpRequestGraphQLMutation::AddParameters( variables_object );
+
+    variables_object.SetStringField( TEXT( "pullRequestId" ), PullRequestId );
 }
 
 #undef LOCTEXT_NAMESPACE

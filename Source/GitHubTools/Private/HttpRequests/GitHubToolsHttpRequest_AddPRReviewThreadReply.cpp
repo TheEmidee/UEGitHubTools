@@ -39,21 +39,10 @@ FString FGitHubToolsHttpRequestData_AddPRReviewThreadReply::GetRawQuery() const
     return *string_builder;
 }
 
-void FGitHubToolsHttpRequestData_AddPRReviewThreadReply::ParseResponse( FHttpResponsePtr response_ptr )
+void FGitHubToolsHttpRequestData_AddPRReviewThreadReply::ParseResponseData( const FJsonObject & json_data )
 {
-    const auto json_response = response_ptr->GetContentAsString();
-    const auto json_reader = TJsonReaderFactory<>::Create( json_response );
-
-    TSharedPtr< FJsonValue > data;
-    if ( !FJsonSerializer::Deserialize( json_reader, data ) )
-    {
-        return;
-    }
-
-    const auto data_object = data->AsObject()->GetObjectField( TEXT( "data" ) );
-    const auto result_object = data_object->GetObjectField( TEXT( "addPullRequestReviewThreadReply" ) );
+    const auto result_object = json_data.GetObjectField( TEXT( "addPullRequestReviewThreadReply" ) );
     const auto comment_object = result_object->GetObjectField( TEXT( "comment" ) );
-
     const auto comment_author_object = comment_object->GetObjectField( TEXT( "author" ) );
 
     auto comment = MakeShared< FGithubToolsPullRequestComment >();

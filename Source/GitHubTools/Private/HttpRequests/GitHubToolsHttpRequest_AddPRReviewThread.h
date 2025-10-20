@@ -3,7 +3,7 @@
 #include "GitHubToolsHttpRequestManager.h"
 #include "GitHubToolsTypes.h"
 
-class FGitHubToolsHttpRequestData_AddPRReviewThread : public FGitHubToolsHttpRequest< FGithubToolsPullRequestReviewThreadInfosPtr >
+class FGitHubToolsHttpRequestData_AddPRReviewThread : public FGitHubToolsHttpRequestGraphQLMutation< FGithubToolsPullRequestReviewThreadInfosPtr >
 {
 public:
     FString GetRawQuery() const override;
@@ -14,7 +14,7 @@ protected:
     virtual FString GetMutationInputData() const = 0;
 
 private:
-    void ParseResponse( FHttpResponsePtr response_ptr ) override;
+    void ParseResponseData( const FJsonObject & json_data ) override;
 
     FString PullRequestId;
     FString PullRequestReviewId;

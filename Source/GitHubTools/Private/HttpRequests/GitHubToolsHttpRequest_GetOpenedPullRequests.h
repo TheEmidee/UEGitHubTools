@@ -3,7 +3,7 @@
 #include "GitHubToolsHttpRequestManager.h"
 #include "GitHubToolsTypes.h"
 
-class FGitHubToolsHttpRequest_GetOpenedPullRequests final : public FGitHubToolsHttpRequestQueryGraphQL< TArray< FGitHubToolsOpenedPullRequestInfosPtr > >
+class FGitHubToolsHttpRequest_GetOpenedPullRequests final : public FGitHubToolsHttpRequestGraphQLQuery< TArray< FGitHubToolsOpenedPullRequestInfosPtr > >
 {
 public:
     using ResponseType = TArray< FGitHubToolsOpenedPullRequestInfosPtr >;
@@ -11,5 +11,5 @@ public:
     FString GetRawQuery() const override;
 
 private:
-    void ParseResponse( FHttpResponsePtr response_ptr ) override;
+    void ParseResponseData( const FJsonObject & json_data ) override;
 };

@@ -62,19 +62,9 @@ FString FGitHubToolsHttpRequestData_AddPRReviewThread::GetRawQuery() const
     return *string_builder;
 }
 
-void FGitHubToolsHttpRequestData_AddPRReviewThread::ParseResponse( FHttpResponsePtr response_ptr )
+void FGitHubToolsHttpRequestData_AddPRReviewThread::ParseResponseData( const FJsonObject & json_data )
 {
-    const auto json_response = response_ptr->GetContentAsString();
-    const auto json_reader = TJsonReaderFactory<>::Create( json_response );
-
-    TSharedPtr< FJsonValue > data;
-    if ( !FJsonSerializer::Deserialize( json_reader, data ) )
-    {
-        return;
-    }
-
-    const auto data_object = data->AsObject()->GetObjectField( TEXT( "data" ) );
-    const auto result_object = data_object->GetObjectField( TEXT( "addPullRequestReviewThread" ) );
+    const auto result_object = json_data.GetObjectField( TEXT( "addPullRequestReviewThread" ) );
     const auto thread_object = result_object->GetObjectField( TEXT( "thread" ) );
     const auto pr_object = thread_object->GetObjectField( TEXT( "pullRequest" ) );
 

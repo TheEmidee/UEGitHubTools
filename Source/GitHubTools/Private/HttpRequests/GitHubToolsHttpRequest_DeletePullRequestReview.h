@@ -2,7 +2,7 @@
 
 #include "GitHubToolsHttpRequestManager.h"
 
-class FGitHubToolsHttpRequest_DeletePullRequestReview final : public FGitHubToolsHttpRequest< bool >
+class FGitHubToolsHttpRequest_DeletePullRequestReview final : public FGitHubToolsHttpRequestGraphQLMutation< bool >
 {
 public:
     explicit FGitHubToolsHttpRequest_DeletePullRequestReview( const FString & review_id );
@@ -10,7 +10,7 @@ public:
     FString GetRawQuery() const override;
 
 private:
-    void ParseResponse( FHttpResponsePtr response_ptr ) override;
+    void ParseResponseData( const FJsonObject & json_data ) override;
 
     FString ReviewId;
 };

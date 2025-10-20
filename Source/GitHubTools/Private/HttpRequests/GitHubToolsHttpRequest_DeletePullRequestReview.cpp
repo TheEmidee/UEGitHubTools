@@ -32,17 +32,8 @@ FString FGitHubToolsHttpRequest_DeletePullRequestReview::GetRawQuery() const
     return *string_builder;
 }
 
-void FGitHubToolsHttpRequest_DeletePullRequestReview::ParseResponse( FHttpResponsePtr response_ptr )
+void FGitHubToolsHttpRequest_DeletePullRequestReview::ParseResponseData( const FJsonObject & json_data )
 {
-    const auto json_response = response_ptr->GetContentAsString();
-    const auto json_reader = TJsonReaderFactory<>::Create( json_response );
-
-    TSharedPtr< FJsonValue > data;
-    if ( !FJsonSerializer::Deserialize( json_reader, data ) )
-    {
-        return;
-    }
-
     Result = true;
 }
 

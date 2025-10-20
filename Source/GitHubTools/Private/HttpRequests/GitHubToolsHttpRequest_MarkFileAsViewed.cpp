@@ -1,9 +1,6 @@
 #include "GitHubToolsHttpRequest_MarkFileAsViewed.h"
 
-#include "Dom/JsonValue.h"
-#include "Interfaces/IHttpResponse.h"
-#include "Serialization/JsonReader.h"
-#include "Serialization/JsonSerializer.h"
+#include "Dom/JsonObject.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 
@@ -15,35 +12,27 @@ FGitHubToolsHttpRequest_MarkFileAsViewed::FGitHubToolsHttpRequest_MarkFileAsView
 
 FString FGitHubToolsHttpRequest_MarkFileAsViewed::GetRawQuery() const
 {
-    TStringBuilder< 512 > string_builder;
-
-    string_builder << TEXT( "{ \"query\" :" );
-    string_builder << TEXT( "  \"mutation {" );
-    string_builder << TEXT( "    markFileAsViewed( input: {" );
-    string_builder << TEXT( "      pullRequestId: \\\"" ) << *PullRequestId << TEXT( "\\\", " );
-    string_builder << TEXT( "      path: \\\"" ) << *Path << TEXT( "\\\", " );
-    string_builder << TEXT( "    } ) { " );
-    string_builder << TEXT( "      pullRequest {" );
-    string_builder << TEXT( "        id" );
-    string_builder << TEXT( "      }" );
-    string_builder << TEXT( "    }" );
-    string_builder << TEXT( "  }\"" );
-    string_builder << TEXT( "}" );
-
-    return *string_builder;
+    return R"(
+mutation MarkFileAsViewed( $pullRequestId: ID!, $path: String! ){
+  markFileAsViewed( input: { pullRequestId: $pullRequestId, path: $path } ) { 
+        pullRequest {
+            id
+        }
+    }
+}
+)";
 }
 
-void FGitHubToolsHttpRequest_MarkFileAsViewed::ParseResponse( FHttpResponsePtr response_ptr )
+void FGitHubToolsHttpRequest_MarkFileAsViewed::AddParameters( FJsonObject & variables_object ) const
 {
-    const auto json_response = response_ptr->GetContentAsString();
-    const auto json_reader = TJsonReaderFactory<>::Create( json_response );
+    FGitHubToolsHttpRequestGraphQLMutation::AddParameters( variables_object );
 
-    TSharedPtr< FJsonValue > data;
-    if ( !FJsonSerializer::Deserialize( json_reader, data ) )
-    {
-        return;
-    }
+    variables_object.SetStringField( TEXT( "pullRequestId" ), PullRequestId );
+    variables_object.SetStringField( TEXT( "path" ), Path );
+}
 
+void FGitHubToolsHttpRequest_MarkFileAsViewed::ParseResponseData( const FJsonObject & json_data )
+{
     Result = true;
 }
 
