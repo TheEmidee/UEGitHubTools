@@ -15,7 +15,6 @@ protected:
     void AddParameters( FJsonObject & variables_object ) const override;
 
 private:
-
     FString PullRequestId;
     TOptional< EGitHubToolsPullRequestReviewEvent > Event;
 };

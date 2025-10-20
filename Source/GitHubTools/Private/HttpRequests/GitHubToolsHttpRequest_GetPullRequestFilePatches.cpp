@@ -3,7 +3,6 @@
 #include "Dom/JsonValue.h"
 #include "Serialization/JsonSerializer.h"
 
-
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 
 FGitHubToolsHttpRequestData_GetPullRequestFilePatches::FGitHubToolsHttpRequestData_GetPullRequestFilePatches( int pull_request_number ) :
@@ -19,16 +18,16 @@ FString FGitHubToolsHttpRequestData_GetPullRequestFilePatches::GetEndPoint() con
 void FGitHubToolsHttpRequestData_GetPullRequestFilePatches::ParseResponseData( const FJsonValue & json_data )
 {
     const auto objects = json_data.AsArray();
-    
+
     TArray< FGithubToolsPullRequestFilePatchPtr > patches;
     patches.Reserve( objects.Num() );
-    
+
     for ( auto array_object : objects )
     {
         const auto object = array_object->AsObject();
         const auto file_name = object->GetStringField( TEXT( "filename" ) );
         const auto patch = object->GetStringField( TEXT( "patch" ) );
-    
+
         patches.Add( MakeShared< FGithubToolsPullRequestFilePatch >( file_name, patch ) );
     }
 

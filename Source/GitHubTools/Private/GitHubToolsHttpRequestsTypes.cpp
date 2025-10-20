@@ -29,7 +29,7 @@ template < typename TResultType >
 void FGitHubToolsHttpRequestGraphQL< TResultType >::SetupHttpRequest( IHttpRequest & http_request )
 {
     FGitHubToolsHttpRequest< TResultType >::SetupHttpRequest( http_request );
-    
+
     TSharedPtr< FJsonObject > body_object = MakeShared< FJsonObject >();
     body_object->SetStringField( TEXT( "query" ), this->GetQuery() );
 

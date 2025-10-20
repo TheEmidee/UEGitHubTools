@@ -24,7 +24,7 @@ bool TGitHubToolsHttpRequestWrapper< TRequest >::ProcessRequest()
     http_request->SetHeader( TEXT( "X-GitHub-Api-Version" ), TEXT( "2022-11-28" ) );
 
     Request.SetupHttpRequest( http_request.Get() );
-    
+
     http_request->OnProcessRequestComplete().BindRaw( this, &::TGitHubToolsHttpRequestWrapper< TRequest >::OnProcessRequestComplete );
     http_request->SetDelegateThreadPolicy( EHttpRequestDelegateThreadPolicy::CompleteOnHttpThread );
 
