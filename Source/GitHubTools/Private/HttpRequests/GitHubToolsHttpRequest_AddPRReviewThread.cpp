@@ -2,8 +2,6 @@
 
 #include "Dom/JsonValue.h"
 #include "GitHubToolsTypes.h"
-#include "Interfaces/IHttpResponse.h"
-#include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
@@ -18,48 +16,51 @@ FGitHubToolsHttpRequestData_AddPRReviewThread::FGitHubToolsHttpRequestData_AddPR
 
 FString FGitHubToolsHttpRequestData_AddPRReviewThread::GetRawQuery() const
 {
-    TStringBuilder< 512 > string_builder;
-
-    string_builder << TEXT( "{ \"query\" :" );
-    string_builder << TEXT( "  \"mutation {" );
-    string_builder << TEXT( "    addPullRequestReviewThread( input: {" );
-    string_builder << TEXT( "      body: \\\"" ) << *Comment << TEXT( "\\\", " );
-    string_builder << TEXT( "      pullRequestId: \\\"" ) << *PullRequestId << TEXT( "\\\", " );
-    string_builder << TEXT( "      pullRequestReviewId: \\\"" ) << *PullRequestReviewId << TEXT( "\\\", " );
-    string_builder << GetMutationInputData();
-    string_builder << TEXT( "      path: \\\"" ) << *FilePath << TEXT( "\\\" " );
-    string_builder << TEXT( "    } ) { " );
-    string_builder << TEXT( "      thread {" );
-    string_builder << TEXT( "        resolvedBy {" );
-    string_builder << TEXT( "          login" );
-    string_builder << TEXT( "        } " );
-    string_builder << TEXT( "        id" );
-    string_builder << TEXT( "        isResolved" );
-    string_builder << TEXT( "        path" );
-    string_builder << TEXT( "        diffSide" );
-    string_builder << TEXT( "        subjectType" );
-    string_builder << TEXT( "        line" );
-    string_builder << TEXT( "        pullRequest {" );
-    string_builder << TEXT( "           number" );
-    string_builder << TEXT( "        }" );
-    string_builder << TEXT( "        comments( first : 100 ) {" );
-    string_builder << TEXT( "          edges {" );
-    string_builder << TEXT( "            node {" );
-    string_builder << TEXT( "              author {" );
-    string_builder << TEXT( "                login" );
-    string_builder << TEXT( "              } " );
-    string_builder << TEXT( "              id" );
-    string_builder << TEXT( "              body" );
-    string_builder << TEXT( "              createdAt" );
-    string_builder << TEXT( "            }" );
-    string_builder << TEXT( "          }" );
-    string_builder << TEXT( "        }" );
-    string_builder << TEXT( "      }" );
-    string_builder << TEXT( "    }" );
-    string_builder << TEXT( "  }\"" );
-    string_builder << TEXT( "}" );
-
-    return *string_builder;
+    return R"(
+mutation AddPullRequestReviewThread( 
+  $body: String!, 
+  $pullRequestId: ID! 
+  $pullRequestReviewId : ID!
+  ) {
+  addPullRequestReviewThread( 
+    input: { 
+      body: $body,
+      pullRequestId: $pullRequestId, 
+      pullRequestReviewId: $pullRequestReviewId, 
+      subjectType: PullRequestReviewThreadSubjectType!,
+      line: Int!,
+      side: DiffSide!
+      } 
+  ) { 
+    thread {
+      resolvedBy {
+        login
+      } 
+      id
+      isResolved
+      path
+      diffSide
+      subjectType
+      line
+      pullRequest {
+         number
+      }
+      comments( first : 100 ) {
+        edges {
+          node {
+            author {
+              login
+            } 
+            id
+            body
+            createdAt
+          }
+        }
+      }
+    }
+  }
+}
+)";
 }
 
 void FGitHubToolsHttpRequestData_AddPRReviewThread::ParseResponseData( const FJsonObject & json_data )
@@ -94,14 +95,23 @@ void FGitHubToolsHttpRequestData_AddPRReviewThread::ParseResponseData( const FJs
     Result = review_thread_infos;
 }
 
+void FGitHubToolsHttpRequestData_AddPRReviewThread::AddParameters( FJsonObject & variables_object ) const
+{
+    FGitHubToolsHttpRequestGraphQLMutation< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > >::AddParameters( variables_object );
+    variables_object.SetStringField( TEXT( "pullRequestId" ), PullRequestId );
+    variables_object.SetStringField( TEXT( "pullRequestReviewId" ), PullRequestReviewId );
+    variables_object.SetStringField( TEXT( "body" ), Comment );
+}
+
 FGitHubToolsHttpRequestData_AddPRReviewThreadToFile::FGitHubToolsHttpRequestData_AddPRReviewThreadToFile( const FString & pull_request_id, const FString & pull_request_review_id, const FString & file_path, const FString & comment ) :
     FGitHubToolsHttpRequestData_AddPRReviewThread( pull_request_id, pull_request_review_id, file_path, comment )
 {
 }
 
-FString FGitHubToolsHttpRequestData_AddPRReviewThreadToFile::GetMutationInputData() const
+void FGitHubToolsHttpRequestData_AddPRReviewThreadToFile::AddParameters( FJsonObject & variables_object ) const
 {
-    return TEXT( "      subjectType: FILE, " );
+    FGitHubToolsHttpRequestData_AddPRReviewThread::AddParameters( variables_object );
+    variables_object.SetStringField( TEXT( "subjectType" ), TEXT( "File" ) );
 }
 
 FGitHubToolsHttpRequestData_AddPRReviewThreadToLine::FGitHubToolsHttpRequestData_AddPRReviewThreadToLine( const FString & pull_request_id, const FString & pull_request_review_id, const FString & file_path, const EGitHubToolsDiffSide diff_side, const int line, const FString & comment ) :
@@ -111,21 +121,18 @@ FGitHubToolsHttpRequestData_AddPRReviewThreadToLine::FGitHubToolsHttpRequestData
 {
 }
 
-FString FGitHubToolsHttpRequestData_AddPRReviewThreadToLine::GetMutationInputData() const
+void FGitHubToolsHttpRequestData_AddPRReviewThreadToLine::AddParameters( FJsonObject & variables_object ) const
 {
-    TStringBuilder< 512 > string_builder;
-
     const auto get_side_str = [ & ]() -> FString {
         return DiffSide == EGitHubToolsDiffSide::Left
                    ? TEXT( "LEFT" )
                    : TEXT( "RIGHT" );
     };
 
-    string_builder << TEXT( "      subjectType: LINE, " );
-    string_builder << TEXT( "      side: " << get_side_str() << "," );
-    string_builder << TEXT( "      line: " << Line << "," );
-
-    return *string_builder;
+    FGitHubToolsHttpRequestData_AddPRReviewThread::AddParameters( variables_object );
+    variables_object.SetStringField( TEXT( "subjectType" ), TEXT( "Line" ) );
+    variables_object.SetStringField( TEXT( "side" ), get_side_str() );
+    variables_object.SetNumberField( TEXT( "line" ), Line );
 }
 
 #undef LOCTEXT_NAMESPACE

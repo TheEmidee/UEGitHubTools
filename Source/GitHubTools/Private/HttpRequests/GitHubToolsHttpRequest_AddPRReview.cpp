@@ -2,7 +2,6 @@
 
 #include "Dom/JsonValue.h"
 #include "GitHubToolsGitUtils.h"
-#include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
@@ -20,27 +19,22 @@ FGitHubToolsHttpRequestData_AddPRReview::FGitHubToolsHttpRequestData_AddPRReview
 
 FString FGitHubToolsHttpRequestData_AddPRReview::GetRawQuery() const
 {
-    TStringBuilder< 512 > string_builder;
-
-    string_builder << TEXT( "{ \"query\" :" );
-    string_builder << TEXT( "  \"mutation {" );
-    string_builder << TEXT( "    addPullRequestReview( input: {" );
-    string_builder << TEXT( "      pullRequestId: \\\"" ) << *PullRequestId << TEXT( "\\\", " );
-
-    if ( Event.IsSet() )
-    {
-        string_builder << TEXT( ", event: " ) << *GitHubToolsUtils::GetPullRequestReviewEventStringValue( Event.GetValue() );
+    return R"(
+mutation AddPullRequestReview( 
+  $pullRequestId: ID!, 
+  $path: String! 
+  ) {
+    addPullRequestReview( 
+      input: { 
+        pullRequestId: $pullRequestId 
+      } 
+  ) { 
+    pullRequest {
+      id
     }
-
-    string_builder << TEXT( "    } ) { " );
-    string_builder << TEXT( "      pullRequestReview {" );
-    string_builder << TEXT( "        id" );
-    string_builder << TEXT( "      }" );
-    string_builder << TEXT( "    }" );
-    string_builder << TEXT( "  }\"" );
-    string_builder << TEXT( "}" );
-
-    return *string_builder;
+  }
+}
+)";
 }
 
 void FGitHubToolsHttpRequestData_AddPRReview::ParseResponseData( const FJsonObject & json_data )
@@ -48,6 +42,13 @@ void FGitHubToolsHttpRequestData_AddPRReview::ParseResponseData( const FJsonObje
     const auto result_object = json_data.GetObjectField( TEXT( "addPullRequestReview" ) );
     const auto thread_object = result_object->GetObjectField( TEXT( "pullRequestReview" ) );
     Result = thread_object->GetStringField( TEXT( "id" ) );
+}
+
+void FGitHubToolsHttpRequestData_AddPRReview::AddParameters( FJsonObject & variables_object ) const
+{
+    FGitHubToolsHttpRequestGraphQLMutation::AddParameters( variables_object );
+
+    variables_object.SetStringField( TEXT( "pullRequestId" ), PullRequestId );
 }
 
 #undef LOCTEXT_NAMESPACE

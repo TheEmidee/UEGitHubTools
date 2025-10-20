@@ -13,12 +13,19 @@ FGitHubToolsHttpRequest_MergePR::FGitHubToolsHttpRequest_MergePR( const FString 
 FString FGitHubToolsHttpRequest_MergePR::GetRawQuery() const
 {
     return R"(
-mutation MergePullRequest( $pullRequestId: ID! ){
-  mergePullRequest( input: { pullRequestId: $pullRequestId, mergeMethod: MERGE } ) { 
-        pullRequest {
-            id
-        }
-    }
+mutation MergePullRequest( 
+  $pullRequestId: ID! 
+  ) {
+  mergePullRequest( 
+    input: { 
+      pullRequestId: $pullRequestId, 
+      mergeMethod: MERGE 
+    } 
+  ) { 
+    pullRequest {
+      id
+      }
+  }
 }
 )";
 }

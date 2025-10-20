@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GitHubToolsHttpRequestManager.h"
+#include "GitHubToolsHttpRequestsTypes.h"
 #include "GitHubToolsTypes.h"
 
 class FGitHubToolsHttpRequestData_AddPRReview final : public FGitHubToolsHttpRequestGraphQLMutation< FString >
@@ -12,6 +12,8 @@ public:
 protected:
     FString GetRawQuery() const override;
     void ParseResponseData( const FJsonObject & json_data ) override;
+    void AddParameters( FJsonObject & variables_object ) const override;
+
 private:
 
     FString PullRequestId;

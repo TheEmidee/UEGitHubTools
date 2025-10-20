@@ -16,27 +16,28 @@ FGitHubToolsHttpRequestData_AddPRReviewThreadReply::FGitHubToolsHttpRequestData_
 
 FString FGitHubToolsHttpRequestData_AddPRReviewThreadReply::GetRawQuery() const
 {
-    TStringBuilder< 512 > string_builder;
-
-    string_builder << TEXT( "{ \"query\" :" );
-    string_builder << TEXT( "  \"mutation {" );
-    string_builder << TEXT( "    addPullRequestReviewThreadReply( input: {" );
-    string_builder << TEXT( "      pullRequestReviewThreadId : \\\"" ) << *ThreadId << TEXT( "\\\"," );
-    string_builder << TEXT( "      body : \\\"" ) << *Comment << TEXT( "\\\"" );
-    string_builder << TEXT( "    } ) {" );
-    string_builder << TEXT( "      comment {" );
-    string_builder << TEXT( "        author {" );
-    string_builder << TEXT( "          login" );
-    string_builder << TEXT( "        } " );
-    string_builder << TEXT( "        id" );
-    string_builder << TEXT( "        body" );
-    string_builder << TEXT( "        createdAt" );
-    string_builder << TEXT( "      }" );
-    string_builder << TEXT( "    }" );
-    string_builder << TEXT( "  }\"" );
-    string_builder << TEXT( "}" );
-
-    return *string_builder;
+    return R"(
+mutation AddPullRequestReviewThreadReply( 
+  $pullRequestReviewThreadId: ID!, 
+  $body: String! 
+  ) {
+  addPullRequestReviewThreadReply( 
+    input: { 
+      pullRequestReviewThreadId: $pullRequestReviewThreadId, 
+      body: $body 
+      } 
+  ) { 
+    comment {
+      author {
+        login
+      } 
+      id
+      body
+      createdAt
+    }
+  }
+}
+)";
 }
 
 void FGitHubToolsHttpRequestData_AddPRReviewThreadReply::ParseResponseData( const FJsonObject & json_data )
@@ -53,6 +54,14 @@ void FGitHubToolsHttpRequestData_AddPRReviewThreadReply::ParseResponseData( cons
     comment->Date = FText::FromString( comment_object->GetStringField( TEXT( "createdAt" ) ) );
 
     Result = comment;
+}
+
+void FGitHubToolsHttpRequestData_AddPRReviewThreadReply::AddParameters( FJsonObject & variables_object ) const
+{
+    FGitHubToolsHttpRequestGraphQLMutation< TSharedPtr< FGithubToolsPullRequestComment > >::AddParameters( variables_object );
+
+    variables_object.SetStringField( TEXT( "pullRequestReviewThreadId" ), ThreadId );
+    variables_object.SetStringField( TEXT( "body" ), Comment );
 }
 
 #undef LOCTEXT_NAMESPACE

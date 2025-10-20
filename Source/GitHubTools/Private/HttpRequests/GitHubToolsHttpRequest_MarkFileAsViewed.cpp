@@ -13,12 +13,20 @@ FGitHubToolsHttpRequest_MarkFileAsViewed::FGitHubToolsHttpRequest_MarkFileAsView
 FString FGitHubToolsHttpRequest_MarkFileAsViewed::GetRawQuery() const
 {
     return R"(
-mutation MarkFileAsViewed( $pullRequestId: ID!, $path: String! ){
-  markFileAsViewed( input: { pullRequestId: $pullRequestId, path: $path } ) { 
-        pullRequest {
-            id
-        }
+mutation MarkFileAsViewed( 
+  $pullRequestId: ID!, 
+  $path: String! 
+  ) {
+  markFileAsViewed( 
+    input: { 
+      pullRequestId: $pullRequestId, 
+      path: $path 
+      } 
+  ) { 
+    pullRequest {
+      id
     }
+  }
 }
 )";
 }

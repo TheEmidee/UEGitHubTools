@@ -7,11 +7,10 @@ class FGitHubToolsHttpRequestData_ResolveReviewThread final : public FGitHubTool
 public:
     explicit FGitHubToolsHttpRequestData_ResolveReviewThread( const FString & thread_id );
 
-    FString GetRawQuery() const override;
-    
-
 protected:
+    FString GetRawQuery() const override;
     void ParseResponseData( const FJsonObject & json_data ) override;
+    void AddParameters( FJsonObject & variables_object ) const override;
 
 private:
     FString ThreadId;
