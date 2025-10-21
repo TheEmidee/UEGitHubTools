@@ -12,38 +12,35 @@ FGitHubToolsHttpRequest_DeletePullRequestReview::FGitHubToolsHttpRequest_DeleteP
 {
 }
 
-FString FGitHubToolsHttpRequest_DeletePullRequestReview::GetBody() const
+FString FGitHubToolsHttpRequest_DeletePullRequestReview::GetRawQuery() const
 {
-    TStringBuilder< 512 > string_builder;
-
-    string_builder << TEXT( "{ \"query\" :" );
-    string_builder << TEXT( "  \"mutation {" );
-    string_builder << TEXT( "      deletePullRequestReview( input: {" );
-    string_builder << TEXT( "        pullRequestReviewId: \\\"" ) << *ReviewId << TEXT( "\\\", " );
-    string_builder << TEXT( "      } ) {" );
-    string_builder << TEXT( "      pullRequestReview {" );
-    string_builder << TEXT( "        id" );
-    string_builder << TEXT( "        state" );
-    string_builder << TEXT( "      }" );
-    string_builder << TEXT( "    }" );
-    string_builder << TEXT( "  }\"" );
-    string_builder << TEXT( "}" );
-
-    return *string_builder;
+    return R"(
+mutation DeletePullRequestReview( 
+  pullRequestReviewId: ID!
+  ) {
+    deletePullRequestReview( 
+      input: { 
+        pullRequestReviewId: $pullRequestReviewId 
+      } 
+  ) { 
+    pullRequestReview {
+      id
+      state
+    }
+  }
+}
+)";
 }
 
-void FGitHubToolsHttpRequest_DeletePullRequestReview::ParseResponse( FHttpResponsePtr response_ptr )
+void FGitHubToolsHttpRequest_DeletePullRequestReview::ParseResponseData( const FJsonObject & json_data )
 {
-    const auto json_response = response_ptr->GetContentAsString();
-    const auto json_reader = TJsonReaderFactory<>::Create( json_response );
-
-    TSharedPtr< FJsonValue > data;
-    if ( !FJsonSerializer::Deserialize( json_reader, data ) )
-    {
-        return;
-    }
-
     Result = true;
+}
+
+void FGitHubToolsHttpRequest_DeletePullRequestReview::AddParameters( FJsonObject & variables_object ) const
+{
+    FGitHubToolsHttpRequestGraphQLMutation< bool >::AddParameters( variables_object );
+    variables_object.SetStringField( TEXT( "pullRequestReviewId" ), ReviewId );
 }
 
 #undef LOCTEXT_NAMESPACE

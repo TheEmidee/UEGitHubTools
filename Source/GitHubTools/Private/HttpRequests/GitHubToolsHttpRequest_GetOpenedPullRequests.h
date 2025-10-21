@@ -3,13 +3,13 @@
 #include "GitHubToolsHttpRequestManager.h"
 #include "GitHubToolsTypes.h"
 
-class FGitHubToolsHttpRequest_GetOpenedPullRequests final : public FGitHubToolsHttpRequest< TArray< FGitHubToolsOpenedPullRequestInfosPtr > >
+class FGitHubToolsHttpRequest_GetOpenedPullRequests final : public FGitHubToolsHttpRequestGraphQLQuery< TArray< FGitHubToolsOpenedPullRequestInfosPtr > >
 {
 public:
     using ResponseType = TArray< FGitHubToolsOpenedPullRequestInfosPtr >;
 
-    FString GetBody() const override;
+    FString GetRawQuery() const override;
 
 private:
-    void ParseResponse( FHttpResponsePtr response_ptr ) override;
+    void ParseResponseData( const FJsonObject & json_data ) override;
 };

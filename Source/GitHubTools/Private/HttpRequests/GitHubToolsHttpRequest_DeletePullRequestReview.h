@@ -1,16 +1,17 @@
 #pragma once
 
-#include "GitHubToolsHttpRequestManager.h"
+#include "GitHubToolsHttpRequestsTypes.h"
 
-class FGitHubToolsHttpRequest_DeletePullRequestReview final : public FGitHubToolsHttpRequest< bool >
+class FGitHubToolsHttpRequest_DeletePullRequestReview final : public FGitHubToolsHttpRequestGraphQLMutation< bool >
 {
 public:
     explicit FGitHubToolsHttpRequest_DeletePullRequestReview( const FString & review_id );
 
-    FString GetBody() const override;
+protected:
+    FString GetRawQuery() const override;
+    void ParseResponseData( const FJsonObject & json_data ) override;
+    void AddParameters( FJsonObject & variables_object ) const override;
 
 private:
-    void ParseResponse( FHttpResponsePtr response_ptr ) override;
-
     FString ReviewId;
 };

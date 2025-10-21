@@ -1,9 +1,7 @@
-#include "Dom/JsonValue.h"
-#include "Interfaces/IHttpResponse.h"
-#include "Serialization/JsonReader.h"
-#include "Serialization/JsonSerializer.h"
+#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestFilePatches.h"
 
-#include <HttpRequests/GitHubToolsHttpRequest_GetPullRequestFilePatches.h>
+#include "Dom/JsonValue.h"
+#include "Serialization/JsonSerializer.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 
@@ -17,23 +15,9 @@ FString FGitHubToolsHttpRequestData_GetPullRequestFilePatches::GetEndPoint() con
     return FString::Printf( TEXT( "pulls/%i/files?per_page=100" ), PullRequestNumber );
 }
 
-bool FGitHubToolsHttpRequestData_GetPullRequestFilePatches::UsesGraphQL() const
+void FGitHubToolsHttpRequestData_GetPullRequestFilePatches::ParseResponseData( const FJsonValue & json_data )
 {
-    return false;
-}
-
-void FGitHubToolsHttpRequestData_GetPullRequestFilePatches::ParseResponse( FHttpResponsePtr response_ptr )
-{
-    const auto json_response = response_ptr->GetContentAsString();
-    const auto json_reader = TJsonReaderFactory<>::Create( json_response );
-
-    TSharedPtr< FJsonValue > data;
-    if ( !FJsonSerializer::Deserialize( json_reader, data ) )
-    {
-        return;
-    }
-
-    const auto objects = data->AsArray();
+    const auto objects = json_data.AsArray();
 
     TArray< FGithubToolsPullRequestFilePatchPtr > patches;
     patches.Reserve( objects.Num() );
