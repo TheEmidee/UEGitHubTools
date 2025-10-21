@@ -39,7 +39,6 @@ void SGitHubToolsPRInfosMessageDisplay::Construct( const FArguments & arguments 
     else if ( PRInfos->HasPendingReviews() )
     {
         border->SetContent(
-
             SNew( SHorizontalBox ) +
             SHorizontalBox::Slot()
                 .AutoWidth()

@@ -14,7 +14,7 @@ protected:
     FString GetRawQuery() const override;
     void AddParameters( FJsonObject & variables_object ) const override;
     void ParseResponseData( const FJsonObject & json_data ) override;
-    
+
 private:
     int PullRequestNumber;
     TArray< FGithubToolsPullRequestFileInfosPtr > Files;

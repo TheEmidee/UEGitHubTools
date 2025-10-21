@@ -21,15 +21,14 @@ FString FGitHubToolsHttpRequestData_AddPRReview::GetRawQuery() const
 {
     return R"(
 mutation AddPullRequestReview( 
-  $pullRequestId: ID!, 
-  $path: String! 
+  $pullRequestId: ID!
   ) {
     addPullRequestReview( 
       input: { 
         pullRequestId: $pullRequestId 
       } 
   ) { 
-    pullRequest {
+    pullRequestReview {
       id
     }
   }
