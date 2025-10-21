@@ -222,11 +222,25 @@ void FGithubToolsPullRequestFileInfos::UpdateViewedState( EGitHubToolsFileViewed
     ViewedState = new_viewed_state;
     ViewedStateBrush = GetSlateBrushFromFileViewedState( ViewedState );
     ViewedStateToolTip = GetToolTipFromFileViewedState( ViewedState );
+
+    OnDataChanged.Broadcast();
 }
 
 bool FGithubToolsPullRequestFileInfos::IsUAsset() const
 {
     return Path.EndsWith( TEXT( ".uasset" ) );
+}
+
+void FGithubToolsPullRequestFileInfos::AddReview( const FGithubToolsPullRequestReviewThreadInfosPtr & review_thread_infos  )
+{
+    Reviews.Add( review_thread_infos );
+
+    if ( !review_thread_infos->bIsResolved )
+    {
+        bHasUnresolvedConversations = false;
+    }
+
+    OnDataChanged.Broadcast();
 }
 
 FGithubToolsPullRequestReviewThreadInfos::FGithubToolsPullRequestReviewThreadInfos( const TSharedRef< FJsonObject > & json_object ) :
@@ -290,7 +304,7 @@ FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( const TSharedRef< FJ
 
 bool FGithubToolsPullRequestInfos::CanCommentFiles() const
 {
-    return !HasPendingReviews() && State == EGitHubToolsPullRequestsState::Open;
+    return !HasPendingReview() && State == EGitHubToolsPullRequestsState::Open;
 }
 
 void FGithubToolsPullRequestInfos::SetFiles( const TArray< FGithubToolsPullRequestFileInfosPtr > & files, const TArray< FGithubToolsPullRequestFilePatchPtr > & patches, const TArray< FGithubToolsPullRequestReviewThreadInfosPtr > & reviews )
@@ -318,6 +332,32 @@ void FGithubToolsPullRequestInfos::SetFiles( const TArray< FGithubToolsPullReque
 
         FileInfos.Add( file );
     }
+}
+
+bool FGithubToolsPullRequestInfos::CanApprovePullRequest() const
+{
+    return FileInfos.FindByPredicate( []( const FGithubToolsPullRequestFileInfosPtr & file_infos ) {
+        return file_infos->bHasUnresolvedConversations;
+    } ) == nullptr;
+}
+
+bool FGithubToolsPullRequestInfos::HasChangeRequests() const
+{
+    return FileInfos.FindByPredicate( []( const FGithubToolsPullRequestFileInfosPtr & file_infos ) {
+        return file_infos->bHasUnresolvedConversations;
+    } ) != nullptr;
+}
+
+void FGithubToolsPullRequestInfos::DismissReview()
+{
+    for ( const FGithubToolsPullRequestFileInfosPtr & file_infos : FileInfos )
+    {
+        file_infos->bHasUnresolvedConversations = false;
+        file_infos->Reviews.Empty();
+    }
+
+    PendingReview->Comments.Empty();
+    PendingReview = nullptr;
 }
 
 FGitHubToolsOpenedPullRequestInfos::FGitHubToolsOpenedPullRequestInfos( const TSharedRef< FJsonObject > & json )

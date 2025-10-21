@@ -32,6 +32,7 @@ private:
     FGitHubToolsFileInfosTreeItemPtr TreeItem;
     FGitHubToolsPRInfosOnFileInfosStateChangedDelegate OnFileInfosStateChanged;
     TSharedPtr< SGitHubToolsPRInfos > OwningPRInfosWidget;
+    TSharedPtr< SImage  > ReviewImage;
 };
 
 #undef LOCTEXT_NAMESPACE

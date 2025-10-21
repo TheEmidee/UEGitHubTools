@@ -6,8 +6,9 @@
 #include "GitHubTools.h"
 #include "GitHubToolsGitUtils.h"
 #include "HAL/FileManagerGeneric.h"
-#include "HttpRequests/GitHubToolsHttpRequest_AddPRReview.h"
+#include "HttpRequests/GitHubToolsHttpRequest_DeletePRReview.h"
 #include "HttpRequests/GitHubToolsHttpRequest_MergePR.h"
+#include "HttpRequests/GitHubToolsHttpRequest_SubmitPRReview.h"
 #include "Misc/MessageDialog.h"
 #include "RevisionControlStyle/RevisionControlStyle.h"
 #include "SourceControlHelpers.h"
@@ -185,7 +186,30 @@ void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
                                             [ SNew( SButton )
                                                     .VAlign( VAlign_Center )
                                                     .Text( LOCTEXT( "ApprovePR", "Approve the PR" ) )
+                                                    .Visibility_Lambda( [ & ]() {
+                                                        return PRInfos->CanApprovePullRequest() ? EVisibility::Visible : EVisibility::Hidden;
+                                                    } )
                                                     .OnClicked( this, &SGitHubToolsPRHeader::OnApprovePRClicked ) ] +
+                                    SHorizontalBox::Slot()
+                                        .AutoWidth()
+                                        .Padding( FMargin( 5.0f ) )
+                                            [ SNew( SButton )
+                                                    .VAlign( VAlign_Center )
+                                                    .Text( LOCTEXT( "RequestChanges", "Request changes" ) )
+                                                    .Visibility_Lambda( [ & ]() {
+                                                        return PRInfos->HasChangeRequests() ? EVisibility::Visible : EVisibility::Hidden;
+                                                    } )
+                                                    .OnClicked( this, &SGitHubToolsPRHeader::OnRequestChangesClicked ) ] +
+                                    SHorizontalBox::Slot()
+                                        .AutoWidth()
+                                        .Padding( FMargin( 5.0f ) )
+                                            [ SNew( SButton )
+                                                    .VAlign( VAlign_Center )
+                                                    .Text( LOCTEXT( "AbandonReview", "Abandon the review" ) )
+                                                    .Visibility_Lambda( [ & ]() {
+                                                        return PRInfos->HasPendingReview() ? EVisibility::Visible : EVisibility::Hidden;
+                                                    } )
+                                                    .OnClicked( this, &SGitHubToolsPRHeader::OnAbandonReviewClicked ) ] +
                                     SHorizontalBox::Slot()
                                         .AutoWidth()
                                         .Padding( FMargin( 5.0f ) )
@@ -209,8 +233,28 @@ FReply SGitHubToolsPRHeader::OnApprovePRClicked()
 
     FGitHubToolsModule::Get()
         .GetRequestManager()
-        .SendRequest< FGitHubToolsHttpRequestData_AddPRReview >( PRInfos->Id, EGitHubToolsPullRequestReviewEvent::Approve )
-        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReview > & /*request_future*/ ) {
+        .SendRequest< FGitHubToolsHttpRequestData_SubmitPRReview >( PRInfos->Id, PRInfos->PendingReview->Id, EGitHubToolsPullRequestReviewEvent::Approve )
+        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_SubmitPRReview > & /*request_future*/ ) {
+            FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
+        } );
+
+    return FReply::Handled();
+}
+
+FReply SGitHubToolsPRHeader::OnRequestChangesClicked()
+{
+    return FReply::Handled();
+}
+
+FReply SGitHubToolsPRHeader::OnAbandonReviewClicked()
+{
+    FGitHubToolsModule::Get().GetNotificationManager().DisplayModalNotification( LOCTEXT( "AbandoningReview", "Abandoning the review" ) );
+
+    FGitHubToolsModule::Get()
+        .GetRequestManager()
+        .SendRequest< FGitHubToolsHttpRequestData_DeletePRReview >( PRInfos->PendingReview->Id )
+        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_DeletePRReview > & /*request_future*/ ) {
+            PRInfos->DismissReview();
             FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
         } );
 
@@ -222,7 +266,6 @@ FReply SGitHubToolsPRHeader::OnMergePRClicked()
     const auto choice = FMessageDialog::Open( EAppMsgType::YesNo, LOCTEXT( "MergePRConfirmation", "Are you sure you want to merge the PR?" ) );
     if ( choice == EAppReturnType::Yes )
     {
-
         FGitHubToolsModule::Get().GetNotificationManager().DisplayModalNotification( LOCTEXT( "MergePR", "Merging the PR" ) );
 
         FGitHubToolsModule::Get()
@@ -238,7 +281,7 @@ FReply SGitHubToolsPRHeader::OnMergePRClicked()
 
 EVisibility SGitHubToolsPRHeader::GetPendingReviewsVisibility() const
 {
-    return PRInfos->HasPendingReviews()
+    return PRInfos->HasPendingReview()
                ? EVisibility::Visible
                : EVisibility::Collapsed;
 }

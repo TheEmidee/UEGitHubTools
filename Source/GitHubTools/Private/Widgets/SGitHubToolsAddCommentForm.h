@@ -4,6 +4,8 @@
 #include "GitHubToolsTypes.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 
+class SErrorText;
+class STextBlock;
 class FGitHubToolsHttpRequestData_AddPRReviewThread;
 DECLARE_DELEGATE( FGitHubToolsOnAddCommentDoneDelegate );
 
@@ -38,6 +40,9 @@ public:
 private:
     bool CanSubmitComment() const;
     FReply OnSubmitButtonClicked();
+    void CreatePendingReview();
+    void AddReplyToReviewThread();
+    void CreateReviewThread();
     FReply OnCancelButtonClicked();
     void Close();
     void OnTextChanged( const FText & text );

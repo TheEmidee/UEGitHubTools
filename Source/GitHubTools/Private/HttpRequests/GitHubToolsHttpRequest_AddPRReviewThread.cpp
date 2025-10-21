@@ -16,20 +16,23 @@ FGitHubToolsHttpRequestData_AddPRReviewThread::FGitHubToolsHttpRequestData_AddPR
 
 FString FGitHubToolsHttpRequestData_AddPRReviewThread::GetRawQuery() const
 {
-    return R"(
+    return FString::Printf(TEXT(R"(
 mutation AddPullRequestReviewThread( 
   $body: String!, 
-  $pullRequestId: ID! 
-  $pullRequestReviewId : ID!
+  $pullRequestId: ID!, 
+  $pullRequestReviewId : ID!,
+  $path: String!,
+  $subjectType: PullRequestReviewThreadSubjectType!
+  %s
   ) {
   addPullRequestReviewThread( 
     input: { 
       body: $body,
       pullRequestId: $pullRequestId, 
       pullRequestReviewId: $pullRequestReviewId, 
-      subjectType: PullRequestReviewThreadSubjectType!,
-      line: Int!,
-      side: DiffSide!
+      path: $path,
+      subjectType: $subjectType
+      %s
       } 
   ) { 
     thread {
@@ -60,7 +63,7 @@ mutation AddPullRequestReviewThread(
     }
   }
 }
-)";
+)"), *GetMutationAdditionalParameters(), *GetInputAdditionalParameters() );
 }
 
 void FGitHubToolsHttpRequestData_AddPRReviewThread::ParseResponseData( const FJsonObject & json_data )
@@ -97,10 +100,11 @@ void FGitHubToolsHttpRequestData_AddPRReviewThread::ParseResponseData( const FJs
 
 void FGitHubToolsHttpRequestData_AddPRReviewThread::AddParameters( FJsonObject & variables_object ) const
 {
-    FGitHubToolsHttpRequestGraphQLMutation< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > >::AddParameters( variables_object );
+    FGitHubToolsHttpRequestGraphQLMutation::AddParameters( variables_object );
     variables_object.SetStringField( TEXT( "pullRequestId" ), PullRequestId );
     variables_object.SetStringField( TEXT( "pullRequestReviewId" ), PullRequestReviewId );
     variables_object.SetStringField( TEXT( "body" ), Comment );
+    variables_object.SetStringField( TEXT( "path" ), FilePath );
 }
 
 FGitHubToolsHttpRequestData_AddPRReviewThreadToFile::FGitHubToolsHttpRequestData_AddPRReviewThreadToFile( const FString & pull_request_id, const FString & pull_request_review_id, const FString & file_path, const FString & comment ) :
@@ -111,7 +115,7 @@ FGitHubToolsHttpRequestData_AddPRReviewThreadToFile::FGitHubToolsHttpRequestData
 void FGitHubToolsHttpRequestData_AddPRReviewThreadToFile::AddParameters( FJsonObject & variables_object ) const
 {
     FGitHubToolsHttpRequestData_AddPRReviewThread::AddParameters( variables_object );
-    variables_object.SetStringField( TEXT( "subjectType" ), TEXT( "File" ) );
+    variables_object.SetStringField( TEXT( "subjectType" ), TEXT( "FILE" ) );
 }
 
 FGitHubToolsHttpRequestData_AddPRReviewThreadToLine::FGitHubToolsHttpRequestData_AddPRReviewThreadToLine( const FString & pull_request_id, const FString & pull_request_review_id, const FString & file_path, const EGitHubToolsDiffSide diff_side, const int line, const FString & comment ) :
@@ -130,9 +134,27 @@ void FGitHubToolsHttpRequestData_AddPRReviewThreadToLine::AddParameters( FJsonOb
     };
 
     FGitHubToolsHttpRequestData_AddPRReviewThread::AddParameters( variables_object );
-    variables_object.SetStringField( TEXT( "subjectType" ), TEXT( "Line" ) );
+    variables_object.SetStringField( TEXT( "subjectType" ), TEXT( "LINE" ) );
     variables_object.SetStringField( TEXT( "side" ), get_side_str() );
     variables_object.SetNumberField( TEXT( "line" ), Line );
+}
+
+FString FGitHubToolsHttpRequestData_AddPRReviewThreadToLine::GetMutationAdditionalParameters() const
+{
+    return R"(
+  ,
+  $line: Int!,
+  $side: DiffSide!
+)";
+}
+
+FString FGitHubToolsHttpRequestData_AddPRReviewThreadToLine::GetInputAdditionalParameters() const
+{
+    return R"(
+  ,
+  line: $line,
+  side: $side
+)";
 }
 
 #undef LOCTEXT_NAMESPACE
