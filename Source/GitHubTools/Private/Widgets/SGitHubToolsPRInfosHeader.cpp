@@ -6,9 +6,9 @@
 #include "GitHubTools.h"
 #include "GitHubToolsGitUtils.h"
 #include "HAL/FileManagerGeneric.h"
+#include "HttpRequests/GitHubToolsHttpRequest_ApprovePR.h"
 #include "HttpRequests/GitHubToolsHttpRequest_DeletePRReview.h"
 #include "HttpRequests/GitHubToolsHttpRequest_MergePR.h"
-#include "HttpRequests/GitHubToolsHttpRequest_SubmitPRReview.h"
 #include "Misc/MessageDialog.h"
 #include "RevisionControlStyle/RevisionControlStyle.h"
 #include "SourceControlHelpers.h"
@@ -233,8 +233,8 @@ FReply SGitHubToolsPRHeader::OnApprovePRClicked()
 
     FGitHubToolsModule::Get()
         .GetRequestManager()
-        .SendRequest< FGitHubToolsHttpRequestData_SubmitPRReview >( PRInfos->Id, PRInfos->PendingReview->Id, EGitHubToolsPullRequestReviewEvent::Approve )
-        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_SubmitPRReview > & /*request_future*/ ) {
+        .SendRequest< FGitHubToolsHttpRequestData_ApprovePR >( PRInfos->Id )
+        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_ApprovePR > & /*request_future*/ ) {
             FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
         } );
 
