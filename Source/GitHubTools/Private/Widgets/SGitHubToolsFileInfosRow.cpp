@@ -66,10 +66,6 @@ void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TS
                                         .OnMarkedAsViewedButtonClicked( this, &SGitHubToolsFileInfosRow::OnMarkAsViewedButtonClicked )
                                         .OnDiffButtonClicked( this, &SGitHubToolsFileInfosRow::OnDiffAssetButtonClicked ) ] ],
             owner_table_view );
-
-        TreeItem->FileInfos->OnDataChanged.AddSPLambda( this, [ this ]() {
-            ReviewImage->SetVisibility( TreeItem->FileInfos->bHasUnresolvedConversations ? EVisibility::Visible : EVisibility::Collapsed );
-        } );
     }
     else
     {

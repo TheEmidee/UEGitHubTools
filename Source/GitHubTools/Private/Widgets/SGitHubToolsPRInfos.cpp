@@ -279,10 +279,6 @@ EVisibility SGitHubToolsPRInfos::GetMessageDisplayVisibility() const
     {
         return EVisibility::Visible;
     }
-    if ( PRInfos->HasPendingReview() )
-    {
-        return EVisibility::Visible;
-    }
 
     return EVisibility::Collapsed;
 }

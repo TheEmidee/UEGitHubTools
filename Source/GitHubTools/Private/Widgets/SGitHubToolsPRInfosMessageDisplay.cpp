@@ -34,20 +34,6 @@ void SGitHubToolsPRInfosMessageDisplay::Construct( const FArguments & arguments 
                            ? LOCTEXT( "PRClosed", "The PR is closed" )
                            : LOCTEXT( "PRMerged", "The PR is merged" ) ) );
     }
-    else if ( PRInfos->HasPendingReview() )
-    {
-        border->SetContent(
-            SNew( SHorizontalBox ) +
-            SHorizontalBox::Slot()
-                .AutoWidth()
-                    [ SNew( STextBlock )
-                            .Text( LOCTEXT( "PendingReviews", "There are pending reviews" ) )
-                            .ColorAndOpacity( FCoreStyle::Get().GetColor( "ErrorReporting.ForegroundColor" ) ) ] +
-            SHorizontalBox::Slot()
-                .AutoWidth()
-                    [ SNew( SSpacer )
-                            .Size( FVector2D( 20.0f, 0.0f ) ) ] );
-    }
 }
 
 #undef LOCTEXT_NAMESPACE
