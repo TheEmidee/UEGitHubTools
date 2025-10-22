@@ -237,7 +237,7 @@ void FGithubToolsPullRequestFileInfos::AddReview( const FGithubToolsPullRequestR
 
     if ( !review_thread_infos->bIsResolved )
     {
-        bHasUnresolvedConversations = false;
+        bHasUnresolvedConversations = true;
     }
 
     OnDataChanged.Broadcast();
