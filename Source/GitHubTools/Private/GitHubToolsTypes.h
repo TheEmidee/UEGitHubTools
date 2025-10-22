@@ -7,7 +7,7 @@ struct FGithubToolsPullRequestReviewThreadInfos;
 struct FGithubToolsPullRequestInfos;
 struct FSlateBrush;
 
-DECLARE_MULTICAST_DELEGATE(FGitHubToolsOnDataChanged);
+DECLARE_MULTICAST_DELEGATE( FGitHubToolsOnDataChanged );
 
 enum class EGitHubToolsSubjectType : uint8
 {
@@ -129,7 +129,7 @@ struct FGithubToolsPullRequestFileInfos
     void AddReview( const FGithubToolsPullRequestReviewThreadInfosPtr & review_thread_infos );
 
     FGitHubToolsOnDataChanged OnDataChanged;
-    
+
     FString Path;
     FText AssetName;
     FText PackageName;
@@ -157,7 +157,7 @@ enum class EGitHubToolsReviewState : uint8
 struct FGithubToolsPullRequestPendingReviewInfos
 {
     FGithubToolsPullRequestPendingReviewInfos() = default;
-    
+
     FString Id;
     TArray< FGithubToolsPullRequestCommentPtr > Comments;
 };

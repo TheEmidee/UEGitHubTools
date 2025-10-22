@@ -16,7 +16,7 @@ FGitHubToolsHttpRequestData_AddPRReviewThread::FGitHubToolsHttpRequestData_AddPR
 
 FString FGitHubToolsHttpRequestData_AddPRReviewThread::GetRawQuery() const
 {
-    return FString::Printf(TEXT(R"(
+    return FString::Printf( TEXT( R"(
 mutation AddPullRequestReviewThread( 
   $body: String!, 
   $pullRequestId: ID!, 
@@ -63,7 +63,9 @@ mutation AddPullRequestReviewThread(
     }
   }
 }
-)"), *GetMutationAdditionalParameters(), *GetInputAdditionalParameters() );
+)" ),
+        *GetMutationAdditionalParameters(),
+        *GetInputAdditionalParameters() );
 }
 
 void FGitHubToolsHttpRequestData_AddPRReviewThread::ParseResponseData( const FJsonObject & json_data )

@@ -13,7 +13,7 @@ FGitHubToolsHttpRequestData_CreatePendingPRReview::FGitHubToolsHttpRequestData_C
 
 FString FGitHubToolsHttpRequestData_CreatePendingPRReview::GetRawQuery() const
 {
-    // When the event parameter is omitted, then the PR is created as PENDING 
+    // When the event parameter is omitted, then the PR is created as PENDING
     return R"(
 mutation AddPullRequestReview( 
   $pullRequestId: ID!

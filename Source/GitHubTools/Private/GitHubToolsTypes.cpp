@@ -231,7 +231,7 @@ bool FGithubToolsPullRequestFileInfos::IsUAsset() const
     return Path.EndsWith( TEXT( ".uasset" ) );
 }
 
-void FGithubToolsPullRequestFileInfos::AddReview( const FGithubToolsPullRequestReviewThreadInfosPtr & review_thread_infos  )
+void FGithubToolsPullRequestFileInfos::AddReview( const FGithubToolsPullRequestReviewThreadInfosPtr & review_thread_infos )
 {
     Reviews.Add( review_thread_infos );
 
