@@ -19,6 +19,10 @@ void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TS
 
     if ( TreeItem->FileInfos != nullptr )
     {
+        // TreeItem->FileInfos->OnDataChanged.AddSPLambda( this, [ & ]() {
+        //     Invalidate( EInvalidateWidgetReason::LayoutAndVolatility );
+        // } );
+
         STableRow< FGitHubToolsFileInfosTreeItemPtr >::Construct(
             STableRow< FGitHubToolsFileInfosTreeItemPtr >::FArguments()
                 .Content()
@@ -41,9 +45,11 @@ void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TS
                             .AutoWidth()
                             .HAlign( HAlign_Center )
                             .VAlign( VAlign_Center )
-                                [ SNew( SImage )
+                                [ SAssignNew( ReviewImage, SImage )
                                         .Image( FCoreStyle::Get().GetBrush( "Icons.Warning" ) )
-                                        .Visibility( TreeItem->FileInfos->bHasUnresolvedConversations ? EVisibility::Visible : EVisibility::Collapsed )
+                                        .Visibility( TAttribute< EVisibility >::Create( [ & ]() {
+                                            return TreeItem->FileInfos->bHasUnresolvedConversations ? EVisibility::Visible : EVisibility::Collapsed;
+                                        } ) )
                                         .ToolTipText( LOCTEXT( "UnresolvedComments", "This file has unresolved comments" ) ) ] +
                         SHorizontalBox::Slot()
                             .FillWidth( 1.0f )

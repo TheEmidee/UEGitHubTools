@@ -127,6 +127,8 @@ void FGitHubToolsHttpRequestData_GetPullRequestInfos::ParseResponseData( const F
     TArray< FGithubToolsPullRequestReviewThreadInfosPtr > reviews;
     reviews.Reserve( review_threads_nodes_object.Num() );
 
+    FGithubToolsPullRequestReviewThreadInfosPtr user_review;
+
     for ( const auto review_thread_object : review_threads_nodes_object )
     {
         const auto review_thread_node_object = review_thread_object->AsObject();
@@ -175,8 +177,6 @@ void FGitHubToolsHttpRequestData_GetPullRequestInfos::ParseResponseData( const F
     const auto reviews_object = pull_request_object->GetObjectField( TEXT( "reviews" ) );
     const auto reviews_edges_object = reviews_object->GetArrayField( TEXT( "edges" ) );
 
-    pr_infos->PendingReviews.Reserve( reviews_edges_object.Num() );
-
     for ( const auto review_edge_object : reviews_edges_object )
     {
         const auto review_node_object = review_edge_object->AsObject()->GetObjectField( TEXT( "node" ) );
@@ -206,7 +206,12 @@ void FGitHubToolsHttpRequestData_GetPullRequestInfos::ParseResponseData( const F
         const auto comments_object = review_node_object->GetObjectField( TEXT( "comments" ) );
         const auto comments_edges_object = comments_object->GetArrayField( TEXT( "edges" ) );
 
-        pr_infos->PendingReviews.Emplace( pending_review );
+        if ( !ensureAlwaysMsgf( pr_infos->PendingReview == nullptr, TEXT( "There can only be one review per user per pull request !" ) ) )
+        {
+            continue;
+        }
+
+        pr_infos->PendingReview = pending_review;
 
         pending_review->Comments.Reserve( comments_edges_object.Num() );
 

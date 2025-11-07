@@ -270,16 +270,12 @@ void SGitHubToolsPRInfos::SetItemExpansion( FGitHubToolsFileInfosTreeItemPtr tre
 
 EVisibility SGitHubToolsPRInfos::GetPRReviewListVisibility() const
 {
-    return !PRInfos->HasPendingReviews() ? EVisibility::Visible : EVisibility::Collapsed;
+    return /* !PRInfos->HasPendingReviews() ? */ EVisibility::Visible /* : EVisibility::Collapsed */;
 }
 
 EVisibility SGitHubToolsPRInfos::GetMessageDisplayVisibility() const
 {
     if ( PRInfos->State != EGitHubToolsPullRequestsState::Open )
-    {
-        return EVisibility::Visible;
-    }
-    if ( PRInfos->HasPendingReviews() )
     {
         return EVisibility::Visible;
     }
@@ -290,6 +286,7 @@ EVisibility SGitHubToolsPRInfos::GetMessageDisplayVisibility() const
 void SGitHubToolsPRInfos::OnShouldRebuildTree() const
 {
     TreeView->RebuildList();
+    TreeView->RequestListRefresh();
 }
 
 void SGitHubToolsPRInfos::OnFileInfosStateChanged( FGithubToolsPullRequestFileInfosPtr /*file_infos*/ )

@@ -2,8 +2,6 @@
 
 #include "Components/HorizontalBox.h"
 #include "Framework/Application/SlateApplication.h"
-#include "Framework/Docking/TabManager.h"
-#include "SGitHubToolsPRInfosPendingReviews.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SSpacer.h"
@@ -36,54 +34,6 @@ void SGitHubToolsPRInfosMessageDisplay::Construct( const FArguments & arguments 
                            ? LOCTEXT( "PRClosed", "The PR is closed" )
                            : LOCTEXT( "PRMerged", "The PR is merged" ) ) );
     }
-    else if ( PRInfos->HasPendingReviews() )
-    {
-        border->SetContent(
-            SNew( SHorizontalBox ) +
-            SHorizontalBox::Slot()
-                .AutoWidth()
-                    [ SNew( STextBlock )
-                            .Text( LOCTEXT( "PendingReviews", "There are pending reviews" ) )
-                            .ColorAndOpacity( FCoreStyle::Get().GetColor( "ErrorReporting.ForegroundColor" ) ) ] +
-            SHorizontalBox::Slot()
-                .AutoWidth()
-                    [ SNew( SSpacer )
-                            .Size( FVector2D( 20.0f, 0.0f ) ) ] +
-            SHorizontalBox::Slot()
-                .AutoWidth()
-                    [ SNew( SButton )
-                            .VAlign( VAlign_Center )
-                            .ButtonColorAndOpacity( FCoreStyle::Get().GetColor( "ErrorReporting.BackgroundColor" ) )
-                            .Text( LOCTEXT( "OpenPendingReviewsButtonText", "Open" ) )
-                            .OnClicked( this, &SGitHubToolsPRInfosMessageDisplay::OnOpenPendingReviewsClicked ) ] );
-    }
-}
-
-FReply SGitHubToolsPRInfosMessageDisplay::OnOpenPendingReviewsClicked()
-{
-    PendingReviewsWindow = SNew( SWindow )
-                               .Title( LOCTEXT( "SourceControlLoginTitle", "Pending Reviews" ) )
-                               .ClientSize( FVector2D( 1024, 768 ) )
-                               .HasCloseButton( true )
-                               .SupportsMaximize( false )
-                               .SupportsMinimize( false )
-                               .SizingRule( ESizingRule::FixedSize );
-
-    PendingReviewsWindow->SetOnWindowClosed( FOnWindowClosed::CreateLambda( [ & ]( const TSharedRef< SWindow > & /*window*/ ) {
-        PendingReviewsWindow = nullptr;
-    } ) );
-
-    PendingReviewsWindow->SetContent( SNew( SGitHubToolsPRInfosPendingReviews )
-            .ParentWindow( PendingReviewsWindow )
-            .PRInfos( PRInfos ) );
-
-    if ( const TSharedPtr< SWindow > root_window = FGlobalTabmanager::Get()->GetRootWindow();
-        root_window.IsValid() )
-    {
-        FSlateApplication::Get().AddModalWindow( PendingReviewsWindow.ToSharedRef(), root_window );
-    }
-
-    return FReply::Handled();
 }
 
 #undef LOCTEXT_NAMESPACE

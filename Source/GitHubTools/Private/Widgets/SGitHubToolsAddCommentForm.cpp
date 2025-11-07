@@ -2,10 +2,9 @@
 
 #include "Components/VerticalBox.h"
 #include "GitHubTools.h"
-#include "HttpRequests/GitHubToolsHttpRequest_AddPRReview.h"
 #include "HttpRequests/GitHubToolsHttpRequest_AddPRReviewThread.h"
 #include "HttpRequests/GitHubToolsHttpRequest_AddPRReviewThreadReply.h"
-#include "HttpRequests/GitHubToolsHttpRequest_SubmitPRReview.h"
+#include "HttpRequests/GitHubToolsHttpRequest_CreatePendingPRPRReview.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Layout/SBox.h"
@@ -97,19 +96,7 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
 {
     if ( ThreadInfos != nullptr )
     {
-        FGitHubToolsModule::Get()
-            .GetNotificationManager()
-            .DisplayModalNotification( LOCTEXT( "SubmitComment", "Submit comment..." ) );
-
-        FGitHubToolsModule::Get()
-            .GetRequestManager()
-            .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThreadReply >( ThreadInfos->Id, GetComment() )
-            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReviewThreadReply > & result ) {
-                const auto & result_data = result.Get();
-                ThreadInfos->Comments.Add( result_data.GetResult().GetValue() );
-
-                Close();
-            } );
+        AddReplyToReviewThread();
     }
     else
     {
@@ -117,78 +104,90 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
             .GetNotificationManager()
             .DisplayModalNotification( LOCTEXT( "SubmitComment", "Submit comment..." ) );
 
+        if ( FileInfos->PRInfos->PendingReview == nullptr )
+        {
+            CreatePendingReview();
+        }
+        else
+        {
+            CreateReviewThread();
+        }
+    }
+    return FReply::Handled();
+}
+
+void SGitHubToolsAddCommentForm::CreatePendingReview()
+{
+    FGitHubToolsModule::Get()
+        .GetRequestManager()
+        .SendRequest< FGitHubToolsHttpRequestData_CreatePendingPRReview >( FileInfos->PRInfos->Id )
+        .Then( [ this ]( const TFuture< FGitHubToolsHttpRequestData_CreatePendingPRReview > & request_future ) {
+            const auto & request = request_future.Get();
+
+            if ( request.HasErrorMessage() )
+            {
+                RefreshErrorText( FText::FromString( request.GetErrorMessage() ) );
+                return;
+            }
+
+            const auto result = request_future.Get().GetResult();
+
+            auto review_id = result.Get( TEXT( "" ) );
+
+            if ( review_id.IsEmpty() )
+            {
+                RefreshErrorText( LOCTEXT( "Error_NoThreadId", "Could not get a PR Reviww ID" ) );
+                return;
+            }
+
+            FileInfos->PRInfos->PendingReview = MakeShared< FGithubToolsPullRequestPendingReviewInfos >();
+            FileInfos->PRInfos->PendingReview->Id = review_id;
+
+            CreateReviewThread();
+        } );
+}
+
+void SGitHubToolsAddCommentForm::AddReplyToReviewThread()
+{
+    FGitHubToolsModule::Get()
+        .GetNotificationManager()
+        .DisplayModalNotification( LOCTEXT( "SubmitComment", "Submit comment..." ) );
+
+    FGitHubToolsModule::Get()
+        .GetRequestManager()
+        .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThreadReply >( ThreadInfos->Id, GetComment() )
+        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReviewThreadReply > & result ) {
+            const auto & result_data = result.Get();
+            ThreadInfos->Comments.Add( result_data.GetResult().GetValue() );
+
+            Close();
+        } );
+}
+
+void SGitHubToolsAddCommentForm::CreateReviewThread()
+{
+    if ( LineInfos.Line != INDEX_NONE )
+    {
         FGitHubToolsModule::Get()
             .GetRequestManager()
-            .SendRequest< FGitHubToolsHttpRequestData_AddPRReview >( FileInfos->PRInfos->Id )
-            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReview > & request_future ) {
-                const auto & request = request_future.Get();
-
-                if ( request.HasErrorMessage() )
-                {
-                    RefreshErrorText( FText::FromString( request.GetErrorMessage() ) );
-                    return;
-                }
-
-                const auto result = request_future.Get().GetResult();
-
-                auto review_id = result.Get( TEXT( "" ) );
-
-                if ( review_id.IsEmpty() )
-                {
-                    RefreshErrorText( LOCTEXT( "Error_NoThreadId", "Could not get a thread ID" ) );
-                    return;
-                }
-
-                if ( LineInfos.Line != INDEX_NONE )
-                {
-                    FGitHubToolsModule::Get()
-                        .GetRequestManager()
-                        .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThreadToLine >( FileInfos->PRInfos->Id, review_id, FileInfos->Path, LineInfos.Side, LineInfos.Line, GetComment() )
-                        .Then( [ &, review_id ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReviewThreadToLine > & add_pr_review_thread_result ) {
-                            auto add_pr_review_thread_result_data = add_pr_review_thread_result.Get();
-
-                            FGitHubToolsModule::Get()
-                                .GetRequestManager()
-                                .SendRequest< FGitHubToolsHttpRequestData_SubmitPRReview >( FileInfos->PRInfos->Id, review_id, EGitHubToolsPullRequestReviewEvent::RequestChanges )
-                                .Then( [ &, add_pr_review_thread_result_data ]( const TFuture< FGitHubToolsHttpRequestData_SubmitPRReview > & submit_pr_result ) {
-                                    auto submit_pr_result_data = submit_pr_result.Get();
-
-                                    if ( submit_pr_result_data.GetResult().IsSet() && !submit_pr_result_data.GetResult()->IsEmpty() )
-                                    {
-                                        FileInfos->Reviews.Add( add_pr_review_thread_result_data.GetResult().GetValue() );
-
-                                        Close();
-                                    }
-                                } );
-                        } );
-                }
-                else
-                {
-                    FGitHubToolsModule::Get()
-                        .GetRequestManager()
-                        .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThreadToFile >( FileInfos->PRInfos->Id, review_id, FileInfos->Path, GetComment() )
-                        .Then( [ &, review_id ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReviewThreadToFile > & add_pr_review_thread_result ) {
-                            auto add_pr_review_thread_result_data = add_pr_review_thread_result.Get();
-
-                            FGitHubToolsModule::Get()
-                                .GetRequestManager()
-                                .SendRequest< FGitHubToolsHttpRequestData_SubmitPRReview >( FileInfos->PRInfos->Id, review_id, EGitHubToolsPullRequestReviewEvent::RequestChanges )
-                                .Then( [ &, add_pr_review_thread_result_data ]( const TFuture< FGitHubToolsHttpRequestData_SubmitPRReview > & submit_pr_result ) {
-                                    auto submit_pr_result_data = submit_pr_result.Get();
-
-                                    if ( submit_pr_result_data.GetResult().IsSet() && !submit_pr_result_data.GetResult()->IsEmpty() )
-                                    {
-                                        FileInfos->Reviews.Add( add_pr_review_thread_result_data.GetResult().GetValue() );
-
-                                        Close();
-                                    }
-                                } );
-                        } );
-                }
+            .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThreadToLine >( FileInfos->PRInfos->Id, FileInfos->PRInfos->PendingReview->Id, FileInfos->Path, LineInfos.Side, LineInfos.Line, GetComment() )
+            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReviewThreadToLine > & add_pr_review_thread_result ) {
+                auto add_pr_review_thread_result_data = add_pr_review_thread_result.Get();
+                FileInfos->AddReview( add_pr_review_thread_result_data.GetResult().GetValue() );
+                Close();
             } );
     }
-
-    return FReply::Handled();
+    else
+    {
+        FGitHubToolsModule::Get()
+            .GetRequestManager()
+            .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThreadToFile >( FileInfos->PRInfos->Id, FileInfos->PRInfos->PendingReview->Id, FileInfos->Path, GetComment() )
+            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReviewThreadToFile > & add_pr_review_thread_result ) {
+                auto add_pr_review_thread_result_data = add_pr_review_thread_result.Get();
+                FileInfos->AddReview( add_pr_review_thread_result_data.GetResult().GetValue() );
+                Close();
+            } );
+    }
 }
 
 FReply SGitHubToolsAddCommentForm::OnCancelButtonClicked()

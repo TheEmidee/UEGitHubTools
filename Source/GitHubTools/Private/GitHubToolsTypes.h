@@ -7,6 +7,8 @@ struct FGithubToolsPullRequestReviewThreadInfos;
 struct FGithubToolsPullRequestInfos;
 struct FSlateBrush;
 
+DECLARE_MULTICAST_DELEGATE( FGitHubToolsOnDataChanged );
+
 enum class EGitHubToolsSubjectType : uint8
 {
     File,
@@ -99,6 +101,24 @@ struct FGithubToolsPullRequestFilePatch
 
 typedef TSharedPtr< FGithubToolsPullRequestFilePatch > FGithubToolsPullRequestFilePatchPtr;
 
+struct FGithubToolsPullRequestReviewThreadInfos
+{
+    FGithubToolsPullRequestReviewThreadInfos() = default;
+    explicit FGithubToolsPullRequestReviewThreadInfos( const TSharedRef< FJsonObject > & json_object );
+
+    FString Id;
+    bool bIsResolved;
+    FString ResolvedByUserName;
+    FString FileName;
+    EGitHubToolsDiffSide DiffSide;
+    EGitHubToolsSubjectType SubjectType;
+    int Line;
+    TArray< FGithubToolsPullRequestCommentPtr > Comments;
+    int PRNumber;
+};
+
+typedef TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > FGithubToolsPullRequestReviewThreadInfosPtr;
+
 struct FGithubToolsPullRequestFileInfos
 {
     FGithubToolsPullRequestFileInfos() = default;
@@ -106,6 +126,9 @@ struct FGithubToolsPullRequestFileInfos
 
     void UpdateViewedState( EGitHubToolsFileViewedState new_viewed_state );
     bool IsUAsset() const;
+    void AddReview( const FGithubToolsPullRequestReviewThreadInfosPtr & review_thread_infos );
+
+    FGitHubToolsOnDataChanged OnDataChanged;
 
     FString Path;
     FText AssetName;
@@ -130,24 +153,6 @@ enum class EGitHubToolsReviewState : uint8
     Comment,
     Unknown
 };
-
-struct FGithubToolsPullRequestReviewThreadInfos
-{
-    FGithubToolsPullRequestReviewThreadInfos() = default;
-    explicit FGithubToolsPullRequestReviewThreadInfos( const TSharedRef< FJsonObject > & json_object );
-
-    FString Id;
-    bool bIsResolved;
-    FString ResolvedByUserName;
-    FString FileName;
-    EGitHubToolsDiffSide DiffSide;
-    EGitHubToolsSubjectType SubjectType;
-    int Line;
-    TArray< FGithubToolsPullRequestCommentPtr > Comments;
-    int PRNumber;
-};
-
-typedef TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > FGithubToolsPullRequestReviewThreadInfosPtr;
 
 struct FGithubToolsPullRequestPendingReviewInfos
 {
@@ -178,8 +183,11 @@ struct FGithubToolsPullRequestInfos : TSharedFromThis< FGithubToolsPullRequestIn
     explicit FGithubToolsPullRequestInfos( const TSharedRef< FJsonObject > & json );
 
     bool CanCommentFiles() const;
-    bool HasPendingReviews() const;
+    bool HasPendingReview() const;
     void SetFiles( const TArray< FGithubToolsPullRequestFileInfosPtr > & files, const TArray< FGithubToolsPullRequestFilePatchPtr > & patches, const TArray< FGithubToolsPullRequestReviewThreadInfosPtr > & reviews );
+    bool CanApprovePullRequest() const;
+    bool HasChangeRequests() const;
+    void DismissReview();
 
     FString ViewerLogin;
     int Number;
@@ -200,12 +208,12 @@ struct FGithubToolsPullRequestInfos : TSharedFromThis< FGithubToolsPullRequestIn
     bool bHasUnresolvedConversations;
     TArray< FGithubToolsPullRequestFileInfosPtr > FileInfos;
     TArray< FGitHubToolsPullRequestCheckInfosPtr > Checks;
-    TArray< FGithubToolsPullRequestPendingReviewInfosPtr > PendingReviews;
+    FGithubToolsPullRequestPendingReviewInfosPtr PendingReview;
 };
 
-FORCEINLINE bool FGithubToolsPullRequestInfos::HasPendingReviews() const
+FORCEINLINE bool FGithubToolsPullRequestInfos::HasPendingReview() const
 {
-    return !PendingReviews.IsEmpty();
+    return PendingReview != nullptr;
 }
 
 typedef TSharedPtr< FGithubToolsPullRequestInfos > FGithubToolsPullRequestInfosPtr;

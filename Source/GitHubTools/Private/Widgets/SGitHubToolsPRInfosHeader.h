@@ -21,6 +21,8 @@ public:
 private:
     FReply OpenInGitHubClicked();
     FReply OnApprovePRClicked();
+    FReply OnRequestChangesClicked();
+    FReply OnAbandonReviewClicked();
     FReply OnMergePRClicked();
     EVisibility GetPendingReviewsVisibility() const;
 

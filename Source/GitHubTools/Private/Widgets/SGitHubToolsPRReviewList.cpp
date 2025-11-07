@@ -45,7 +45,7 @@ void SGitHubToolsPRReviewList::Construct( const FArguments & arguments )
                                                             .HAlign( HAlign_Left )
                                                                 [ SNew( SButton )
                                                                         .Text( LOCTEXT( "CreateNewThread", "Create new thread" ) )
-                                                                        .IsEnabled( PRInfos->CanCommentFiles() )
+                                                                        // .IsEnabled( PRInfos->CanCommentFiles() )
                                                                         .OnClicked( this, &SGitHubToolsPRReviewList::OnCreateNewThreadButtonClicked ) ] +
                                                         SHorizontalBox::Slot()
                                                             .AutoWidth()
@@ -91,6 +91,8 @@ void SGitHubToolsPRReviewList::ShowFileReviews( const FGithubToolsPullRequestFil
     ReviewThreadsListView->RequestListRefresh();
 
     WidgetSwitcher->SetActiveWidgetIndex( 0 );
+
+    OnShouldRebuildFileTreeView.ExecuteIfBound();
 }
 
 FReply SGitHubToolsPRReviewList::OnAddCommentClicked( FGithubToolsPullRequestReviewThreadInfosPtr thread_infos )

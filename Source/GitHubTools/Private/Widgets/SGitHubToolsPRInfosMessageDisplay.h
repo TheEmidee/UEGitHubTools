@@ -17,8 +17,6 @@ public:
     void Construct( const FArguments & arguments );
 
 private:
-    FReply OnOpenPendingReviewsClicked();
-
     FGithubToolsPullRequestInfosPtr PRInfos;
     TSharedPtr< SWindow > PendingReviewsWindow;
 };
