@@ -9,6 +9,7 @@
 #include "HttpRequests/GitHubToolsHttpRequest_ApprovePR.h"
 #include "HttpRequests/GitHubToolsHttpRequest_DeletePRReview.h"
 #include "HttpRequests/GitHubToolsHttpRequest_MergePR.h"
+#include "HttpRequests/GitHubToolsHttpRequest_PR_RequestChanges.h"
 #include "Misc/MessageDialog.h"
 #include "RevisionControlStyle/RevisionControlStyle.h"
 #include "SourceControlHelpers.h"
@@ -243,6 +244,15 @@ FReply SGitHubToolsPRHeader::OnApprovePRClicked()
 
 FReply SGitHubToolsPRHeader::OnRequestChangesClicked()
 {
+    FGitHubToolsModule::Get().GetNotificationManager().DisplayModalNotification( LOCTEXT( "RequestChangesPR", "Requesting changes on the PR" ) );
+
+    FGitHubToolsModule::Get()
+        .GetRequestManager()
+        .SendRequest< FGitHubToolsHttpRequestData_PR_RequestChanges >( PRInfos->Id )
+        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_PR_RequestChanges > & /*request_future*/ ) {
+            FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
+        } );
+
     return FReply::Handled();
 }
 

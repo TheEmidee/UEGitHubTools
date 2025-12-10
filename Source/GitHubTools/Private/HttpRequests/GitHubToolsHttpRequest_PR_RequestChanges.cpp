@@ -1,4 +1,4 @@
-#include "GitHubToolsHttpRequest_ApprovePR.h"
+#include "GitHubToolsHttpRequest_PR_RequestChanges.h"
 
 #include "Dom/JsonValue.h"
 #include "GitHubToolsGitUtils.h"
@@ -6,20 +6,21 @@
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 
-FGitHubToolsHttpRequestData_ApprovePR::FGitHubToolsHttpRequestData_ApprovePR( const FString & pull_request_id ) :
+FGitHubToolsHttpRequestData_PR_RequestChanges::FGitHubToolsHttpRequestData_PR_RequestChanges( const FString & pull_request_id ) :
     PullRequestId( pull_request_id )
 {
 }
 
-FString FGitHubToolsHttpRequestData_ApprovePR::GetRawQuery() const
+FString FGitHubToolsHttpRequestData_PR_RequestChanges::GetRawQuery() const
 {
     return R"(
-mutation AddPullRequestReview( 
+mutation PullRequestRequestChanges( 
   $pullRequestId: ID!, 
   ) {
-  addPullRequestReview( input: { 
+  submitPullRequestReview( input: { 
     pullRequestId: $pullRequestId,
-    event: APPROVE  
+    event: REQUEST_CHANGES,
+    body: "Changes are requested"  
     } ) { 
       pullRequestReview {
         id
@@ -29,14 +30,14 @@ mutation AddPullRequestReview(
 )";
 }
 
-void FGitHubToolsHttpRequestData_ApprovePR::ParseResponseData( const FJsonObject & json_data )
+void FGitHubToolsHttpRequestData_PR_RequestChanges::ParseResponseData( const FJsonObject & json_data )
 {
-    const auto result_object = json_data.GetObjectField( TEXT( "addPullRequestReview" ) );
+    const auto result_object = json_data.GetObjectField( TEXT( "submitPullRequestReview" ) );
     const auto thread_object = result_object->GetObjectField( TEXT( "pullRequestReview" ) );
     Result = thread_object->GetStringField( TEXT( "id" ) );
 }
 
-void FGitHubToolsHttpRequestData_ApprovePR::AddParameters( FJsonObject & variables_object ) const
+void FGitHubToolsHttpRequestData_PR_RequestChanges::AddParameters( FJsonObject & variables_object ) const
 {
     FGitHubToolsHttpRequestGraphQLMutation< FString >::AddParameters( variables_object );
     variables_object.SetStringField( TEXT( "pullRequestId" ), PullRequestId );
