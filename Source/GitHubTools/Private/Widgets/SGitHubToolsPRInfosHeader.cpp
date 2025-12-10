@@ -250,6 +250,7 @@ FReply SGitHubToolsPRHeader::OnRequestChangesClicked()
         .GetRequestManager()
         .SendRequest< FGitHubToolsHttpRequestData_PR_RequestChanges >( PRInfos->Id )
         .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_PR_RequestChanges > & /*request_future*/ ) {
+            PRInfos->RequestChanges();
             FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
         } );
 

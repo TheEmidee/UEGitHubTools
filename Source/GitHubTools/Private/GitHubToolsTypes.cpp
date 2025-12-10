@@ -358,6 +358,12 @@ void FGithubToolsPullRequestInfos::DismissReview()
     PendingReview = nullptr;
 }
 
+void FGithubToolsPullRequestInfos::RequestChanges()
+{
+    PendingReview->Comments.Empty();
+    PendingReview = nullptr;
+}
+
 FGitHubToolsOpenedPullRequestInfos::FGitHubToolsOpenedPullRequestInfos( const TSharedRef< FJsonObject > & json )
 {
     const auto author_object = json->GetObjectField( TEXT( "author" ) );
