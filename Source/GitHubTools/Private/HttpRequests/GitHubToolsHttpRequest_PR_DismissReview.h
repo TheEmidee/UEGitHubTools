@@ -1,11 +1,12 @@
 #pragma once
 
 #include "GitHubToolsHttpRequestsTypes.h"
+#include "GitHubToolsTypes.h"
 
-class FGitHubToolsHttpRequest_DeletePullRequestReview final : public FGitHubToolsHttpRequestGraphQLMutation< bool >
+class FGitHubToolsHttpRequest_PR_DismissReview final : public FGitHubToolsHttpRequestGraphQLMutation< FString >
 {
 public:
-    explicit FGitHubToolsHttpRequest_DeletePullRequestReview( const FString & review_id );
+    explicit FGitHubToolsHttpRequest_PR_DismissReview( const FString & pull_request_review_id );
 
 protected:
     FString GetRawQuery() const override;
@@ -13,5 +14,5 @@ protected:
     void AddParameters( FJsonObject & variables_object ) const override;
 
 private:
-    FString ReviewId;
+    FString PullRequestReviewId;
 };

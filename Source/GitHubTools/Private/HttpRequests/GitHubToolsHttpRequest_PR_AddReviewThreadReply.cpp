@@ -1,20 +1,19 @@
-#include "GitHubToolsHttpRequest_AddPRReviewThreadReply.h"
+#include "GitHubToolsHttpRequest_PR_AddReviewThreadReply.h"
 
 #include "Dom/JsonValue.h"
 #include "GitHubToolsTypes.h"
-#include "Interfaces/IHttpResponse.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 
-FGitHubToolsHttpRequestData_AddPRReviewThreadReply::FGitHubToolsHttpRequestData_AddPRReviewThreadReply( const FString & thread_id, const FString & comment ) :
+FGitHubToolsHttpRequest_PR_AddReviewThreadReply::FGitHubToolsHttpRequest_PR_AddReviewThreadReply( const FString & thread_id, const FString & comment ) :
     ThreadId( thread_id ),
     Comment( comment )
 {
 }
 
-FString FGitHubToolsHttpRequestData_AddPRReviewThreadReply::GetRawQuery() const
+FString FGitHubToolsHttpRequest_PR_AddReviewThreadReply::GetRawQuery() const
 {
     return R"(
 mutation AddPullRequestReviewThreadReply( 
@@ -40,7 +39,7 @@ mutation AddPullRequestReviewThreadReply(
 )";
 }
 
-void FGitHubToolsHttpRequestData_AddPRReviewThreadReply::ParseResponseData( const FJsonObject & json_data )
+void FGitHubToolsHttpRequest_PR_AddReviewThreadReply::ParseResponseData( const FJsonObject & json_data )
 {
     const auto result_object = json_data.GetObjectField( TEXT( "addPullRequestReviewThreadReply" ) );
     const auto comment_object = result_object->GetObjectField( TEXT( "comment" ) );
@@ -56,7 +55,7 @@ void FGitHubToolsHttpRequestData_AddPRReviewThreadReply::ParseResponseData( cons
     Result = comment;
 }
 
-void FGitHubToolsHttpRequestData_AddPRReviewThreadReply::AddParameters( FJsonObject & variables_object ) const
+void FGitHubToolsHttpRequest_PR_AddReviewThreadReply::AddParameters( FJsonObject & variables_object ) const
 {
     FGitHubToolsHttpRequestGraphQLMutation< TSharedPtr< FGithubToolsPullRequestComment > >::AddParameters( variables_object );
 

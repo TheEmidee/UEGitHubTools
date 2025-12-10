@@ -7,7 +7,7 @@
 #include "GitHubToolsGitUtils.h"
 #include "GitHubToolsSettings.h"
 #include "GitSourceControlModule.h"
-#include "HttpRequests/GitHubToolsHttpRequest_GetOpenedPullRequests.h"
+#include "HttpRequests/GitHubToolsHttpRequest_Repo_GetOpenPRs.h"
 #include "ToolMenus.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
 #include "Widgets/SGitHubToolsPRInfos.h"
@@ -73,8 +73,8 @@ void FGitHubToolsMenu::OpenReviewWindow( bool close_opened_window )
 
     FGitHubToolsModule::Get()
         .GetRequestManager()
-        .SendRequest< FGitHubToolsHttpRequest_GetOpenedPullRequests >()
-        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_GetOpenedPullRequests > & result ) {
+        .SendRequest< FGitHubToolsHttpRequest_Repo_GetOpenPRs >()
+        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_Repo_GetOpenPRs > & result ) {
             const auto & result_data = result.Get();
             TArray< FGitHubToolsOpenedPullRequestInfosPtr > opened_prs = result_data.GetResult().Get( {} );
 

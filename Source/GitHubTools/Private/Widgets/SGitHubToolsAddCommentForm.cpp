@@ -2,9 +2,9 @@
 
 #include "Components/VerticalBox.h"
 #include "GitHubTools.h"
-#include "HttpRequests/GitHubToolsHttpRequest_AddPRReviewThread.h"
-#include "HttpRequests/GitHubToolsHttpRequest_AddPRReviewThreadReply.h"
-#include "HttpRequests/GitHubToolsHttpRequest_CreatePendingPRPRReview.h"
+#include "HttpRequests/GitHubToolsHttpRequest_PR_AddReviewThread.h"
+#include "HttpRequests/GitHubToolsHttpRequest_PR_AddReviewThreadReply.h"
+#include "HttpRequests/GitHubToolsHttpRequest_PR_CreatePendingReview.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Layout/SBox.h"
@@ -120,8 +120,8 @@ void SGitHubToolsAddCommentForm::CreatePendingReview()
 {
     FGitHubToolsModule::Get()
         .GetRequestManager()
-        .SendRequest< FGitHubToolsHttpRequestData_CreatePendingPRReview >( FileInfos->PRInfos->Id )
-        .Then( [ this ]( const TFuture< FGitHubToolsHttpRequestData_CreatePendingPRReview > & request_future ) {
+        .SendRequest< FGitHubToolsHttpRequest_PR_CreatePendingReview >( FileInfos->PRInfos->Id )
+        .Then( [ this ]( const TFuture< FGitHubToolsHttpRequest_PR_CreatePendingReview > & request_future ) {
             const auto & request = request_future.Get();
 
             if ( request.HasErrorMessage() )
@@ -155,8 +155,8 @@ void SGitHubToolsAddCommentForm::AddReplyToReviewThread()
 
     FGitHubToolsModule::Get()
         .GetRequestManager()
-        .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThreadReply >( ThreadInfos->Id, GetComment() )
-        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReviewThreadReply > & result ) {
+        .SendRequest< FGitHubToolsHttpRequest_PR_AddReviewThreadReply >( ThreadInfos->Id, GetComment() )
+        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_PR_AddReviewThreadReply > & result ) {
             const auto & result_data = result.Get();
             ThreadInfos->Comments.Add( result_data.GetResult().GetValue() );
 
@@ -170,8 +170,8 @@ void SGitHubToolsAddCommentForm::CreateReviewThread()
     {
         FGitHubToolsModule::Get()
             .GetRequestManager()
-            .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThreadToLine >( FileInfos->PRInfos->Id, FileInfos->PRInfos->PendingReview->Id, FileInfos->Path, LineInfos.Side, LineInfos.Line, GetComment() )
-            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReviewThreadToLine > & add_pr_review_thread_result ) {
+            .SendRequest< FGitHubToolsHttpRequest_PR_AddReviewThreadToLine >( FileInfos->PRInfos->Id, FileInfos->PRInfos->PendingReview->Id, FileInfos->Path, LineInfos.Side, LineInfos.Line, GetComment() )
+            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_PR_AddReviewThreadToLine > & add_pr_review_thread_result ) {
                 auto add_pr_review_thread_result_data = add_pr_review_thread_result.Get();
                 FileInfos->AddReview( add_pr_review_thread_result_data.GetResult().GetValue() );
                 Close();
@@ -181,8 +181,8 @@ void SGitHubToolsAddCommentForm::CreateReviewThread()
     {
         FGitHubToolsModule::Get()
             .GetRequestManager()
-            .SendRequest< FGitHubToolsHttpRequestData_AddPRReviewThreadToFile >( FileInfos->PRInfos->Id, FileInfos->PRInfos->PendingReview->Id, FileInfos->Path, GetComment() )
-            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_AddPRReviewThreadToFile > & add_pr_review_thread_result ) {
+            .SendRequest< FGitHubToolsHttpRequest_PR_AddReviewThreadToFile >( FileInfos->PRInfos->Id, FileInfos->PRInfos->PendingReview->Id, FileInfos->Path, GetComment() )
+            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_PR_AddReviewThreadToFile > & add_pr_review_thread_result ) {
                 auto add_pr_review_thread_result_data = add_pr_review_thread_result.Get();
                 FileInfos->AddReview( add_pr_review_thread_result_data.GetResult().GetValue() );
                 Close();

@@ -1,11 +1,12 @@
 #pragma once
 
 #include "GitHubToolsHttpRequestsTypes.h"
+#include "GitHubToolsTypes.h"
 
-class FGitHubToolsHttpRequest_MergePR final : public FGitHubToolsHttpRequestGraphQLMutation< bool >
+class FGitHubToolsHttpRequest_PR_CreatePendingReview final : public FGitHubToolsHttpRequestGraphQLMutation< FString >
 {
 public:
-    FGitHubToolsHttpRequest_MergePR( const FString & pull_request_id );
+    explicit FGitHubToolsHttpRequest_PR_CreatePendingReview( const FString & pull_request_id );
 
 protected:
     FString GetRawQuery() const override;

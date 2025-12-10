@@ -6,9 +6,9 @@
 #include "GitHubTools.h"
 #include "GitHubToolsGitUtils.h"
 #include "HAL/FileManagerGeneric.h"
-#include "HttpRequests/GitHubToolsHttpRequest_ApprovePR.h"
-#include "HttpRequests/GitHubToolsHttpRequest_DeletePRReview.h"
-#include "HttpRequests/GitHubToolsHttpRequest_MergePR.h"
+#include "HttpRequests/GitHubToolsHttpRequest_PR_Approve.h"
+#include "HttpRequests/GitHubToolsHttpRequest_PR_DeleteReview.h"
+#include "HttpRequests/GitHubToolsHttpRequest_PR_Merge.h"
 #include "HttpRequests/GitHubToolsHttpRequest_PR_RequestChanges.h"
 #include "Misc/MessageDialog.h"
 #include "RevisionControlStyle/RevisionControlStyle.h"
@@ -234,8 +234,8 @@ FReply SGitHubToolsPRHeader::OnApprovePRClicked()
 
     FGitHubToolsModule::Get()
         .GetRequestManager()
-        .SendRequest< FGitHubToolsHttpRequestData_ApprovePR >( PRInfos->Id )
-        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_ApprovePR > & /*request_future*/ ) {
+        .SendRequest< FGitHubToolsHttpRequest_PR_Approve >( PRInfos->Id )
+        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_PR_Approve > & /*request_future*/ ) {
             FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
         } );
 
@@ -263,8 +263,8 @@ FReply SGitHubToolsPRHeader::OnAbandonReviewClicked()
 
     FGitHubToolsModule::Get()
         .GetRequestManager()
-        .SendRequest< FGitHubToolsHttpRequestData_DeletePRReview >( PRInfos->PendingReview->Id )
-        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_DeletePRReview > & /*request_future*/ ) {
+        .SendRequest< FGitHubToolsHttpRequest_PR_DeleteReview >( PRInfos->PendingReview->Id )
+        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_PR_DeleteReview > & /*request_future*/ ) {
             PRInfos->DismissReview();
             FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
         } );
@@ -281,8 +281,8 @@ FReply SGitHubToolsPRHeader::OnMergePRClicked()
 
         FGitHubToolsModule::Get()
             .GetRequestManager()
-            .SendRequest< FGitHubToolsHttpRequest_MergePR >( PRInfos->Id )
-            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_MergePR > & /*request_future*/ ) {
+            .SendRequest< FGitHubToolsHttpRequest_PR_Merge >( PRInfos->Id )
+            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_PR_Merge > & /*request_future*/ ) {
                 FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
             } );
     }

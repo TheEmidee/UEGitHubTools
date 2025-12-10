@@ -3,10 +3,10 @@
 #include "GitHubToolsHttpRequestsTypes.h"
 #include "GitHubToolsTypes.h"
 
-class FGitHubToolsHttpRequestData_CreatePendingPRReview final : public FGitHubToolsHttpRequestGraphQLMutation< FString >
+class FGitHubToolsHttpRequest_PR_AddReviewThreadReply final : public FGitHubToolsHttpRequestGraphQLMutation< FGithubToolsPullRequestCommentPtr >
 {
 public:
-    explicit FGitHubToolsHttpRequestData_CreatePendingPRReview( const FString & pull_request_id );
+    explicit FGitHubToolsHttpRequest_PR_AddReviewThreadReply( const FString & thread_id, const FString & comment );
 
 protected:
     FString GetRawQuery() const override;
@@ -14,5 +14,6 @@ protected:
     void AddParameters( FJsonObject & variables_object ) const override;
 
 private:
-    FString PullRequestId;
+    FString ThreadId;
+    FString Comment;
 };

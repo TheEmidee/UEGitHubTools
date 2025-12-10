@@ -3,10 +3,10 @@
 #include "GitHubToolsHttpRequestManager.h"
 #include "GitHubToolsHttpRequestsTypes.h"
 
-class FGitHubToolsHttpRequest_MarkFileAsViewed final : public FGitHubToolsHttpRequestGraphQLMutation< bool >
+class FGitHubToolsHttpRequest_File_MarkAsViewed final : public FGitHubToolsHttpRequestGraphQLMutation< bool >
 {
 public:
-    FGitHubToolsHttpRequest_MarkFileAsViewed( const FString & pull_request_id, const FString & path );
+    FGitHubToolsHttpRequest_File_MarkAsViewed( const FString & pull_request_id, const FString & path );
 
 protected:
     FString GetRawQuery() const override;

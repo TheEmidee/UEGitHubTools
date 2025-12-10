@@ -3,12 +3,12 @@
 #include "GitHubToolsHttpRequestsTypes.h"
 #include "GitHubToolsTypes.h"
 
-class FGitHubToolsHttpRequestData_GetPullRequestFilePatches final : public FGitHubToolsHttpRequestRestQuery< TArray< FGithubToolsPullRequestFilePatchPtr > >
+class FGitHubToolsHttpRequest_PR_GetFilePatches final : public FGitHubToolsHttpRequestRestQuery< TArray< FGithubToolsPullRequestFilePatchPtr > >
 {
 public:
     typedef TArray< bool > ResponseType;
 
-    explicit FGitHubToolsHttpRequestData_GetPullRequestFilePatches( int pull_request_number );
+    explicit FGitHubToolsHttpRequest_PR_GetFilePatches( int pull_request_number );
 
 protected:
     FString GetEndPoint() const override;

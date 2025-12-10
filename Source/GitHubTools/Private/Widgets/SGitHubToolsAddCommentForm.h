@@ -6,7 +6,7 @@
 
 class SErrorText;
 class STextBlock;
-class FGitHubToolsHttpRequestData_AddPRReviewThread;
+class FGitHubToolsHttpRequest_PR_AddReviewThread;
 DECLARE_DELEGATE( FGitHubToolsOnAddCommentDoneDelegate );
 
 struct FGitHubToolsAddCommentLineInfos

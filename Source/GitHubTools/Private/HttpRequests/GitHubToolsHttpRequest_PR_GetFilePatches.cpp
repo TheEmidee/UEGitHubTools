@@ -1,21 +1,21 @@
-#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestFilePatches.h"
+#include "HttpRequests/GitHubToolsHttpRequest_PR_GetFilePatches.h"
 
 #include "Dom/JsonValue.h"
 #include "Serialization/JsonSerializer.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 
-FGitHubToolsHttpRequestData_GetPullRequestFilePatches::FGitHubToolsHttpRequestData_GetPullRequestFilePatches( int pull_request_number ) :
+FGitHubToolsHttpRequest_PR_GetFilePatches::FGitHubToolsHttpRequest_PR_GetFilePatches( int pull_request_number ) :
     PullRequestNumber( pull_request_number )
 {
 }
 
-FString FGitHubToolsHttpRequestData_GetPullRequestFilePatches::GetEndPoint() const
+FString FGitHubToolsHttpRequest_PR_GetFilePatches::GetEndPoint() const
 {
     return FString::Printf( TEXT( "pulls/%i/files?per_page=100" ), PullRequestNumber );
 }
 
-void FGitHubToolsHttpRequestData_GetPullRequestFilePatches::ParseResponseData( const FJsonValue & json_data )
+void FGitHubToolsHttpRequest_PR_GetFilePatches::ParseResponseData( const FJsonValue & json_data )
 {
     const auto objects = json_data.AsArray();
 

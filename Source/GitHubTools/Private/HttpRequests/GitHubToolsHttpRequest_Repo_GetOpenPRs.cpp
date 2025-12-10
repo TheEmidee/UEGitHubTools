@@ -1,14 +1,12 @@
-#include "GitHubToolsHttpRequest_GetOpenedPullRequests.h"
+#include "GitHubToolsHttpRequest_Repo_GetOpenPRs.h"
 
 #include "Dom/JsonValue.h"
 #include "GitHubToolsGitUtils.h"
-#include "Interfaces/IHttpResponse.h"
-#include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 
-FString FGitHubToolsHttpRequest_GetOpenedPullRequests::GetRawQuery() const
+FString FGitHubToolsHttpRequest_Repo_GetOpenPRs::GetRawQuery() const
 {
     return R"(
 query ( $repoOwner: String!, $repoName: String! ) {
@@ -30,7 +28,7 @@ query ( $repoOwner: String!, $repoName: String! ) {
 )";
 }
 
-void FGitHubToolsHttpRequest_GetOpenedPullRequests::ParseResponseData( const FJsonObject & json_data )
+void FGitHubToolsHttpRequest_Repo_GetOpenPRs::ParseResponseData( const FJsonObject & json_data )
 {
     const auto repository_object = json_data.GetObjectField( TEXT( "repository" ) );
     const auto pull_requests_objects = repository_object->GetObjectField( TEXT( "pullRequests" ) );

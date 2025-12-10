@@ -9,10 +9,10 @@
 #include "GitHubTools.h"
 #include "GitSourceControlModule.h"
 #include "GitSourceControlUtils.h"
-#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestFilePatches.h"
-#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestFiles.h"
-#include "HttpRequests/GitHubToolsHttpRequest_GetPullRequestInfos.h"
-#include "HttpRequests/GitHubToolsHttpRequest_MarkFileAsViewed.h"
+#include "HttpRequests/GitHubToolsHttpRequest_File_MarkAsViewed.h"
+#include "HttpRequests/GitHubToolsHttpRequest_PR_GetFilePatches.h"
+#include "HttpRequests/GitHubToolsHttpRequest_PR_GetFiles.h"
+#include "HttpRequests/GitHubToolsHttpRequest_PR_GetInfos.h"
 #include "IHotReload.h"
 #include "ILiveCodingModule.h"
 #include "ISourceControlModule.h"
@@ -200,20 +200,20 @@ namespace GitHubToolsUtils
 
         FGitHubToolsModule::Get()
             .GetRequestManager()
-            .SendPaginatedRequest< FGitHubToolsHttpRequestData_GetPullRequestFiles >( pr_number )
+            .SendPaginatedRequest< FGitHubToolsHttpRequest_PR_GetFiles >( pr_number )
             .Then( [ &, pr_number ]( TFuture< TArray< FGithubToolsPullRequestFileInfosPtr > > pr_files ) {
                 auto files = pr_files.Get();
 
                 FGitHubToolsModule::Get()
                     .GetRequestManager()
-                    .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestFilePatches >( pr_number )
-                    .Then( [ &, files = MoveTemp( files ), pr_number ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestFilePatches > & file_patches ) {
+                    .SendRequest< FGitHubToolsHttpRequest_PR_GetFilePatches >( pr_number )
+                    .Then( [ &, files = MoveTemp( files ), pr_number ]( const TFuture< FGitHubToolsHttpRequest_PR_GetFilePatches > & file_patches ) {
                         auto patches = file_patches.Get().GetResult().GetValue();
 
                         FGitHubToolsModule::Get()
                             .GetRequestManager()
-                            .SendRequest< FGitHubToolsHttpRequestData_GetPullRequestInfos >( pr_number, files, MoveTemp( patches ) )
-                            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_GetPullRequestInfos > & get_pr_infos ) {
+                            .SendRequest< FGitHubToolsHttpRequest_PR_GetInfos >( pr_number, files, MoveTemp( patches ) )
+                            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_PR_GetInfos > & get_pr_infos ) {
                                 wrapper->Promise.SetValue( get_pr_infos.Get().GetResult().GetValue() );
                                 wrapper.Reset();
                             } );
@@ -335,8 +335,8 @@ namespace GitHubToolsUtils
 
         FGitHubToolsModule::Get()
             .GetRequestManager()
-            .SendRequest< FGitHubToolsHttpRequest_MarkFileAsViewed >( pr_id, file_infos->Path )
-            .Then( [ file = MoveTemp( file_infos ), callback = MoveTemp( callback ) ]( const TFuture< FGitHubToolsHttpRequest_MarkFileAsViewed > & request ) {
+            .SendRequest< FGitHubToolsHttpRequest_File_MarkAsViewed >( pr_id, file_infos->Path )
+            .Then( [ file = MoveTemp( file_infos ), callback = MoveTemp( callback ) ]( const TFuture< FGitHubToolsHttpRequest_File_MarkAsViewed > & request ) {
                 if ( request.Get().GetResult().Get( false ) )
                 {
                     FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
@@ -371,7 +371,7 @@ namespace GitHubToolsUtils
                         continue;
                     }
 
-                    typedef TGitHubToolsHttpRequestWrapper< FGitHubToolsHttpRequest_MarkFileAsViewed > HttpRequestType;
+                    typedef TGitHubToolsHttpRequestWrapper< FGitHubToolsHttpRequest_File_MarkAsViewed > HttpRequestType;
                     auto request = MakeShared< HttpRequestType >( pr_id, file_infos->Path );
                     request->SetPromiseValueOnHttpThread();
                     request->ProcessRequest();
