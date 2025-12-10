@@ -343,9 +343,7 @@ bool FGithubToolsPullRequestInfos::CanApprovePullRequest() const
 
 bool FGithubToolsPullRequestInfos::HasChangeRequests() const
 {
-    return FileInfos.FindByPredicate( []( const FGithubToolsPullRequestFileInfosPtr & file_infos ) {
-        return file_infos->bHasUnresolvedConversations;
-    } ) != nullptr;
+    return PendingReview != nullptr;
 }
 
 void FGithubToolsPullRequestInfos::DismissReview()
