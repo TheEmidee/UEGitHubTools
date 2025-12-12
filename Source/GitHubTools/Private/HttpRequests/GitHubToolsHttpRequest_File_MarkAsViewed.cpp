@@ -1,16 +1,16 @@
-#include "GitHubToolsHttpRequest_MarkFileAsViewed.h"
+#include "GitHubToolsHttpRequest_File_MarkAsViewed.h"
 
 #include "Dom/JsonObject.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 
-FGitHubToolsHttpRequest_MarkFileAsViewed::FGitHubToolsHttpRequest_MarkFileAsViewed( const FString & pull_request_id, const FString & path ) :
+FGitHubToolsHttpRequest_File_MarkAsViewed::FGitHubToolsHttpRequest_File_MarkAsViewed( const FString & pull_request_id, const FString & path ) :
     PullRequestId( pull_request_id ),
     Path( path )
 {
 }
 
-FString FGitHubToolsHttpRequest_MarkFileAsViewed::GetRawQuery() const
+FString FGitHubToolsHttpRequest_File_MarkAsViewed::GetRawQuery() const
 {
     return R"(
 mutation MarkFileAsViewed( 
@@ -31,7 +31,7 @@ mutation MarkFileAsViewed(
 )";
 }
 
-void FGitHubToolsHttpRequest_MarkFileAsViewed::AddParameters( FJsonObject & variables_object ) const
+void FGitHubToolsHttpRequest_File_MarkAsViewed::AddParameters( FJsonObject & variables_object ) const
 {
     FGitHubToolsHttpRequestGraphQLMutation::AddParameters( variables_object );
 
@@ -39,7 +39,7 @@ void FGitHubToolsHttpRequest_MarkFileAsViewed::AddParameters( FJsonObject & vari
     variables_object.SetStringField( TEXT( "path" ), Path );
 }
 
-void FGitHubToolsHttpRequest_MarkFileAsViewed::ParseResponseData( const FJsonObject & json_data )
+void FGitHubToolsHttpRequest_File_MarkAsViewed::ParseResponseData( const FJsonObject & json_data )
 {
     Result = true;
 }

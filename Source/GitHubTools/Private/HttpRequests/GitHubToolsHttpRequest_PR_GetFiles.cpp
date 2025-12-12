@@ -1,4 +1,4 @@
-#include "GitHubToolsHttpRequest_GetPullRequestFiles.h"
+#include "GitHubToolsHttpRequest_PR_GetFiles.h"
 
 #include "Dom/JsonValue.h"
 #include "GitHubToolsSettings.h"
@@ -6,13 +6,13 @@
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 
-FGitHubToolsHttpRequestData_GetPullRequestFiles::FGitHubToolsHttpRequestData_GetPullRequestFiles( int pull_request_number, const FString & after_cursor ) :
+FGitHubToolsHttpRequest_PR_GetFiles::FGitHubToolsHttpRequest_PR_GetFiles( int pull_request_number, const FString & after_cursor ) :
     FGitHubToolsHttpRequestGraphQLQueryWithPagination( after_cursor ),
     PullRequestNumber( pull_request_number )
 {
 }
 
-FString FGitHubToolsHttpRequestData_GetPullRequestFiles::GetRawQuery() const
+FString FGitHubToolsHttpRequest_PR_GetFiles::GetRawQuery() const
 {
     return R"(
 query ($repoOwner: String!, $repoName: String!, $pullNumber: Int!) {
@@ -35,7 +35,7 @@ query ($repoOwner: String!, $repoName: String!, $pullNumber: Int!) {
 )";
 }
 
-void FGitHubToolsHttpRequestData_GetPullRequestFiles::ParseResponseData( const FJsonObject & json_data )
+void FGitHubToolsHttpRequest_PR_GetFiles::ParseResponseData( const FJsonObject & json_data )
 {
     const auto repository_object = json_data.GetObjectField( TEXT( "repository" ) );
     const auto pull_request_object = repository_object->GetObjectField( TEXT( "pullRequest" ) );
@@ -60,7 +60,7 @@ void FGitHubToolsHttpRequestData_GetPullRequestFiles::ParseResponseData( const F
     Result = files;
 }
 
-void FGitHubToolsHttpRequestData_GetPullRequestFiles::AddParameters( FJsonObject & variables_object ) const
+void FGitHubToolsHttpRequest_PR_GetFiles::AddParameters( FJsonObject & variables_object ) const
 {
     FGitHubToolsHttpRequestGraphQLQueryWithPagination< TArray< FGithubToolsPullRequestFileInfosPtr > >::AddParameters( variables_object );
     variables_object.SetNumberField( TEXT( "pullNumber" ), PullRequestNumber );

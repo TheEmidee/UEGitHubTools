@@ -1,7 +1,7 @@
 #include "SGitHubToolsPRReviewThreadTableRow.h"
 
 #include "GitHubTools.h"
-#include "HttpRequests/GitHubToolsHttpRequest_ResolveReviewThread.h"
+#include "HttpRequests/GitHubToolsHttpRequest_ReviewThread_Resolve.h"
 #include "SGitHubToolsPRCommentTableRow.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Views/SListView.h"
@@ -95,8 +95,8 @@ FReply SGitHubToolsPRReviewThreadTableRow::OnResolveConversationClicked()
 {
     FGitHubToolsModule::Get()
         .GetRequestManager()
-        .SendRequest< FGitHubToolsHttpRequestData_ResolveReviewThread >( ThreadInfos->Id )
-        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequestData_ResolveReviewThread > & result ) {
+        .SendRequest< FGitHubToolsHttpRequest_ReviewThread_Resolve >( ThreadInfos->Id )
+        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_ReviewThread_Resolve > & result ) {
             const auto & response_data = result.Get();
             const auto & error_message = response_data.GetErrorMessage();
 

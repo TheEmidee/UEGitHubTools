@@ -1,11 +1,12 @@
 #pragma once
 
 #include "GitHubToolsHttpRequestsTypes.h"
+#include "GitHubToolsTypes.h"
 
-class FGitHubToolsHttpRequestData_ResolveReviewThread final : public FGitHubToolsHttpRequestGraphQLMutation< bool >
+class FGitHubToolsHttpRequest_PR_Approve final : public FGitHubToolsHttpRequestGraphQLMutation< FString >
 {
 public:
-    explicit FGitHubToolsHttpRequestData_ResolveReviewThread( const FString & thread_id );
+    explicit FGitHubToolsHttpRequest_PR_Approve( const FString & pull_request_id );
 
 protected:
     FString GetRawQuery() const override;
@@ -13,5 +14,5 @@ protected:
     void AddParameters( FJsonObject & variables_object ) const override;
 
 private:
-    FString ThreadId;
+    FString PullRequestId;
 };

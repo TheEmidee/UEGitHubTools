@@ -1,16 +1,16 @@
-#include "GitHubToolsHttpRequest_ResolveReviewThread.h"
+#include "GitHubToolsHttpRequest_ReviewThread_Resolve.h"
 
 #include "Dom/JsonValue.h"
 #include "Serialization/JsonSerializer.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 
-FGitHubToolsHttpRequestData_ResolveReviewThread::FGitHubToolsHttpRequestData_ResolveReviewThread( const FString & thread_id ) :
+FGitHubToolsHttpRequest_ReviewThread_Resolve::FGitHubToolsHttpRequest_ReviewThread_Resolve( const FString & thread_id ) :
     ThreadId( thread_id )
 {
 }
 
-FString FGitHubToolsHttpRequestData_ResolveReviewThread::GetRawQuery() const
+FString FGitHubToolsHttpRequest_ReviewThread_Resolve::GetRawQuery() const
 {
     return R"(
 mutation ResolveReviewThread( 
@@ -27,12 +27,12 @@ mutation ResolveReviewThread(
 )";
 }
 
-void FGitHubToolsHttpRequestData_ResolveReviewThread::ParseResponseData( const FJsonObject & json_data )
+void FGitHubToolsHttpRequest_ReviewThread_Resolve::ParseResponseData( const FJsonObject & json_data )
 {
     Result = true;
 }
 
-void FGitHubToolsHttpRequestData_ResolveReviewThread::AddParameters( FJsonObject & variables_object ) const
+void FGitHubToolsHttpRequest_ReviewThread_Resolve::AddParameters( FJsonObject & variables_object ) const
 {
     FGitHubToolsHttpRequestGraphQLMutation< bool >::AddParameters( variables_object );
     variables_object.SetStringField( TEXT( "threadId" ), ThreadId );

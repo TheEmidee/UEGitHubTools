@@ -3,12 +3,12 @@
 #include "GitHubToolsHttpRequestsTypes.h"
 #include "GitHubToolsTypes.h"
 
-class FGitHubToolsHttpRequestData_GetPullRequestInfos final : public FGitHubToolsHttpRequestGraphQLQuery< FGithubToolsPullRequestInfosPtr >
+class FGitHubToolsHttpRequest_PR_GetInfos final : public FGitHubToolsHttpRequestGraphQLQuery< FGithubToolsPullRequestInfosPtr >
 {
 public:
     typedef FGithubToolsPullRequestInfosPtr ResponseType;
 
-    explicit FGitHubToolsHttpRequestData_GetPullRequestInfos( int pull_request_number, TArray< FGithubToolsPullRequestFileInfosPtr > files, TArray< FGithubToolsPullRequestFilePatchPtr > patches );
+    explicit FGitHubToolsHttpRequest_PR_GetInfos( int pull_request_number, TArray< FGithubToolsPullRequestFileInfosPtr > files, TArray< FGithubToolsPullRequestFilePatchPtr > patches );
 
 protected:
     FString GetRawQuery() const override;
