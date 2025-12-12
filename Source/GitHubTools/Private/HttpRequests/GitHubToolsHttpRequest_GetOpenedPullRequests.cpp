@@ -13,7 +13,7 @@ FString FGitHubToolsHttpRequest_GetOpenedPullRequests::GetRawQuery() const
     return R"(
 query ( $repoOwner: String!, $repoName: String! ) {
   repository( owner: $repoOwner, name: $repoName) {
-    pullRequests( last: 100, states: OPEN ) {
+    pullRequests( last: 100, states: OPEN, orderBy: {field: CREATED_AT, direction: ASC} ) {
       edges {
         node {
           headRefName

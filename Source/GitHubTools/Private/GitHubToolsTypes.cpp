@@ -343,9 +343,7 @@ bool FGithubToolsPullRequestInfos::CanApprovePullRequest() const
 
 bool FGithubToolsPullRequestInfos::HasChangeRequests() const
 {
-    return FileInfos.FindByPredicate( []( const FGithubToolsPullRequestFileInfosPtr & file_infos ) {
-        return file_infos->bHasUnresolvedConversations;
-    } ) != nullptr;
+    return PendingReview != nullptr;
 }
 
 void FGithubToolsPullRequestInfos::DismissReview()
@@ -356,6 +354,12 @@ void FGithubToolsPullRequestInfos::DismissReview()
         file_infos->Reviews.Empty();
     }
 
+    PendingReview->Comments.Empty();
+    PendingReview = nullptr;
+}
+
+void FGithubToolsPullRequestInfos::RequestChanges()
+{
     PendingReview->Comments.Empty();
     PendingReview = nullptr;
 }

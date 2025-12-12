@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GitHubToolsHttpRequestManager.h"
+#include "GitHubToolsHttpRequestsTypes.h"
 #include "GitHubToolsTypes.h"
 
 class FGitHubToolsHttpRequest_GetOpenedPullRequests final : public FGitHubToolsHttpRequestGraphQLQuery< TArray< FGitHubToolsOpenedPullRequestInfosPtr > >

@@ -188,6 +188,7 @@ struct FGithubToolsPullRequestInfos : TSharedFromThis< FGithubToolsPullRequestIn
     bool CanApprovePullRequest() const;
     bool HasChangeRequests() const;
     void DismissReview();
+    void RequestChanges();
 
     FString ViewerLogin;
     int Number;
