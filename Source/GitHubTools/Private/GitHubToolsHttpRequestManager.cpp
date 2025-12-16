@@ -3,6 +3,7 @@
 #include "Async/Async.h"
 #include "GitHubTools.h"
 #include "GitHubToolsSettings.h"
+#include "GitHubToolsHelpers.h"
 #include "HttpModule.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
@@ -26,7 +27,9 @@ bool TGitHubToolsHttpRequestWrapper< TRequest >::ProcessRequest()
     Request.SetupHttpRequest( http_request.Get() );
 
     http_request->OnProcessRequestComplete().BindRaw( this, &::TGitHubToolsHttpRequestWrapper< TRequest >::OnProcessRequestComplete );
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 3
     http_request->SetDelegateThreadPolicy( EHttpRequestDelegateThreadPolicy::CompleteOnHttpThread );
+#endif
 
     return http_request->ProcessRequest();
 }
@@ -85,14 +88,25 @@ TFuture< typename TRequest::ResponseType > FGitHubToolsHttpRequestManager::SendP
 {
     typedef typename TRequest::ResponseType TResult;
 
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 3
     return Async( EAsyncExecution::TaskGraph, [... args = Forward< TArgTypes >( args ) ]() {
+#else
+    auto args_tuple = MakeTuple( Forward< TArgTypes >( args )... );
+
+    return Async( EAsyncExecution::TaskGraph, [ args_tuple = MoveTemp( args_tuple ) ]() mutable {
+#endif
+    
         FString cursor;
         TResult result;
 
         while ( true )
         {
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 3
             typedef TGitHubToolsHttpRequestWrapper< TRequest > HttpRequestType;
             auto request = MakeShared< HttpRequestType >( args..., cursor );
+#else
+            auto request = MakeRequestWithTuple< TRequest >( args_tuple, cursor );
+#endif
             request->SetPromiseValueOnHttpThread();
             request->ProcessRequest();
 
