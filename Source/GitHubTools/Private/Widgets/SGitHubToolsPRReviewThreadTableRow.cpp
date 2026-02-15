@@ -110,6 +110,7 @@ FReply SGitHubToolsPRReviewThreadTableRow::OnResolveConversationClicked()
             }
 
             ThreadInfos->bIsResolved = true;
+            ThreadInfos->ParentFileInfos->RefreshResolvedConversations();
         } );
 
     return FReply::Handled();

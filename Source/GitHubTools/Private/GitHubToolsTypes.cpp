@@ -234,6 +234,7 @@ bool FGithubToolsPullRequestFileInfos::IsUAsset() const
 void FGithubToolsPullRequestFileInfos::AddReview( const FGithubToolsPullRequestReviewThreadInfosPtr & review_thread_infos )
 {
     Reviews.Add( review_thread_infos );
+    review_thread_infos->ParentFileInfos = AsShared();
 
     if ( !review_thread_infos->bIsResolved )
     {
@@ -241,6 +242,20 @@ void FGithubToolsPullRequestFileInfos::AddReview( const FGithubToolsPullRequestR
     }
 
     OnDataChanged.Broadcast();
+}
+
+void FGithubToolsPullRequestFileInfos::RefreshResolvedConversations()
+{
+    const auto old_value = bHasUnresolvedConversations;
+
+    bHasUnresolvedConversations = Reviews.FindByPredicate( []( const FGithubToolsPullRequestReviewThreadInfosPtr & review_thread_infos ) {
+        return !review_thread_infos->bIsResolved;
+    } ) != nullptr;
+
+    if ( old_value != bHasUnresolvedConversations )
+    {
+        OnDataChanged.Broadcast();
+    }
 }
 
 FGithubToolsPullRequestReviewThreadInfos::FGithubToolsPullRequestReviewThreadInfos( const TSharedRef< FJsonObject > & json_object ) :
@@ -322,13 +337,16 @@ void FGithubToolsPullRequestInfos::SetFiles( const TArray< FGithubToolsPullReque
             file->Patch = ( *patch )->Patch;
         }
 
-        file->Reviews = reviews.FilterByPredicate( [ & ]( const FGithubToolsPullRequestReviewThreadInfosPtr & review_infos ) {
+        auto file_reviews = reviews.FilterByPredicate( [ & ]( const FGithubToolsPullRequestReviewThreadInfosPtr & review_infos ) {
             return review_infos->FileName == file->Path;
         } );
 
-        file->bHasUnresolvedConversations = file->Reviews.FindByPredicate( []( auto review ) {
-            return !review->bIsResolved;
-        } ) != nullptr;
+        for ( auto file_review : file_reviews )
+        {
+            file->AddReview( file_review );
+        }
+
+        file->RefreshResolvedConversations();
 
         FileInfos.Add( file );
     }

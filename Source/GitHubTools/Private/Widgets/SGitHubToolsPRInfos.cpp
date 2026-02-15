@@ -291,12 +291,12 @@ void SGitHubToolsPRInfos::OnShouldRebuildTree() const
 
 void SGitHubToolsPRInfos::OnFileInfosStateChanged( FGithubToolsPullRequestFileInfosPtr /*file_infos*/ )
 {
-    OnShouldRebuildTree();
+    OnTreeViewFiltersChanged();
 }
 
 void SGitHubToolsPRInfos::OnMultipleFileInfosStateChanged( const TArray< FGithubToolsPullRequestFileInfosPtr > & /*file_infos*/ )
 {
-    OnShouldRebuildTree();
+    OnTreeViewFiltersChanged();
 }
 
 void SGitHubToolsPRInfos::OnTreeViewFiltersChanged()

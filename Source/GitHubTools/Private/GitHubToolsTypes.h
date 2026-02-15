@@ -115,18 +115,20 @@ struct FGithubToolsPullRequestReviewThreadInfos
     int Line;
     TArray< FGithubToolsPullRequestCommentPtr > Comments;
     int PRNumber;
+    TSharedPtr< struct FGithubToolsPullRequestFileInfos > ParentFileInfos;
 };
 
 typedef TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > FGithubToolsPullRequestReviewThreadInfosPtr;
 
-struct FGithubToolsPullRequestFileInfos
+struct FGithubToolsPullRequestFileInfos : TSharedFromThis< FGithubToolsPullRequestFileInfos >
 {
     FGithubToolsPullRequestFileInfos() = default;
     FGithubToolsPullRequestFileInfos( const FString & path, const FString & change_type, const FString & viewed_state );
 
     void UpdateViewedState( EGitHubToolsFileViewedState new_viewed_state );
     bool IsUAsset() const;
-    void AddReview( const FGithubToolsPullRequestReviewThreadInfosPtr & review_thread_infos );
+    void AddReview( const FGithubToolsPullRequestReviewThreadInfosPtr& review_thread_infos );
+    void RefreshResolvedConversations();
 
     FGitHubToolsOnDataChanged OnDataChanged;
 
