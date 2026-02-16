@@ -40,7 +40,7 @@ private:
     void OnGetChildrenForTreeView( FGitHubToolsFileInfosTreeItemPtr tree_item, TArray< FGitHubToolsFileInfosTreeItemPtr > & children );
     TSharedRef< ITableRow > OnGenerateRowForList( FGitHubToolsFileInfosTreeItemPtr tree_item, const TSharedRef< STableViewBase > & owner_table );
     EVisibility GetItemRowVisibility( FGithubToolsPullRequestFileInfosPtr file_infos ) const;
-    void OnSelectedFileChanged( FGitHubToolsFileInfosTreeItemPtr selected_item );
+    void OnSelectionChanged( TSharedPtr< FGitHubToolsFileInfosTreeItem > selected_item, ESelectInfo::Type Arg );
     void SetItemExpansion( FGitHubToolsFileInfosTreeItemPtr tree_item, bool is_expanded );
     EVisibility GetPRReviewListVisibility() const;
     EVisibility GetMessageDisplayVisibility() const;
