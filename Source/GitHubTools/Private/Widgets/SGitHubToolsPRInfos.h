@@ -31,32 +31,15 @@ public:
 
     void Construct( const FArguments & arguments );
 
-    int GetSelectedFilesCount() const;
-
 private:
-    void ConstructFileInfos();
     bool IsFileCommentsButtonEnabled() const;
     EVisibility IsWarningPanelVisible() const;
-    void OnGetChildrenForTreeView( FGitHubToolsFileInfosTreeItemPtr tree_item, TArray< FGitHubToolsFileInfosTreeItemPtr > & children );
-    TSharedRef< ITableRow > OnGenerateRowForList( FGitHubToolsFileInfosTreeItemPtr tree_item, const TSharedRef< STableViewBase > & owner_table );
-    EVisibility GetItemRowVisibility( FGithubToolsPullRequestFileInfosPtr file_infos ) const;
-    void OnSelectionChanged( TSharedPtr< FGitHubToolsFileInfosTreeItem > selected_item, ESelectInfo::Type Arg );
-    void SetItemExpansion( FGitHubToolsFileInfosTreeItemPtr tree_item, bool is_expanded );
-    EVisibility GetPRReviewListVisibility() const;
     EVisibility GetMessageDisplayVisibility() const;
-    void OnShouldRebuildTree() const;
-    void OnFileInfosStateChanged( FGithubToolsPullRequestFileInfosPtr file_infos );
-    void OnMultipleFileInfosStateChanged( const TArray< FGithubToolsPullRequestFileInfosPtr > & file_infos );
-    void OnTreeViewFiltersChanged();
-    void ExpandAllTreeItems();
-    void CollapseAllTreeItems();
-    void RecursivelySelectChildren( TArray< FGitHubToolsFileInfosTreeItemPtr > & children, FGitHubToolsFileInfosTreeItemPtr item );
+    TSharedRef< SCheckBox > CreateTabButton( const int tab_index, const FText & text );
 
     FGithubToolsPullRequestInfosPtr PRInfos;
-    TSharedPtr< STreeView< FGitHubToolsFileInfosTreeItemPtr > > TreeView;
-    TSharedPtr< SGitHubToolsPRReviewList > ReviewList;
-    TArray< FGitHubToolsFileInfosTreeItemPtr > TreeItems;
-    TSharedPtr< FGitHubToolsTreeViewFilters > TreeViewFilters;
+    TSharedPtr< SWidgetSwitcher > TabSwitcher;
+    int32 ActiveTabIndex = 0;
 };
 
 #undef LOCTEXT_NAMESPACE

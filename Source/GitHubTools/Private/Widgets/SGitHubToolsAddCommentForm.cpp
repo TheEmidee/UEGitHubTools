@@ -1,7 +1,7 @@
 #include "SGitHubToolsAddCommentForm.h"
 
-#include "Components/VerticalBox.h"
 #include "GitHubTools.h"
+#include "HttpRequests/GitHubToolsHttpRequest_PR_AddComment.h"
 #include "HttpRequests/GitHubToolsHttpRequest_PR_AddReviewThread.h"
 #include "HttpRequests/GitHubToolsHttpRequest_PR_AddReviewThreadReply.h"
 #include "HttpRequests/GitHubToolsHttpRequest_PR_CreatePendingReview.h"
@@ -22,6 +22,7 @@ SGitHubToolsAddCommentForm::~SGitHubToolsAddCommentForm()
 
 void SGitHubToolsAddCommentForm::Construct( const FArguments & arguments )
 {
+    PRInfos = arguments._PRInfos.Get();
     FileInfos = arguments._FileInfos.Get();
     LineInfos = arguments._LineInfos.Get();
     OnAddCommentDone = arguments._OnAddCommentDone;
@@ -98,7 +99,7 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
     {
         AddReplyToReviewThread();
     }
-    else
+    else if ( FileInfos != nullptr )
     {
         FGitHubToolsModule::Get()
             .GetNotificationManager()
@@ -112,6 +113,22 @@ FReply SGitHubToolsAddCommentForm::OnSubmitButtonClicked()
         {
             CreateReviewThread();
         }
+    }
+    else
+    {
+        FGitHubToolsModule::Get()
+            .GetNotificationManager()
+            .DisplayModalNotification( LOCTEXT( "SubmitComment", "Submit comment..." ) );
+
+        FGitHubToolsModule::Get()
+            .GetRequestManager()
+            .SendRequest< FGitHubToolsHttpRequest_PR_AddComment >( PRInfos->Id, GetComment() )
+            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_PR_AddComment > & result ) {
+                const auto & result_data = result.Get();
+                PRInfos->Comments.Add( result_data.GetResult().GetValue() );
+
+                Close();
+            } );
     }
     return FReply::Handled();
 }

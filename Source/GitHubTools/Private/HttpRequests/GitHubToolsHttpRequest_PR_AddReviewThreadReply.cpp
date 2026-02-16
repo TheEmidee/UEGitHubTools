@@ -43,16 +43,8 @@ void FGitHubToolsHttpRequest_PR_AddReviewThreadReply::ParseResponseData( const F
 {
     const auto result_object = json_data.GetObjectField( TEXT( "addPullRequestReviewThreadReply" ) );
     const auto comment_object = result_object->GetObjectField( TEXT( "comment" ) );
-    const auto comment_author_object = comment_object->GetObjectField( TEXT( "author" ) );
 
-    auto comment = MakeShared< FGithubToolsPullRequestComment >();
-
-    comment->Id = comment_object->GetStringField( TEXT( "id" ) );
-    comment->Author = FText::FromString( comment_author_object->GetStringField( TEXT( "login" ) ) );
-    comment->Comment = FText::FromString( comment_object->GetStringField( TEXT( "body" ) ) );
-    comment->Date = FText::FromString( comment_object->GetStringField( TEXT( "createdAt" ) ) );
-
-    Result = comment;
+    Result = MakeShared< FGithubToolsPullRequestComment >( comment_object.ToSharedRef() );
 }
 
 void FGitHubToolsHttpRequest_PR_AddReviewThreadReply::AddParameters( FJsonObject & variables_object ) const

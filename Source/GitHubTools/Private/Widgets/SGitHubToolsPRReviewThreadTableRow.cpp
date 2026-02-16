@@ -3,6 +3,7 @@
 #include "GitHubTools.h"
 #include "HttpRequests/GitHubToolsHttpRequest_ReviewThread_Resolve.h"
 #include "SGitHubToolsPRCommentTableRow.h"
+#include "SGitHubToolsPRCommentsList.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Views/SListView.h"
 
@@ -35,12 +36,8 @@ void SGitHubToolsPRReviewThreadTableRow::Construct( const FArguments & arguments
                                         [ SAssignNew( CommentsPanel, SVerticalBox ) +
                                             SVerticalBox::Slot()
                                                 .FillHeight( 1.0f )
-                                                    [ SNew( SBox )
-                                                            .WidthOverride( 520 )
-                                                                [ SNew( SListView< FGithubToolsPullRequestCommentPtr > )
-                                                                        .ListItemsSource( &ThreadInfos->Comments )
-                                                                        .OnGenerateRow( this, &SGitHubToolsPRReviewThreadTableRow::GenerateCommentRow )
-                                                                        .SelectionMode( ESelectionMode::None ) ] ] ] ] ],
+                                                    [ SNew( SGitHubToolsPRCommentsList )
+                                                            .Comments( ThreadInfos->Comments ) ] ] ] ],
         owner_table_view );
 
     if ( ThreadInfos->bIsResolved )
@@ -83,12 +80,6 @@ FSlateColor SGitHubToolsPRReviewThreadTableRow::GetBorderBackgroundColor() const
     return ThreadInfos->bIsResolved
                ? FSlateColor( FColor( 0, 255, 0, 255 ) )
                : FSlateColor( FColor( 255, 0, 0, 255 ) );
-}
-
-TSharedRef< ITableRow > SGitHubToolsPRReviewThreadTableRow::GenerateCommentRow( FGithubToolsPullRequestCommentPtr item, const TSharedRef< STableViewBase > & owner_table )
-{
-    return SNew( SGitHubToolsPRCommentTableRow, owner_table )
-        .Comment( item );
 }
 
 FReply SGitHubToolsPRReviewThreadTableRow::OnResolveConversationClicked()

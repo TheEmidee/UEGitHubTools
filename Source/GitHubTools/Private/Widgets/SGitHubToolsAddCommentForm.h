@@ -27,6 +27,7 @@ class SGitHubToolsAddCommentForm final : public SCompoundWidget
 public:
     SLATE_BEGIN_ARGS( SGitHubToolsAddCommentForm )
     {}
+    SLATE_ATTRIBUTE( FGithubToolsPullRequestInfosPtr, PRInfos )
     SLATE_ATTRIBUTE( FGithubToolsPullRequestFileInfosPtr, FileInfos )
     SLATE_ATTRIBUTE( FGitHubToolsAddCommentLineInfos, LineInfos )
     SLATE_EVENT( FGitHubToolsOnAddCommentDoneDelegate, OnAddCommentDone )
@@ -53,6 +54,7 @@ private:
     TSharedPtr< SMultiLineEditableTextBox > CommentTextBox;
     TSharedPtr< STextBlock > HeaderText;
     TSharedPtr< SErrorText > ErrorText;
+    FGithubToolsPullRequestInfosPtr PRInfos;
     FGithubToolsPullRequestReviewThreadInfosPtr ThreadInfos;
     FGithubToolsPullRequestFileInfosPtr FileInfos;
     FText ErrorTextMessage;
