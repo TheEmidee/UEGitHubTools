@@ -303,8 +303,8 @@ void SGitHubToolsPRFilesChanged::RecursivelySelectChildren( TArray< FGitHubTools
 void SGitHubToolsPRFilesChanged::OnTreeViewFiltersChanged()
 {
     ConstructFileInfos();
-    ExpandAllTreeItems();
     TreeView->RequestListRefresh();
+    ExpandAllTreeItems();
 }
 
 void SGitHubToolsPRFilesChanged::ExpandAllTreeItems()
@@ -335,7 +335,7 @@ void SGitHubToolsPRFilesChanged::SetItemExpansion( FGitHubToolsFileInfosTreeItem
 
 void SGitHubToolsPRFilesChanged::OnFileInfosStateChanged( FGithubToolsPullRequestFileInfosPtr file_infos )
 {
-    OnTreeViewFiltersChanged();
+    OnShouldRebuildTree();
 }
 
 void SGitHubToolsPRFilesChanged::OnMultipleFileInfosStateChanged( const TArray< FGithubToolsPullRequestFileInfosPtr > & file_infos )
