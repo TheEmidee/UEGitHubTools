@@ -79,13 +79,15 @@ void SGitHubToolsPRReviewList::ShowFileReviews( const FGithubToolsPullRequestFil
 {
     FileInfos = file_infos;
 
-    SetEnabled( FileInfos != nullptr && FileInfos->IsUAsset() );
+    SetEnabled( FileInfos != nullptr );
 
     ReviewThreads.Reset();
 
     if ( FileInfos != nullptr )
     {
-        ReviewThreads = FileInfos->Reviews;
+        ReviewThreads = FileInfos->Reviews.FilterByPredicate( []( const auto review ) {
+            return review->SubjectType == EGitHubToolsSubjectType::File;
+        } );
     }
 
     ReviewThreadsListView->RequestListRefresh();

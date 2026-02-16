@@ -188,6 +188,10 @@ EVisibility FGitHubToolsFilePatchViewListItem::GetThreadListVisibility() const
 void FGitHubToolsFilePatchViewListItem::SetReviews()
 {
     Reviews = FileInfos->Reviews.FilterByPredicate( [ & ]( const FGithubToolsPullRequestReviewThreadInfosPtr & thread_infos ) {
+        if ( thread_infos->SubjectType == EGitHubToolsSubjectType::File )
+        {
+            return false;
+        }
         if ( thread_infos->DiffSide == EGitHubToolsDiffSide::Right )
         {
             return thread_infos->Line == RightLine;
