@@ -19,9 +19,9 @@ void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TS
 
     if ( TreeItem->FileInfos != nullptr )
     {
-        // TreeItem->FileInfos->OnDataChanged.AddSPLambda( this, [ & ]() {
-        //     Invalidate( EInvalidateWidgetReason::LayoutAndVolatility );
-        // } );
+         TreeItem->FileInfos->OnDataChanged.AddSPLambda( this, [ & ]() {
+            OnFileInfosStateChanged.ExecuteIfBound( TreeItem->FileInfos );
+         } );
 
         STableRow< FGitHubToolsFileInfosTreeItemPtr >::Construct(
             STableRow< FGitHubToolsFileInfosTreeItemPtr >::FArguments()
