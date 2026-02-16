@@ -81,7 +81,7 @@ void SGitHubToolsPRInfos::Construct( const FArguments & arguments )
                    .TreeItemsSource( &TreeItems )
                    .OnGetChildren( this, &SGitHubToolsPRInfos::OnGetChildrenForTreeView )
                    .OnGenerateRow( this, &SGitHubToolsPRInfos::OnGenerateRowForList )
-                   .OnMouseButtonClick( this, &SGitHubToolsPRInfos::OnSelectedFileChanged )
+                   .OnSelectionChanged( this, &SGitHubToolsPRInfos::OnSelectionChanged )
                    .SelectionMode( ESelectionMode::Multi );
 
     contents->AddSlot()
@@ -409,7 +409,7 @@ EVisibility SGitHubToolsPRInfos::GetItemRowVisibility( FGithubToolsPullRequestFi
     return EVisibility::Visible;
 }
 
-void SGitHubToolsPRInfos::OnSelectedFileChanged( FGitHubToolsFileInfosTreeItemPtr selected_item )
+void SGitHubToolsPRInfos::OnSelectionChanged( TSharedPtr< FGitHubToolsFileInfosTreeItem > selected_item, ESelectInfo::Type select_info )
 {
     if ( TreeView->GetNumItemsSelected() == 1 )
     {
