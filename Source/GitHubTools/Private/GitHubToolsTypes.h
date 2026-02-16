@@ -211,6 +211,7 @@ struct FGithubToolsPullRequestInfos : TSharedFromThis< FGithubToolsPullRequestIn
     bool bHasUnresolvedConversations;
     TArray< FGithubToolsPullRequestFileInfosPtr > FileInfos;
     TArray< FGitHubToolsPullRequestCheckInfosPtr > Checks;
+    TArray< FGithubToolsPullRequestCommentPtr > Comments;
     FGithubToolsPullRequestPendingReviewInfosPtr PendingReview;
 };
 
