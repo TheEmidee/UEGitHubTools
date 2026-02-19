@@ -1,6 +1,7 @@
 #include "HttpRequests/GitHubToolsHttpRequest_PR_GetFilePatches.h"
 
 #include "Dom/JsonValue.h"
+#include "GitHubToolsGitUtils.h"
 #include "Serialization/JsonSerializer.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
@@ -27,6 +28,12 @@ void FGitHubToolsHttpRequest_PR_GetFilePatches::ParseResponseData( const FJsonVa
     {
         const auto object = array_object->AsObject();
         const auto file_name = object->GetStringField( TEXT( "filename" ) );
+
+        if ( GitHubToolsUtils::IsUAsset( file_name ) )
+        {
+            continue;
+        }
+
         const auto patch = object->GetStringField( TEXT( "patch" ) );
 
         patches.Add( MakeShared< FGithubToolsPullRequestFilePatch >( file_name, patch ) );
