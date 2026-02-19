@@ -22,4 +22,5 @@ namespace GitHubToolsUtils
     void GetModifiedFiles( TArray< FString > & package_names );
     bool RevertFiles();
     bool SwitchGitBranch( const FString & branch_name );
+    bool IsUAsset( const FString & file_name );
 }

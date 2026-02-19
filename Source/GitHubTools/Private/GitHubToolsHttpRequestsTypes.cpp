@@ -139,7 +139,7 @@ FString FGitHubToolsHttpRequestGraphQLQueryWithPagination< TResultType >::GetCur
 
     if ( !AfterCursor.IsEmpty() )
     {
-        string_builder << TEXT( ", after: \\\"" ) << AfterCursor << TEXT( "\\\"" );
+        string_builder << TEXT( ", after: \"" ) << AfterCursor << TEXT( "\"" );
     }
 
     return *string_builder;
@@ -186,6 +186,42 @@ FString FGitHubToolsHttpRequestRest< TResultType >::GetURL() const
     url_string_builder << settings->RepositoryName;
     url_string_builder << TEXT( "/" );
     url_string_builder << GetEndPoint();
+
+    return *url_string_builder;
+}
+
+template < typename TResultType >
+FGitHubToolsHttpRequestRestQueryWithPagination< TResultType >::FGitHubToolsHttpRequestRestQueryWithPagination( const int page_index ) :
+    PageIndex( page_index ),
+    bHasNextPage( false )
+{
+}
+
+template < typename TResultType >
+void FGitHubToolsHttpRequestRestQueryWithPagination< TResultType >::ProcessResponse( const FHttpResponsePtr & response_ptr )
+{
+    for ( const auto & header : response_ptr->GetAllHeaders() )
+    {
+        if ( !header.StartsWith( TEXT( "Link" ) ) )
+        {
+            continue;
+        }
+        if ( header.Contains( TEXT( "rel=\"next\"" ) ) )
+        {
+            bHasNextPage = true;
+            break;
+        }
+    }
+
+    FGitHubToolsHttpRequestRestQuery< TResultType >::ProcessResponse( response_ptr );
+}
+
+template < typename TResultType >
+FString FGitHubToolsHttpRequestRestQueryWithPagination< TResultType >::GetURL() const
+{
+    TStringBuilder< 256 > url_string_builder;
+    url_string_builder.Append( FGitHubToolsHttpRequestRestQuery< TResultType >::GetURL() );
+    url_string_builder.Append( FString::Printf( TEXT( "?per_page=100&page=%i" ), PageIndex ) );
 
     return *url_string_builder;
 }

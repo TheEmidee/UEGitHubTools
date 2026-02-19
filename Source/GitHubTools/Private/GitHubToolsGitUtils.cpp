@@ -206,9 +206,9 @@ namespace GitHubToolsUtils
 
                 FGitHubToolsModule::Get()
                     .GetRequestManager()
-                    .SendRequest< FGitHubToolsHttpRequest_PR_GetFilePatches >( pr_number )
-                    .Then( [ &, files = MoveTemp( files ), pr_number ]( const TFuture< FGitHubToolsHttpRequest_PR_GetFilePatches > & file_patches ) {
-                        auto patches = file_patches.Get().GetResult().GetValue();
+                    .SendPaginatedRequest< FGitHubToolsHttpRequest_PR_GetFilePatches >( pr_number )
+                    .Then( [ &, files = MoveTemp( files ), pr_number ]( TFuture< TArray< FGithubToolsPullRequestFilePatchPtr > > file_patches ) {
+                        auto patches = file_patches.Get();
 
                         FGitHubToolsModule::Get()
                             .GetRequestManager()
@@ -552,6 +552,24 @@ namespace GitHubToolsUtils
         }
 
         return true;
+    }
+
+    bool IsUAsset( const FString & file_name )
+    {
+        static const FString UAssetExtensions[] = {
+            TEXT( ".uasset" ),
+            TEXT( ".umap" )
+        };
+
+        for ( const auto & extension : UAssetExtensions )
+        {
+            if ( file_name.EndsWith( extension ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 

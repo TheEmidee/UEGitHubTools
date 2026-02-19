@@ -236,7 +236,7 @@ EVisibility SGitHubToolsPRFilesChanged::GetItemRowVisibility( FGithubToolsPullRe
 
     if ( TreeViewFilters->bShowOnlyUAssets )
     {
-        if ( !file_infos->Path.EndsWith( TEXT( ".uasset" ) ) )
+        if ( !file_infos->IsUAsset() )
         {
             return EVisibility::Collapsed;
         }

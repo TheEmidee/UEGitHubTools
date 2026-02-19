@@ -118,3 +118,31 @@ template < typename TResultType >
 class FGitHubToolsHttpRequestRestQuery : public FGitHubToolsHttpRequestRest< TResultType >
 {
 };
+
+template < typename TResultType >
+class FGitHubToolsHttpRequestRestQueryWithPagination : public FGitHubToolsHttpRequestRestQuery< TResultType >
+{
+public:
+    explicit FGitHubToolsHttpRequestRestQueryWithPagination( const int page_index = 1 );
+
+    bool HasNextPage() const
+    {
+        return bHasNextPage;
+    }
+
+    void ProcessResponse( const FHttpResponsePtr & response_ptr ) override;
+
+protected:
+    FString GetURL() const override;
+
+private:
+    int PageIndex;
+    bool bHasNextPage;
+};
+
+template < typename T >
+struct TRequestTraits
+{
+    static constexpr bool IsGraphQL = TIsDerivedFrom< T, FGitHubToolsHttpRequestGraphQL< typename T::ResponseType > >::IsDerived;
+    static constexpr bool IsRest = TIsDerivedFrom< T, FGitHubToolsHttpRequestRest< typename T::ResponseType > >::IsDerived;
+};

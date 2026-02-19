@@ -1,7 +1,6 @@
 #include "GitHubToolsHttpRequest_PR_GetFiles.h"
 
 #include "Dom/JsonValue.h"
-#include "GitHubToolsSettings.h"
 #include "Serialization/JsonSerializer.h"
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
