@@ -127,6 +127,8 @@ struct FGithubToolsPullRequestFileInfos : TSharedFromThis< FGithubToolsPullReque
 
     void UpdateViewedState( EGitHubToolsFileViewedState new_viewed_state );
     bool IsUAsset() const;
+    bool IsFromDeveloperFolder() const;
+    bool IsOFPAAsset() const;
     void AddReview( const FGithubToolsPullRequestReviewThreadInfosPtr& review_thread_infos );
     void RefreshResolvedConversations();
 
