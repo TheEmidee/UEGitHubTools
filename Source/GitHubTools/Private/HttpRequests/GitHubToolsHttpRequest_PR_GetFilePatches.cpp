@@ -5,14 +5,15 @@
 
 #define LOCTEXT_NAMESPACE "GitHubTools.Requests"
 
-FGitHubToolsHttpRequest_PR_GetFilePatches::FGitHubToolsHttpRequest_PR_GetFilePatches( int pull_request_number ) :
+FGitHubToolsHttpRequest_PR_GetFilePatches::FGitHubToolsHttpRequest_PR_GetFilePatches( int pull_request_number, int page_index ) :
+    FGitHubToolsHttpRequestRestQueryWithPagination( page_index ),
     PullRequestNumber( pull_request_number )
 {
 }
 
 FString FGitHubToolsHttpRequest_PR_GetFilePatches::GetEndPoint() const
 {
-    return FString::Printf( TEXT( "pulls/%i/files?per_page=100" ), PullRequestNumber );
+    return FString::Printf( TEXT( "pulls/%i/files" ), PullRequestNumber );
 }
 
 void FGitHubToolsHttpRequest_PR_GetFilePatches::ParseResponseData( const FJsonValue & json_data )

@@ -2,8 +2,8 @@
 
 #include "Async/Async.h"
 #include "GitHubTools.h"
+#include "GitHubToolsHttpRequestsTypes.h"
 #include "GitHubToolsSettings.h"
-#include "GitHubToolsHelpers.h"
 #include "HttpModule.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
@@ -95,15 +95,20 @@ TFuture< typename TRequest::ResponseType > FGitHubToolsHttpRequestManager::SendP
 
     return Async( EAsyncExecution::TaskGraph, [ args_tuple = MoveTemp( args_tuple ) ]() mutable {
 #endif
-    
         FString cursor;
+        int page_index = 1;
         TResult result;
 
         while ( true )
         {
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 3
             typedef TGitHubToolsHttpRequestWrapper< TRequest > HttpRequestType;
-            auto request = MakeShared< HttpRequestType >( args..., cursor );
+            auto request = MakeShared< HttpRequestType >( args..., [ & ]() {
+                if constexpr ( TRequestTraits< TRequest >::IsGraphQL )
+                    return cursor;
+                else
+                    return page_index;
+            }() );
 #else
             auto request = MakeRequestWithTuple< TRequest >( args_tuple, cursor );
 #endif
@@ -126,7 +131,16 @@ TFuture< typename TRequest::ResponseType > FGitHubToolsHttpRequestManager::SendP
                 return result;
             }
 
-            cursor = request_future_result.GetEndCursor();
+            if constexpr ( TRequestTraits< TRequest >::IsGraphQL )
+            {
+                cursor = request_future_result.GetEndCursor();
+            }
+            else if constexpr ( TRequestTraits< TRequest >::IsRest )
+            {
+                page_index++;
+            }
+
+            // cursor = request_future_result.GetEndCursor();
         }
     } );
 }
