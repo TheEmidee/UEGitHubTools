@@ -228,7 +228,7 @@ void FGithubToolsPullRequestFileInfos::UpdateViewedState( EGitHubToolsFileViewed
 
 bool FGithubToolsPullRequestFileInfos::IsUAsset() const
 {
-    return Path.EndsWith( TEXT( ".uasset" ) );
+    return GitHubToolsUtils::IsUAsset( Path );
 }
 
 void FGithubToolsPullRequestFileInfos::AddReview( const FGithubToolsPullRequestReviewThreadInfosPtr & review_thread_infos )

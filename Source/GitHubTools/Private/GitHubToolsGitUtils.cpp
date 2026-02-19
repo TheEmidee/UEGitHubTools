@@ -553,6 +553,24 @@ namespace GitHubToolsUtils
 
         return true;
     }
+
+    bool IsUAsset( const FString & file_name )
+    {
+        static const FString UAssetExtensions[] = {
+            TEXT( ".uasset" ),
+            TEXT( ".umap" )
+        };
+
+        for ( const auto & extension : UAssetExtensions )
+        {
+            if ( file_name.EndsWith( extension ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
 
 #undef LOCTEXT_NAMESPACE
