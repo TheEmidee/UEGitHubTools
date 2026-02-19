@@ -46,7 +46,20 @@ void SGitHubToolsPRInfosTreeFilters::Construct( const FArguments & arguments )
                                                                     SHorizontalBox::Slot()
                                                                         .Padding( 2.0f, 0.0f, 0.0f, 0.0f )
                                                                             [ SNew( STextBlock )
-                                                                                    .Text( LOCTEXT( "HideOFPA", "Hide OFPA assets" ) ) ] ] ] ] +
+                                                                                    .Text( LOCTEXT( "HideOFPA", "Hide OFPA assets" ) ) ] ] ] +
+                                            SVerticalBox::Slot()
+                                                .AutoHeight()
+                                                    [ SNew( SCheckBox )
+                                                            .IsChecked( TreeViewFilters->bHideDeveloperFolder ? ECheckBoxState::Checked : ECheckBoxState::Unchecked )
+                                                            .OnCheckStateChanged( this, &SGitHubToolsPRInfosTreeFilters::OnHideDeveloperFolderCheckStateChanged )
+                                                            .Style( FAppStyle::Get(), "Menu.CheckBox" )
+                                                            .ToolTipText( LOCTEXT( "HideDeveloperFoldersToolTip", "Hide Developers folder." ) )
+                                                            .Content()
+                                                                [ SNew( SHorizontalBox ) +
+                                                                    SHorizontalBox::Slot()
+                                                                        .Padding( 2.0f, 0.0f, 0.0f, 0.0f )
+                                                                            [ SNew( STextBlock )
+                                                                                    .Text( LOCTEXT( "HideDeveloperFolder", "Hide Developers folder" ) ) ] ] ] ] +
                                 SHorizontalBox::Slot()
                                     .FillWidth( 1.0f )
                                         [ SNew( SVerticalBox ) +
@@ -121,6 +134,12 @@ void SGitHubToolsPRInfosTreeFilters::OnShowOnlyUAssetsCheckStateChanged( ECheckB
 void SGitHubToolsPRInfosTreeFilters::OnHideOFPACheckStateChanged( ECheckBoxState new_state )
 {
     TreeViewFilters->bHideOFPA = new_state == ECheckBoxState::Checked;
+    OnFiltersChanged.Execute();
+}
+
+void SGitHubToolsPRInfosTreeFilters::OnHideDeveloperFolderCheckStateChanged( ECheckBoxState new_state )
+{
+    TreeViewFilters->bHideDeveloperFolder = new_state == ECheckBoxState::Checked;
     OnFiltersChanged.Execute();
 }
 

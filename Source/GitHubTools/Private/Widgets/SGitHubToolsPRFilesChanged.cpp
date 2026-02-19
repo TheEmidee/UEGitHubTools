@@ -242,10 +242,17 @@ EVisibility SGitHubToolsPRFilesChanged::GetItemRowVisibility( FGithubToolsPullRe
         }
     }
 
+    if ( TreeViewFilters->bHideDeveloperFolder )
+    {
+        if ( file_infos->IsFromDeveloperFolder() )
+        {
+            return EVisibility::Collapsed;
+        }
+    }
+
     if ( TreeViewFilters->bHideOFPA )
     {
-        if ( file_infos->Path.Contains( TEXT( "__ExternalActors__" ) ) ||
-             file_infos->Path.Contains( TEXT( "__ExternalObjects__" ) ) )
+        if ( file_infos->IsOFPAAsset() )
         {
             return EVisibility::Collapsed;
         }

@@ -231,6 +231,30 @@ bool FGithubToolsPullRequestFileInfos::IsUAsset() const
     return GitHubToolsUtils::IsUAsset( Path );
 }
 
+bool FGithubToolsPullRequestFileInfos::IsFromDeveloperFolder() const
+{
+    const auto DeveloperFolderPath = L"Content/Developers/";
+    return Path.Contains( DeveloperFolderPath );
+}
+
+bool FGithubToolsPullRequestFileInfos::IsOFPAAsset() const
+{
+    static const FString FolderNames[] = {
+        TEXT( "__ExternalActors__" ) ,
+        TEXT( "__ExternalObjects__" )
+    };
+
+    for ( const auto & folder_name : FolderNames )
+    {
+        if ( Path.Contains( folder_name ) )
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void FGithubToolsPullRequestFileInfos::AddReview( const FGithubToolsPullRequestReviewThreadInfosPtr & review_thread_infos )
 {
     Reviews.Add( review_thread_infos );

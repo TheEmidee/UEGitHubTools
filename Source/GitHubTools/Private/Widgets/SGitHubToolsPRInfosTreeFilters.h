@@ -8,6 +8,7 @@ class SCheckBox;
 struct FGitHubToolsTreeViewFilters
 {
     bool bShowOnlyUAssets = false;
+    bool bHideDeveloperFolder = true;
     bool bHideOFPA = true;
     bool bShowOnlyModified = false;
     bool bShowOnlyUnViewed = false;
@@ -31,6 +32,7 @@ public:
 private:
     void OnShowOnlyUAssetsCheckStateChanged( ECheckBoxState new_state );
     void OnHideOFPACheckStateChanged( ECheckBoxState new_state );
+    void OnHideDeveloperFolderCheckStateChanged( ECheckBoxState new_state );
     void OnShowOnlyModifiedFilesCheckStateChanged( ECheckBoxState new_state );
     void OnShowOnlyUnViewedFilesCheckStateChanged( ECheckBoxState new_state );
     void OnShowOnlyDismissedFilesCheckStateChanged( ECheckBoxState new_state );
