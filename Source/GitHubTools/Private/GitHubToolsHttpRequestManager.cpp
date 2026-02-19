@@ -139,8 +139,6 @@ TFuture< typename TRequest::ResponseType > FGitHubToolsHttpRequestManager::SendP
             {
                 page_index++;
             }
-
-            // cursor = request_future_result.GetEndCursor();
         }
     } );
 }
