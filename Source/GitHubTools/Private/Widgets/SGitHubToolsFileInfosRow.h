@@ -10,7 +10,6 @@ public:
     SLATE_BEGIN_ARGS( SGitHubToolsFileInfosRow )
     {}
 
-    SLATE_ARGUMENT( TSharedPtr< SGitHubToolsPRInfos >, OwningPRInfosWidget );
     SLATE_ARGUMENT( FGitHubToolsFileInfosTreeItemPtr, TreeItem )
     SLATE_ARGUMENT( FGithubToolsPullRequestInfosPtr, PRInfos )
     SLATE_EVENT( FGitHubToolsPRInfosOnFileInfosStateChangedDelegate, OnFileInfosStateChanged )
@@ -31,7 +30,6 @@ private:
     FGithubToolsPullRequestInfosPtr PRInfos;
     FGitHubToolsFileInfosTreeItemPtr TreeItem;
     FGitHubToolsPRInfosOnFileInfosStateChangedDelegate OnFileInfosStateChanged;
-    TSharedPtr< SGitHubToolsPRInfos > OwningPRInfosWidget;
     TSharedPtr< SImage > ReviewImage;
 };
 

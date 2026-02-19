@@ -85,16 +85,7 @@ void FGitHubToolsHttpRequest_PR_AddReviewThread::ParseResponseData( const FJsonO
     for ( const auto comment_object : comments_edges_object )
     {
         const auto comment_node_object = comment_object->AsObject()->GetObjectField( TEXT( "node" ) );
-        const auto comment_author_object = comment_node_object->GetObjectField( TEXT( "author" ) );
-
-        auto comment = MakeShared< FGithubToolsPullRequestComment >();
-
-        comment->Id = comment_node_object->GetStringField( TEXT( "id" ) );
-        comment->Author = FText::FromString( comment_author_object->GetStringField( TEXT( "login" ) ) );
-        comment->Comment = FText::FromString( comment_node_object->GetStringField( TEXT( "body" ) ) );
-        comment->Date = FText::FromString( comment_node_object->GetStringField( TEXT( "createdAt" ) ) );
-
-        review_thread_infos->Comments.Emplace( comment );
+        review_thread_infos->Comments.Emplace( MakeShared< FGithubToolsPullRequestComment >( comment_node_object.ToSharedRef() ) );
     }
 
     Result = review_thread_infos;

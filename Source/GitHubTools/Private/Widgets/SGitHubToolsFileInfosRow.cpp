@@ -12,7 +12,6 @@
 
 void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TSharedRef< STableViewBase > & owner_table_view )
 {
-    OwningPRInfosWidget = arguments._OwningPRInfosWidget;
     TreeItem = arguments._TreeItem;
     PRInfos = arguments._PRInfos;
     OnFileInfosStateChanged = arguments._OnFileInfosStateChanged;

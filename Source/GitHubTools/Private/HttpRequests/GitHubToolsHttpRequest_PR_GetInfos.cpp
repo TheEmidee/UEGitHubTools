@@ -41,6 +41,7 @@ query ($repoOwner: String!, $repoName: String!, $pullNumber: Int!) {
       commits {
         totalCount
       }
+      # The "Files changed" tab or inline in the conversation.
       reviewThreads( first : 100 ) {
         nodes {
           resolvedBy {
@@ -81,6 +82,19 @@ query ($repoOwner: String!, $repoName: String!, $pullNumber: Int!) {
           }
         }
       }
+      # The "Conversation" tab (usually at the bottom or top)
+      comments(first: 100) {
+        nodes {
+          author {
+            login
+          }
+          id
+          body
+          createdAt
+          url
+        }
+      }
+      # The box that says "Approved" or "Changes Requested" with a summary message.
       reviews( first : 100 ) {
         edges {
           node {
@@ -174,6 +188,18 @@ void FGitHubToolsHttpRequest_PR_GetInfos::ParseResponseData( const FJsonObject &
         pr_infos->Checks.Emplace( MakeShared< FGitHubToolsPullRequestCheckInfos >( check_object->AsObject().ToSharedRef() ) );
     }
 
+    const auto comments_object = pull_request_object->GetObjectField( TEXT( "comments" ) );
+    const auto comments_nodes_object = comments_object->GetArrayField( TEXT( "nodes" ) );
+
+    for ( const auto comment_node: comments_nodes_object )
+    {
+        const auto comment_node_object = comment_node->AsObject();
+
+        auto comment = MakeShared< FGithubToolsPullRequestComment >( comment_node_object.ToSharedRef() );
+
+        pr_infos->Comments.Emplace( comment );
+    }
+
     const auto reviews_object = pull_request_object->GetObjectField( TEXT( "reviews" ) );
     const auto reviews_edges_object = reviews_object->GetArrayField( TEXT( "edges" ) );
 
@@ -203,8 +229,8 @@ void FGitHubToolsHttpRequest_PR_GetInfos::ParseResponseData( const FJsonObject &
         auto pending_review = MakeShared< FGithubToolsPullRequestPendingReviewInfos >();
         pending_review->Id = review_node_object->GetStringField( TEXT( "id" ) );
 
-        const auto comments_object = review_node_object->GetObjectField( TEXT( "comments" ) );
-        const auto comments_edges_object = comments_object->GetArrayField( TEXT( "edges" ) );
+        const auto review_comments_object = review_node_object->GetObjectField( TEXT( "comments" ) );
+        const auto comments_edges_object = review_comments_object->GetArrayField( TEXT( "edges" ) );
 
         if ( !ensureAlwaysMsgf( pr_infos->PendingReview == nullptr, TEXT( "There can only be one review per user per pull request !" ) ) )
         {
