@@ -139,7 +139,7 @@ FString FGitHubToolsHttpRequestGraphQLQueryWithPagination< TResultType >::GetCur
 
     if ( !AfterCursor.IsEmpty() )
     {
-        string_builder << TEXT( ", after: \\\"" ) << AfterCursor << TEXT( "\\\"" );
+        string_builder << TEXT( ", after: \"" ) << AfterCursor << TEXT( "\"" );
     }
 
     return *string_builder;
