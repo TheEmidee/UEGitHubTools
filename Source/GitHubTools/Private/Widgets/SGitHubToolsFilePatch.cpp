@@ -263,7 +263,7 @@ void SGitHubToolsFilePatch::PopulateListItems()
     auto line_before = 0;
     auto line_after = 0;
 
-    for ( const auto & line : lines )
+    for ( auto line : lines )
     {
         auto line_before_increment = 1;
         auto line_after_increment = 1;
@@ -320,6 +320,8 @@ void SGitHubToolsFilePatch::PopulateListItems()
         {
             decorator = SyntaxDecorators::NoDecorator;
         }
+
+        line.RemoveFromEnd( TEXT( "\r" ) );
 
         ListItems.Emplace( MakeShared< FGitHubToolsFilePatchViewListItem >( FileInfos, FString::Printf( TEXT( "<%s>%s</>" ), *decorator, *line ), item_type, line_before, line_after ) );
 
