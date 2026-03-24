@@ -5,6 +5,16 @@
 #include "Widgets/SCompoundWidget.h"
 
 class SCheckBox;
+
+UENUM()
+enum class EGitHubToolsConversationFilterStatus : uint8
+{
+    NoConversations,
+    UnResolvedConversations,
+    AllConversationsResolved,
+    NoFilter
+};
+
 struct FGitHubToolsTreeViewFilters
 {
     bool bShowOnlyUAssets = false;
@@ -13,7 +23,7 @@ struct FGitHubToolsTreeViewFilters
     bool bShowOnlyModified = false;
     bool bShowOnlyUnViewed = false;
     bool bShowOnlyDismissed = false;
-    bool bShowOnlyWithoutResolution = false;
+    EGitHubToolsConversationFilterStatus ConversationFilterStatus;
     FTextFilterExpressionEvaluator SearchTextEvaluator = { ETextFilterExpressionEvaluatorMode::BasicString };
 };
 
@@ -36,11 +46,13 @@ private:
     void OnShowOnlyModifiedFilesCheckStateChanged( ECheckBoxState new_state );
     void OnShowOnlyUnViewedFilesCheckStateChanged( ECheckBoxState new_state );
     void OnShowOnlyDismissedFilesCheckStateChanged( ECheckBoxState new_state );
-    void OnShowOnlyWithoutResolutionCheckStateChanged( ECheckBoxState new_state );
     void OnFilterTextChanged( const FText & text );
+    void OnConversationStatusFilterChanged( TSharedPtr< EGitHubToolsConversationFilterStatus > selected_item, ESelectInfo::Type selection );
 
     FSimpleDelegate OnFiltersChanged;
     TSharedPtr< FGitHubToolsTreeViewFilters > TreeViewFilters;
     TSharedPtr< SCheckBox > OnlyShowUnViewedFilesCheckbox;
     TSharedPtr< SCheckBox > OnlyShowDismissedFilesCheckbox;
+    TArray< TSharedPtr< EGitHubToolsConversationFilterStatus > > ConversationStatusItemsSource;
+    TSharedPtr< EGitHubToolsConversationFilterStatus > SelectedConversationStatusFilter;
 };

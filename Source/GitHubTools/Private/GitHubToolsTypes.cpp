@@ -212,7 +212,7 @@ FGithubToolsPullRequestFileInfos::FGithubToolsPullRequestFileInfos( const FStrin
     ChangedState( GetFileChangedState( change_type ) ),
     ChangedStateBrush( GetSlateBrushFromFileChangeState( ChangedState ) ),
     ChangedStateToolTip( GetToolTipFromFileChangedState( ChangedState ) ),
-    bHasUnresolvedConversations( false )
+    ConversationStatus( EGitHubFileConversationStatus::NoConversations )
 {
     UpdateViewedState( GetFileViewedState( viewed_state ) );
 }
@@ -240,7 +240,7 @@ bool FGithubToolsPullRequestFileInfos::IsFromDeveloperFolder() const
 bool FGithubToolsPullRequestFileInfos::IsOFPAAsset() const
 {
     static const FString FolderNames[] = {
-        TEXT( "__ExternalActors__" ) ,
+        TEXT( "__ExternalActors__" ),
         TEXT( "__ExternalObjects__" )
     };
 
@@ -262,7 +262,11 @@ void FGithubToolsPullRequestFileInfos::AddReview( const FGithubToolsPullRequestR
 
     if ( !review_thread_infos->bIsResolved )
     {
-        bHasUnresolvedConversations = true;
+        ConversationStatus = EGitHubFileConversationStatus::UnResolvedConversations;
+    }
+    else if ( ConversationStatus == EGitHubFileConversationStatus::NoConversations )
+    {
+        ConversationStatus = EGitHubFileConversationStatus::AllConversationsResolved;
     }
 
     OnDataChanged.Broadcast();
@@ -270,13 +274,24 @@ void FGithubToolsPullRequestFileInfos::AddReview( const FGithubToolsPullRequestR
 
 void FGithubToolsPullRequestFileInfos::RefreshResolvedConversations()
 {
-    const auto old_value = bHasUnresolvedConversations;
+    const auto old_value = ConversationStatus;
 
-    bHasUnresolvedConversations = Reviews.FindByPredicate( []( const FGithubToolsPullRequestReviewThreadInfosPtr & review_thread_infos ) {
-        return !review_thread_infos->bIsResolved;
-    } ) != nullptr;
+    if ( Reviews.IsEmpty() )
+    {
+        ConversationStatus = EGitHubFileConversationStatus::NoConversations;
+    }
+    else if ( Reviews.FindByPredicate( []( const FGithubToolsPullRequestReviewThreadInfosPtr & review_thread_infos ) {
+                  return !review_thread_infos->bIsResolved;
+              } ) != nullptr )
+    {
+        ConversationStatus = EGitHubFileConversationStatus::UnResolvedConversations;
+    }
+    else
+    {
+        ConversationStatus = EGitHubFileConversationStatus::AllConversationsResolved;
+    }
 
-    if ( old_value != bHasUnresolvedConversations )
+    if ( old_value != ConversationStatus )
     {
         OnDataChanged.Broadcast();
     }
@@ -378,8 +393,9 @@ void FGithubToolsPullRequestInfos::SetFiles( const TArray< FGithubToolsPullReque
 
 bool FGithubToolsPullRequestInfos::CanApprovePullRequest() const
 {
+    // Approve only if there is no unresolved conversation
     return FileInfos.FindByPredicate( []( const FGithubToolsPullRequestFileInfosPtr & file_infos ) {
-        return file_infos->bHasUnresolvedConversations;
+        return file_infos->ConversationStatus == EGitHubFileConversationStatus::UnResolvedConversations;
     } ) == nullptr;
 }
 
@@ -392,7 +408,7 @@ void FGithubToolsPullRequestInfos::DismissReview()
 {
     for ( const FGithubToolsPullRequestFileInfosPtr & file_infos : FileInfos )
     {
-        file_infos->bHasUnresolvedConversations = false;
+        file_infos->ConversationStatus = EGitHubFileConversationStatus::NoConversations;
         file_infos->Reviews.Empty();
     }
 
