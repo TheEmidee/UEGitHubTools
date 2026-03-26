@@ -47,9 +47,19 @@ void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TS
                                 [ SAssignNew( ReviewImage, SImage )
                                         .Image( FCoreStyle::Get().GetBrush( "Icons.Warning" ) )
                                         .Visibility( TAttribute< EVisibility >::Create( [ & ]() {
-                                            return TreeItem->FileInfos->bHasUnresolvedConversations ? EVisibility::Visible : EVisibility::Collapsed;
+                                            return TreeItem->FileInfos->ConversationStatus == EGitHubFileConversationStatus::UnResolvedConversations ? EVisibility::Visible : EVisibility::Collapsed;
                                         } ) )
                                         .ToolTipText( LOCTEXT( "UnresolvedComments", "This file has unresolved comments" ) ) ] +
+                         SHorizontalBox::Slot()
+                             .AutoWidth()
+                             .HAlign( HAlign_Center )
+                             .VAlign( VAlign_Center )
+                                 [ SAssignNew( ReviewImage, SImage )
+                                         .Image( FCoreStyle::Get().GetBrush( "Symbols.Check" ) )
+                                         .Visibility( TAttribute< EVisibility >::Create( [ & ]() {
+                                             return TreeItem->FileInfos->ConversationStatus == EGitHubFileConversationStatus::AllConversationsResolved ? EVisibility::Visible : EVisibility::Collapsed;
+                                         } ) )
+                                         .ToolTipText( LOCTEXT( "AllResolvedComments", "All the comments on this file are resolved" ) ) ] +
                         SHorizontalBox::Slot()
                             .FillWidth( 1.0f )
                                 [ SNew( STextBlock )

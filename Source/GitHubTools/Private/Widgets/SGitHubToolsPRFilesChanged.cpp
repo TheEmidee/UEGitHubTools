@@ -282,9 +282,9 @@ EVisibility SGitHubToolsPRFilesChanged::GetItemRowVisibility( FGithubToolsPullRe
         }
     }
 
-    if ( TreeViewFilters->bShowOnlyWithoutResolution )
+    if ( TreeViewFilters->ConversationFilterStatus != EGitHubToolsConversationFilterStatus::NoFilter )
     {
-        if ( !file_infos->bHasUnresolvedConversations )
+        if ( static_cast< uint8 >( file_infos->ConversationStatus ) != static_cast< uint8 >( TreeViewFilters->ConversationFilterStatus ) )
         {
             return EVisibility::Collapsed;
         }

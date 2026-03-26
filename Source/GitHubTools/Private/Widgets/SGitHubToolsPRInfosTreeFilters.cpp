@@ -12,6 +12,13 @@ void SGitHubToolsPRInfosTreeFilters::Construct( const FArguments & arguments )
     OnFiltersChanged = arguments._OnFiltersChanged;
     TreeViewFilters = arguments._TreeViewFilters;
 
+    SelectedConversationStatusFilter = MakeShared< EGitHubToolsConversationFilterStatus >( EGitHubToolsConversationFilterStatus::NoFilter );
+
+    ConversationStatusItemsSource.Add( SelectedConversationStatusFilter );
+    ConversationStatusItemsSource.Add( MakeShared< EGitHubToolsConversationFilterStatus >( EGitHubToolsConversationFilterStatus::NoConversations ) );
+    ConversationStatusItemsSource.Add( MakeShared< EGitHubToolsConversationFilterStatus >( EGitHubToolsConversationFilterStatus::UnResolvedConversations ) );
+    ConversationStatusItemsSource.Add( MakeShared< EGitHubToolsConversationFilterStatus >( EGitHubToolsConversationFilterStatus::AllConversationsResolved ) );
+
     ChildSlot
         [ SNew( SBorder )
                 [ SNew( SVerticalBox ) +
@@ -93,7 +100,7 @@ void SGitHubToolsPRInfosTreeFilters::Construct( const FArguments & arguments )
                                                 .AutoHeight()
                                                     [ SAssignNew( OnlyShowDismissedFilesCheckbox, SCheckBox )
                                                             .IsChecked( TreeViewFilters->bShowOnlyDismissed ? ECheckBoxState::Checked : ECheckBoxState::Unchecked )
-                                                            .OnCheckStateChanged( this, &SGitHubToolsPRInfosTreeFilters::OnShowOnlyWithoutResolutionCheckStateChanged )
+                                                            .OnCheckStateChanged( this, &SGitHubToolsPRInfosTreeFilters::OnShowOnlyDismissedFilesCheckStateChanged )
                                                             .Style( FAppStyle::Get(), "Menu.CheckBox" )
                                                             .ToolTipText( LOCTEXT( "ShowOnlyDismissedFilesToolTip", "Only files that changed since last view." ) )
                                                             .Content()
@@ -104,20 +111,19 @@ void SGitHubToolsPRInfosTreeFilters::Construct( const FArguments & arguments )
                                                                                     .Text( LOCTEXT( "ShowOnlyDismissedFiles", "Only files that changed since last view" ) ) ] ] ] ] +
                                 SHorizontalBox::Slot()
                                     .FillWidth( 1.0f )
-                                        [ SNew( SVerticalBox ) +
-                                            SVerticalBox::Slot()
-                                                .AutoHeight()
-                                                    [ SNew( SCheckBox )
-                                                            .IsChecked( TreeViewFilters->bShowOnlyWithoutResolution ? ECheckBoxState::Checked : ECheckBoxState::Unchecked )
-                                                            .OnCheckStateChanged( this, &SGitHubToolsPRInfosTreeFilters::OnShowOnlyWithoutResolutionCheckStateChanged )
-                                                            .Style( FAppStyle::Get(), "Menu.CheckBox" )
-                                                            .ToolTipText( LOCTEXT( "ShowOnlyWithoutConversationResolution", "Only unresolved files." ) )
-                                                            .Content()
-                                                                [ SNew( SHorizontalBox ) +
-                                                                    SHorizontalBox::Slot()
-                                                                        .Padding( 2.0f, 0.0f, 0.0f, 0.0f )
-                                                                            [ SNew( STextBlock )
-                                                                                    .Text( LOCTEXT( "ShowOnlyFilesWithoutResolution", "Only unresolved files" ) ) ] ] ] ] ] +
+                                        [ SNew( SComboBox< TSharedPtr< EGitHubToolsConversationFilterStatus > > )
+                                                .OptionsSource( &ConversationStatusItemsSource )
+                                                .OnGenerateWidget_Lambda( []( TSharedPtr< EGitHubToolsConversationFilterStatus > item ) -> TSharedRef< SWidget > {
+                                                    return SNew( STextBlock ).Text( UEnum::GetDisplayValueAsText( *item ) );
+                                                } )
+                                                .OnSelectionChanged( this, &SGitHubToolsPRInfosTreeFilters::OnConversationStatusFilterChanged )[
+                                                    // Content shown in the closed/collapsed state
+                                                    SNew( STextBlock )
+                                                        .Text_Lambda( [ this ]() -> FText {
+                                                            return SelectedConversationStatusFilter.IsValid()
+                                                                       ? UEnum::GetDisplayValueAsText( *SelectedConversationStatusFilter )
+                                                                       : FText::FromString( TEXT( "Select an option..." ) );
+                                                        } ) ] ] ] +
                     SVerticalBox::Slot()
                         .AutoHeight()
                         .Padding( FMargin( 5.0f ) )
@@ -175,15 +181,22 @@ void SGitHubToolsPRInfosTreeFilters::OnShowOnlyDismissedFilesCheckStateChanged( 
     OnFiltersChanged.Execute();
 }
 
-void SGitHubToolsPRInfosTreeFilters::OnShowOnlyWithoutResolutionCheckStateChanged( ECheckBoxState new_state )
-{
-    TreeViewFilters->bShowOnlyWithoutResolution = new_state == ECheckBoxState::Checked;
-    OnFiltersChanged.Execute();
-}
-
 void SGitHubToolsPRInfosTreeFilters::OnFilterTextChanged( const FText & text )
 {
     TreeViewFilters->SearchTextEvaluator.SetFilterText( text );
+    OnFiltersChanged.Execute();
+}
+
+void SGitHubToolsPRInfosTreeFilters::OnConversationStatusFilterChanged( TSharedPtr< EGitHubToolsConversationFilterStatus > selected_item, ESelectInfo::Type selection )
+{
+    if ( !selected_item.IsValid() )
+    {
+        return;
+    }
+
+    SelectedConversationStatusFilter = selected_item;
+
+    TreeViewFilters->ConversationFilterStatus = *selected_item;
     OnFiltersChanged.Execute();
 }
 

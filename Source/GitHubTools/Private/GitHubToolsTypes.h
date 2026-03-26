@@ -76,6 +76,13 @@ enum class EGitHubToolsPullRequestsState : uint8
     Unknown
 };
 
+enum class EGitHubFileConversationStatus : uint8
+{
+    NoConversations,
+    UnResolvedConversations,
+    AllConversationsResolved
+};
+
 struct FGithubToolsPullRequestComment
 {
     FGithubToolsPullRequestComment() = default;
@@ -143,7 +150,7 @@ struct FGithubToolsPullRequestFileInfos : TSharedFromThis< FGithubToolsPullReque
     EGitHubToolsFileViewedState ViewedState;
     const FSlateBrush * ViewedStateBrush;
     FText ViewedStateToolTip;
-    bool bHasUnresolvedConversations;
+    EGitHubFileConversationStatus ConversationStatus;
     FString Patch;
     TSharedPtr< FGithubToolsPullRequestInfos > PRInfos;
     TArray< TSharedPtr< FGithubToolsPullRequestReviewThreadInfos > > Reviews;
