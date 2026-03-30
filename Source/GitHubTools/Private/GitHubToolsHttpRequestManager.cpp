@@ -2,6 +2,7 @@
 
 #include "Async/Async.h"
 #include "GitHubTools.h"
+#include "GitHubToolsHelpers.h"
 #include "GitHubToolsHttpRequestsTypes.h"
 #include "GitHubToolsSettings.h"
 #include "HttpModule.h"
@@ -110,7 +111,12 @@ TFuture< typename TRequest::ResponseType > FGitHubToolsHttpRequestManager::SendP
                     return page_index;
             }() );
 #else
-            auto request = MakeRequestWithTuple< TRequest >( args_tuple, cursor );
+            auto request = [ & ]() {
+                if constexpr ( TRequestTraits< TRequest >::IsGraphQL )
+                    return MakeRequestWithTuple< TRequest >( args_tuple, cursor );
+                else
+                    return MakeRequestWithTuple< TRequest >( args_tuple, page_index );
+            }();
 #endif
             request->SetPromiseValueOnHttpThread();
             request->ProcessRequest();

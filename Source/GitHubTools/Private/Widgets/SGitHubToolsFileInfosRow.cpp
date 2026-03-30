@@ -18,9 +18,7 @@ void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TS
 
     if ( TreeItem->FileInfos != nullptr )
     {
-         TreeItem->FileInfos->OnDataChanged.AddSPLambda( this, [ & ]() {
-            OnFileInfosStateChanged.ExecuteIfBound( TreeItem->FileInfos );
-         } );
+        TreeItem->FileInfos->OnDataChanged.AddSP( this, &SGitHubToolsFileInfosRow::OnFileInfosDataChanged );
 
         STableRow< FGitHubToolsFileInfosTreeItemPtr >::Construct(
             STableRow< FGitHubToolsFileInfosTreeItemPtr >::FArguments()
@@ -187,6 +185,11 @@ bool SGitHubToolsFileInfosRow::IsDiffButtonEnabled() const
 bool SGitHubToolsFileInfosRow::GetButtonContainerEnable() const
 {
     return true;
+}
+
+void SGitHubToolsFileInfosRow::OnFileInfosDataChanged()
+{
+    OnFileInfosStateChanged.ExecuteIfBound( TreeItem->FileInfos );
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -26,6 +26,7 @@ private:
     bool IsOpenButtonEnabled() const;
     bool IsDiffButtonEnabled() const;
     bool GetButtonContainerEnable() const;
+    void OnFileInfosDataChanged();
 
     FGithubToolsPullRequestInfosPtr PRInfos;
     FGitHubToolsFileInfosTreeItemPtr TreeItem;

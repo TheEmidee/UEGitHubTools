@@ -24,4 +24,23 @@ static auto MakeRequestWithTuple( TTuple & tuple, const FString & cursor )
         cursor,
         TMakeIntegerSequence< size_t, TupleSize > {} );
 }
+
+template < typename TRequest, typename TTuple, size_t... Is >
+static auto MakeRequestWithTupleImpl( TTuple & tuple, int page_index, TIntegerSequence< size_t, Is... > )
+{
+    typedef TGitHubToolsHttpRequestWrapper< TRequest > HttpRequestType;
+    return MakeShared< HttpRequestType >(
+        tuple.template Get< Is >()...,
+        page_index );
+}
+
+template < typename TRequest, typename TTuple >
+static auto MakeRequestWithTuple( TTuple & tuple, int page_index )
+{
+    constexpr size_t TupleSize = TTupleArity< typename TRemoveReference< TTuple >::Type >::Value;
+    return MakeRequestWithTupleImpl< TRequest >(
+        tuple,
+        page_index,
+        TMakeIntegerSequence< size_t, TupleSize > {} );
+}
 #endif
