@@ -157,8 +157,7 @@ void SGitHubToolsAddCommentForm::CreatePendingReview()
                 return;
             }
 
-            FileInfos->PRInfos->PendingReview = MakeShared< FGithubToolsPullRequestPendingReviewInfos >();
-            FileInfos->PRInfos->PendingReview->Id = review_id;
+            FileInfos->PRInfos->CreatePendingReview( review_id );
 
             CreateReviewThread();
         } );

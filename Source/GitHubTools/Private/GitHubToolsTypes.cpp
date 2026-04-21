@@ -352,6 +352,7 @@ FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( const TSharedRef< FJ
     HeadRefName = json->GetStringField( TEXT( "headRefName" ) );
     bIsDraft = json->GetBoolField( TEXT( "isDraft" ) );
     bIsMergeable = json->GetBoolField( TEXT( "mergeable" ) );
+    bIsMerged = json->GetBoolField( TEXT( "merged" ) );
     URL = json->GetStringField( TEXT( "url" ) );
     State = GitHubToolsUtils::GetPullRequestState( json->GetStringField( TEXT( "state" ) ) );
 }
@@ -393,15 +394,14 @@ void FGithubToolsPullRequestInfos::SetFiles( const TArray< FGithubToolsPullReque
 
 bool FGithubToolsPullRequestInfos::CanApprovePullRequest() const
 {
-    // Approve only if there is no unresolved conversation
-    return FileInfos.FindByPredicate( []( const FGithubToolsPullRequestFileInfosPtr & file_infos ) {
-        return file_infos->ConversationStatus == EGitHubFileConversationStatus::UnResolvedConversations;
-    } ) == nullptr;
-}
+    if ( FileInfos.FindByPredicate( []( const FGithubToolsPullRequestFileInfosPtr & file_infos ) {
+             return file_infos->ConversationStatus == EGitHubFileConversationStatus::UnResolvedConversations;
+         } ) != nullptr )
+    {
+        return false;
+    }
 
-bool FGithubToolsPullRequestInfos::HasChangeRequests() const
-{
-    return PendingReview != nullptr;
+    return !bApprovedByMe;
 }
 
 void FGithubToolsPullRequestInfos::DismissReview()
@@ -414,12 +414,46 @@ void FGithubToolsPullRequestInfos::DismissReview()
 
     PendingReview->Comments.Empty();
     PendingReview = nullptr;
+    
+    // :TODO:
+    /* Don't keep only the last pending review
+     * Because we can't know here if we approved the last review we made
+     * What we should do:
+     * in FGitHubToolsHttpRequest_PR_GetInfos::ParseResponseData, store all the reviews
+     * we're only interested in knowing if we approved or not
+     * store the last one as the pending review as it's done now
+     * remove bApprovedByMe and replace by a function that would check if the last review was approved
+     */
+    bApprovedByMe = true;
 }
 
 void FGithubToolsPullRequestInfos::RequestChanges()
 {
     PendingReview->Comments.Empty();
     PendingReview = nullptr;
+}
+
+void FGithubToolsPullRequestInfos::CreatePendingReview( FStringView id, const TSharedPtr< FJsonObject > & comments_json )
+{
+    PendingReview = MakeShared< FGithubToolsPullRequestPendingReviewInfos >( id );
+    bApprovedByMe = false;
+
+    if ( comments_json != nullptr )
+    {
+        const auto review_comments_object = comments_json->GetObjectField( TEXT( "comments" ) );
+        const auto comments_edges_object = review_comments_object->GetArrayField( TEXT( "edges" ) );
+
+        PendingReview->Comments.Reserve( comments_edges_object.Num() );
+
+        for ( const auto comment_object : comments_edges_object )
+        {
+            const auto comment_node_object = comment_object->AsObject()->GetObjectField( TEXT( "node" ) );
+
+            auto comment = MakeShared< FGithubToolsPullRequestComment >( comment_node_object.ToSharedRef() );
+
+            PendingReview->Comments.Emplace( comment );
+        }
+    }
 }
 
 FGitHubToolsOpenedPullRequestInfos::FGitHubToolsOpenedPullRequestInfos( const TSharedRef< FJsonObject > & json )

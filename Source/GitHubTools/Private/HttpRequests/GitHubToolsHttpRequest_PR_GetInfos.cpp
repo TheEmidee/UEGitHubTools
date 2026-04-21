@@ -36,6 +36,7 @@ query ($repoOwner: String!, $repoName: String!, $pullNumber: Int!) {
       headRefName 
       isDraft 
       mergeable 
+      merged
       state 
       url 
       commits {
@@ -221,34 +222,19 @@ void FGitHubToolsHttpRequest_PR_GetInfos::ParseResponseData( const FJsonObject &
             continue;
         }
 
+        pr_infos->bApprovedByMe = false;
+
         if ( state != EGitHubToolsPullRequestReviewState::Pending )
         {
             continue;
         }
-
-        auto pending_review = MakeShared< FGithubToolsPullRequestPendingReviewInfos >();
-        pending_review->Id = review_node_object->GetStringField( TEXT( "id" ) );
-
-        const auto review_comments_object = review_node_object->GetObjectField( TEXT( "comments" ) );
-        const auto comments_edges_object = review_comments_object->GetArrayField( TEXT( "edges" ) );
-
-        if ( !ensureAlwaysMsgf( pr_infos->PendingReview == nullptr, TEXT( "There can only be one review per user per pull request !" ) ) )
+        
+    	if ( !ensureAlwaysMsgf( pr_infos->PendingReview == nullptr, TEXT( "There can only be one review per user per pull request !" ) ) )
         {
             continue;
         }
 
-        pr_infos->PendingReview = pending_review;
-
-        pending_review->Comments.Reserve( comments_edges_object.Num() );
-
-        for ( const auto comment_object : comments_edges_object )
-        {
-            const auto comment_node_object = comment_object->AsObject()->GetObjectField( TEXT( "node" ) );
-
-            auto comment = MakeShared< FGithubToolsPullRequestComment >( comment_node_object.ToSharedRef() );
-
-            pending_review->Comments.Emplace( comment );
-        }
+        pr_infos->CreatePendingReview( review_node_object->GetStringField( TEXT( "id" ) ), review_node_object );
     }
 
     Result = pr_infos;

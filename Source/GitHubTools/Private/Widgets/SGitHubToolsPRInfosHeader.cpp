@@ -1,24 +1,19 @@
 #include "SGitHubToolsPRInfosHeader.h"
 
-#include "AssetRegistry/AssetRegistryModule.h"
-#include "Components/VerticalBox.h"
-#include "FileHelpers.h"
 #include "GitHubTools.h"
 #include "GitHubToolsGitUtils.h"
-#include "HAL/FileManagerGeneric.h"
 #include "HttpRequests/GitHubToolsHttpRequest_PR_Approve.h"
 #include "HttpRequests/GitHubToolsHttpRequest_PR_DeleteReview.h"
 #include "HttpRequests/GitHubToolsHttpRequest_PR_Merge.h"
 #include "HttpRequests/GitHubToolsHttpRequest_PR_RequestChanges.h"
 #include "Misc/MessageDialog.h"
 #include "RevisionControlStyle/RevisionControlStyle.h"
-#include "SourceControlHelpers.h"
-#include "SourceControlOperations.h"
 #include "Textures/SlateIcon.h"
 #include "UObject/LinkerLoad.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Layout/SBorder.h"
+#include "Widgets/Layout/SWidgetSwitcher.h"
 #include "Widgets/SToolTip.h"
 #include "Widgets/Text/STextBlock.h"
 
@@ -179,46 +174,68 @@ void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
                                                                 .ToolTip( SNew( SToolTip )
                                                                         [ SNew( SBorder )
                                                                                 [ checks_tooltip.ToSharedRef() ] ] ) ] ] +
+                                    /*SHorizontalBox::Slot()
+                                        .FillWidth( 1.0f ) +*/
+
                                     SHorizontalBox::Slot()
-                                        .FillWidth( 1.0f ) +
+                                        .FillWidth( 1.0f )
+                                        .Padding( 5.0f )
+                                            [ SAssignNew( ApprovalWidgetSwitcher, SWidgetSwitcher )
+                                                    .WidgetIndex( this, &SGitHubToolsPRHeader::GetApprovalWidgetSwitchIndex ) +
+                                                SWidgetSwitcher::Slot()
+                                                    .HAlign( HAlign_Fill )
+                                                    .VAlign( VAlign_Fill )
+                                                        [ SNew( SBorder )
+                                                                .VAlign( VAlign_Center )
+                                                                .Padding( 5 )
+                                                                    [ SNew( STextBlock )
+                                                                            .Justification( ETextJustify::Type::Center )
+                                                                            .Text( LOCTEXT( "AlreadyApproved", "You already approved the PR" ) ) ] ] +
+                                                SWidgetSwitcher::Slot()
+                                                    [ SNew( SHorizontalBox ) +
+                                                        SHorizontalBox::Slot()
+                                                            .AutoWidth()
+                                                            .Padding( FMargin( 5.0f ) )
+                                                                [ SNew( SButton )
+                                                                        .VAlign( VAlign_Center )
+                                                                        .Text( LOCTEXT( "ApprovePR", "Approve the PR" ) )
+                                                                        .IsEnabled_Lambda( [ & ]() {
+                                                                            return PRInfos->CanApprovePullRequest();
+                                                                        } )
+                                                                        .ToolTipText( LOCTEXT( "ApprovePRToolTip", "Approve the PR (If all the comments on the files are resolved)" ) )
+                                                                        .OnClicked( this, &SGitHubToolsPRHeader::OnApprovePRClicked ) ] +
+                                                        SHorizontalBox::Slot()
+                                                            .AutoWidth()
+                                                            .Padding( FMargin( 5.0f ) )
+                                                                [ SNew( SButton )
+                                                                        .VAlign( VAlign_Center )
+                                                                        .Text( LOCTEXT( "RequestChanges", "Request changes" ) )
+                                                                        .IsEnabled_Lambda( [ & ]() {
+                                                                            return PRInfos->HasPendingReview();
+                                                                        } )
+                                                                        .ToolTipText( LOCTEXT( "RequestChangesToolTip", "Request the changes" ) )
+                                                                        .OnClicked( this, &SGitHubToolsPRHeader::OnRequestChangesClicked ) ] +
+                                                        SHorizontalBox::Slot()
+                                                            .AutoWidth()
+                                                            .Padding( FMargin( 5.0f ) )
+                                                                [ SNew( SButton )
+                                                                        .VAlign( VAlign_Center )
+                                                                        .Text( LOCTEXT( "AbandonReview", "Abandon the review" ) )
+                                                                        .ToolTipText( LOCTEXT( "AbandonReviewToolTip", "Abandon the review (If you have pending changes)" ) )
+                                                                        .IsEnabled_Lambda( [ & ]() {
+                                                                            return PRInfos->HasPendingReview();
+                                                                        } )
+                                                                        .OnClicked( this, &SGitHubToolsPRHeader::OnAbandonReviewClicked ) ] ] ] +
                                     SHorizontalBox::Slot()
                                         .AutoWidth()
-                                        .Padding( FMargin( 5.0f ) )
-                                            [ SNew( SButton )
-                                                    .VAlign( VAlign_Center )
-                                                    .Text( LOCTEXT( "ApprovePR", "Approve the PR" ) )
-                                                    .Visibility_Lambda( [ & ]() {
-                                                        return PRInfos->CanApprovePullRequest() ? EVisibility::Visible : EVisibility::Hidden;
-                                                    } )
-                                                    .OnClicked( this, &SGitHubToolsPRHeader::OnApprovePRClicked ) ] +
-                                    SHorizontalBox::Slot()
-                                        .AutoWidth()
-                                        .Padding( FMargin( 5.0f ) )
-                                            [ SNew( SButton )
-                                                    .VAlign( VAlign_Center )
-                                                    .Text( LOCTEXT( "RequestChanges", "Request changes" ) )
-                                                    .Visibility_Lambda( [ & ]() {
-                                                        return PRInfos->HasChangeRequests() ? EVisibility::Visible : EVisibility::Hidden;
-                                                    } )
-                                                    .OnClicked( this, &SGitHubToolsPRHeader::OnRequestChangesClicked ) ] +
-                                    SHorizontalBox::Slot()
-                                        .AutoWidth()
-                                        .Padding( FMargin( 5.0f ) )
-                                            [ SNew( SButton )
-                                                    .VAlign( VAlign_Center )
-                                                    .Text( LOCTEXT( "AbandonReview", "Abandon the review" ) )
-                                                    .Visibility_Lambda( [ & ]() {
-                                                        return PRInfos->HasPendingReview() ? EVisibility::Visible : EVisibility::Hidden;
-                                                    } )
-                                                    .OnClicked( this, &SGitHubToolsPRHeader::OnAbandonReviewClicked ) ] +
-                                    SHorizontalBox::Slot()
-                                        .AutoWidth()
-                                        .Padding( FMargin( 5.0f ) )
+                                        .Padding( 5.0f )
                                             [ SNew( SButton )
                                                     .VAlign( VAlign_Center )
                                                     .ButtonColorAndOpacity( FLinearColor( 1.0f, 0.0f, 0.0f, 1.0f ) )
                                                     .Text( LOCTEXT( "MergePR", "Merge the PR" ) )
-                                                    .OnClicked( this, &SGitHubToolsPRHeader::OnMergePRClicked ) ] ] ] ];
+                                                    .OnClicked( this, &SGitHubToolsPRHeader::OnMergePRClicked ) ] ]
+
+    ] ];
 }
 
 FReply SGitHubToolsPRHeader::OpenInGitHubClicked()
@@ -235,7 +252,8 @@ FReply SGitHubToolsPRHeader::OnApprovePRClicked()
     FGitHubToolsModule::Get()
         .GetRequestManager()
         .SendRequest< FGitHubToolsHttpRequest_PR_Approve >( PRInfos->Id )
-        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_PR_Approve > & /*request_future*/ ) {
+        .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_PR_Approve > & request_future ) {
+            PRInfos->bApprovedByMe = true;
             FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
         } );
 
@@ -295,6 +313,11 @@ EVisibility SGitHubToolsPRHeader::GetPendingReviewsVisibility() const
     return PRInfos->HasPendingReview()
                ? EVisibility::Visible
                : EVisibility::Collapsed;
+}
+
+int SGitHubToolsPRHeader::GetApprovalWidgetSwitchIndex() const
+{
+    return PRInfos->bApprovedByMe ? 0 : 1;
 }
 
 #undef LOCTEXT_NAMESPACE

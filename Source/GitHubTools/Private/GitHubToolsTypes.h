@@ -136,7 +136,7 @@ struct FGithubToolsPullRequestFileInfos : TSharedFromThis< FGithubToolsPullReque
     bool IsUAsset() const;
     bool IsFromDeveloperFolder() const;
     bool IsOFPAAsset() const;
-    void AddReview( const FGithubToolsPullRequestReviewThreadInfosPtr& review_thread_infos );
+    void AddReview( const FGithubToolsPullRequestReviewThreadInfosPtr & review_thread_infos );
     void RefreshResolvedConversations();
 
     FGitHubToolsOnDataChanged OnDataChanged;
@@ -167,7 +167,9 @@ enum class EGitHubToolsReviewState : uint8
 
 struct FGithubToolsPullRequestPendingReviewInfos
 {
-    FGithubToolsPullRequestPendingReviewInfos() = default;
+    explicit FGithubToolsPullRequestPendingReviewInfos( FStringView id ) :
+        Id( id )
+    {}
 
     FString Id;
     TArray< FGithubToolsPullRequestCommentPtr > Comments;
@@ -197,9 +199,9 @@ struct FGithubToolsPullRequestInfos : TSharedFromThis< FGithubToolsPullRequestIn
     bool HasPendingReview() const;
     void SetFiles( const TArray< FGithubToolsPullRequestFileInfosPtr > & files, const TArray< FGithubToolsPullRequestFilePatchPtr > & patches, const TArray< FGithubToolsPullRequestReviewThreadInfosPtr > & reviews );
     bool CanApprovePullRequest() const;
-    bool HasChangeRequests() const;
     void DismissReview();
     void RequestChanges();
+    void CreatePendingReview( FStringView id, const TSharedPtr< FJsonObject > & comments_json = nullptr );
 
     FString ViewerLogin;
     int Number;
@@ -214,6 +216,7 @@ struct FGithubToolsPullRequestInfos : TSharedFromThis< FGithubToolsPullRequestIn
     FString HeadRefName;
     bool bIsDraft;
     bool bIsMergeable;
+    bool bIsMerged;
     EGitHubToolsPullRequestsState State;
     FString URL;
     bool bApprovedByMe;
