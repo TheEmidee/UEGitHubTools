@@ -1,7 +1,5 @@
 #include "SGitHubToolsAssetActions.h"
 
-#include "Components/HorizontalBox.h"
-#include "RevisionControlStyle/RevisionControlStyle.h"
 #include "Textures/SlateIcon.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SButton.h"
@@ -21,7 +19,7 @@ void SGitHubToolsAssetActions::Construct( const FArguments & arguments )
     ChildSlot
         [ SNew( SHorizontalBox )
                 .IsEnabled_Lambda( [ & ]() {
-                    return AreAssetActionsEnabled.Execute();
+                    return AreAssetActionsEnabled.IsBound() ? AreAssetActionsEnabled.Execute() : true;
                 } ) +
             SHorizontalBox::Slot()
                 .AutoWidth()

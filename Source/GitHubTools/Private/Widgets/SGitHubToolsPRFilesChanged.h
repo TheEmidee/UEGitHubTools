@@ -33,7 +33,6 @@ private:
     void OnFileInfosStateChanged( FGithubToolsPullRequestFileInfosPtr file_infos );
     void OnMultipleFileInfosStateChanged( const TArray< FGithubToolsPullRequestFileInfosPtr > & file_infos );
     void OnShouldRebuildTree() const;
-    EVisibility GetPRReviewListVisibility() const;
 
     FGithubToolsPullRequestInfosPtr PRInfos;
     TSharedPtr< STreeView< FGitHubToolsFileInfosTreeItemPtr > > TreeView;

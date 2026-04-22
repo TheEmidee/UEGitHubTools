@@ -178,6 +178,7 @@ void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
                                         .FillWidth( 1.0f )
                                         .Padding( 5.0f )
                                             [ SAssignNew( ApprovalWidgetSwitcher, SWidgetSwitcher )
+                                                    .Visibility( this, &SGitHubToolsPRHeader::CanEnablePRButtons )
                                                     .WidgetIndex( this, &SGitHubToolsPRHeader::GetApprovalWidgetSwitchIndex ) +
                                                 SWidgetSwitcher::Slot()
                                                     .HAlign( HAlign_Fill )
@@ -228,6 +229,7 @@ void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
                                         .Padding( 5.0f )
                                             [ SNew( SButton )
                                                     .VAlign( VAlign_Center )
+                                                    .Visibility( this, &SGitHubToolsPRHeader::CanEnablePRButtons )
                                                     .ButtonColorAndOpacity( FLinearColor( 1.0f, 0.0f, 0.0f, 1.0f ) )
                                                     .Text( LOCTEXT( "MergePR", "Merge the PR" ) )
                                                     .OnClicked( this, &SGitHubToolsPRHeader::OnMergePRClicked ) ] ]
@@ -298,6 +300,7 @@ FReply SGitHubToolsPRHeader::OnMergePRClicked()
             .GetRequestManager()
             .SendRequest< FGitHubToolsHttpRequest_PR_Merge >( PRInfos->Id )
             .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_PR_Merge > & /*request_future*/ ) {
+                PRInfos->bIsMerged = true;
                 FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
             } );
     }
@@ -315,6 +318,11 @@ EVisibility SGitHubToolsPRHeader::GetPendingReviewsVisibility() const
 int SGitHubToolsPRHeader::GetApprovalWidgetSwitchIndex() const
 {
     return PRInfos->IsApprovedByMe() ? 0 : 1;
+}
+
+EVisibility SGitHubToolsPRHeader::CanEnablePRButtons() const
+{
+    return PRInfos->bIsMerged ? EVisibility::Collapsed : EVisibility::Visible;
 }
 
 #undef LOCTEXT_NAMESPACE

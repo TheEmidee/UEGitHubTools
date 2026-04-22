@@ -95,7 +95,6 @@ void SGitHubToolsPRFilesChanged::Construct( const FArguments & arguments )
                     SSplitter::Slot()
                         [ SAssignNew( ReviewList, SGitHubToolsPRReviewList )
                                 .PRInfos( PRInfos )
-                                .Visibility( this, &SGitHubToolsPRFilesChanged::GetPRReviewListVisibility )
                                 .OnShouldRebuildFileTreeView( this, &SGitHubToolsPRFilesChanged::OnShouldRebuildTree ) ] ] ];
 
     ExpandAllTreeItems();
@@ -354,11 +353,6 @@ void SGitHubToolsPRFilesChanged::OnShouldRebuildTree() const
 {
     TreeView->RebuildList();
     TreeView->RequestListRefresh();
-}
-
-EVisibility SGitHubToolsPRFilesChanged::GetPRReviewListVisibility() const
-{
-    return /* !PRInfos->HasPendingReviews() ? */ EVisibility::Visible /* : EVisibility::Collapsed */;
 }
 
 #undef LOCTEXT_NAMESPACE
