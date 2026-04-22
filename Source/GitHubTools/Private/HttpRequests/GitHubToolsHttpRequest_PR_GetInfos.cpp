@@ -192,7 +192,7 @@ void FGitHubToolsHttpRequest_PR_GetInfos::ParseResponseData( const FJsonObject &
     const auto comments_object = pull_request_object->GetObjectField( TEXT( "comments" ) );
     const auto comments_nodes_object = comments_object->GetArrayField( TEXT( "nodes" ) );
 
-    for ( const auto comment_node: comments_nodes_object )
+    for ( const auto comment_node : comments_nodes_object )
     {
         const auto comment_node_object = comment_node->AsObject();
 
@@ -207,34 +207,18 @@ void FGitHubToolsHttpRequest_PR_GetInfos::ParseResponseData( const FJsonObject &
     for ( const auto review_edge_object : reviews_edges_object )
     {
         const auto review_node_object = review_edge_object->AsObject()->GetObjectField( TEXT( "node" ) );
-        const auto review_node_author_object = review_node_object->GetObjectField( TEXT( "author" ) );
-        const auto review_node_author_login = review_node_author_object->GetStringField( TEXT( "login" ) );
+        auto review = MakeShared< FGithubToolsPullRequestReviewInfos >( review_node_object.ToSharedRef() );
 
-        if ( review_node_author_login != pr_infos->ViewerLogin )
+        pr_infos->Reviews.Emplace( review );
+
+        if ( review->Author != pr_infos->ViewerLogin ||
+             review->State != EGitHubToolsPullRequestReviewState::Pending ||
+             !ensureAlwaysMsgf( pr_infos->PendingReview == nullptr, TEXT( "There can only be one review per user per pull request !" ) ) )
         {
             continue;
         }
 
-        const auto state = GitHubToolsUtils::GetPullRequestReviewState( review_node_object->GetStringField( TEXT( "state" ) ) );
-        if ( state == EGitHubToolsPullRequestReviewState::Approved )
-        {
-            pr_infos->bApprovedByMe = true;
-            continue;
-        }
-
-        pr_infos->bApprovedByMe = false;
-
-        if ( state != EGitHubToolsPullRequestReviewState::Pending )
-        {
-            continue;
-        }
-        
-    	if ( !ensureAlwaysMsgf( pr_infos->PendingReview == nullptr, TEXT( "There can only be one review per user per pull request !" ) ) )
-        {
-            continue;
-        }
-
-        pr_infos->CreatePendingReview( review_node_object->GetStringField( TEXT( "id" ) ), review_node_object );
+        pr_infos->PendingReview = review;
     }
 
     Result = pr_infos;

@@ -153,11 +153,15 @@ void SGitHubToolsAddCommentForm::CreatePendingReview()
 
             if ( review_id.IsEmpty() )
             {
-                RefreshErrorText( LOCTEXT( "Error_NoThreadId", "Could not get a PR Reviww ID" ) );
+                RefreshErrorText( LOCTEXT( "Error_NoThreadId", "Could not get a PR Review ID" ) );
                 return;
             }
 
-            FileInfos->PRInfos->CreatePendingReview( review_id );
+            auto pending_review = MakeShared< FGithubToolsPullRequestReviewInfos >();
+            pending_review->Id = review_id;
+            pending_review->Author = FileInfos->PRInfos->ViewerLogin;
+            pending_review->State = EGitHubToolsPullRequestReviewState::Pending;
+            FileInfos->PRInfos->PendingReview = pending_review;
 
             CreateReviewThread();
         } );
@@ -188,8 +192,9 @@ void SGitHubToolsAddCommentForm::CreateReviewThread()
             .GetRequestManager()
             .SendRequest< FGitHubToolsHttpRequest_PR_AddReviewThreadToLine >( FileInfos->PRInfos->Id, FileInfos->PRInfos->PendingReview->Id, FileInfos->Path, LineInfos.Side, LineInfos.Line, GetComment() )
             .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_PR_AddReviewThreadToLine > & add_pr_review_thread_result ) {
-                auto add_pr_review_thread_result_data = add_pr_review_thread_result.Get();
-                FileInfos->AddReview( add_pr_review_thread_result_data.GetResult().GetValue() );
+                auto add_pr_review_thread_result_data_ptr = add_pr_review_thread_result.Get().GetResult().GetValue();
+                add_pr_review_thread_result_data_ptr->bIsPending = true;
+                FileInfos->AddReview( add_pr_review_thread_result_data_ptr );
                 Close();
             } );
     }
@@ -199,8 +204,9 @@ void SGitHubToolsAddCommentForm::CreateReviewThread()
             .GetRequestManager()
             .SendRequest< FGitHubToolsHttpRequest_PR_AddReviewThreadToFile >( FileInfos->PRInfos->Id, FileInfos->PRInfos->PendingReview->Id, FileInfos->Path, GetComment() )
             .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_PR_AddReviewThreadToFile > & add_pr_review_thread_result ) {
-                auto add_pr_review_thread_result_data = add_pr_review_thread_result.Get();
-                FileInfos->AddReview( add_pr_review_thread_result_data.GetResult().GetValue() );
+                auto add_pr_review_thread_result_data_ptr = add_pr_review_thread_result.Get().GetResult().GetValue();
+                add_pr_review_thread_result_data_ptr->bIsPending = true;
+                FileInfos->AddReview( add_pr_review_thread_result_data_ptr );
                 Close();
             } );
     }

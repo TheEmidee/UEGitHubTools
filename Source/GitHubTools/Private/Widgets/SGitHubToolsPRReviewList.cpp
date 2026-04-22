@@ -77,6 +77,11 @@ void SGitHubToolsPRReviewList::Construct( const FArguments & arguments )
 
 void SGitHubToolsPRReviewList::ShowFileReviews( const FGithubToolsPullRequestFileInfosPtr & file_infos )
 {
+    if ( FileInfos )
+    {
+        FileInfos->OnDataChanged.RemoveAll( this );
+    }
+
     FileInfos = file_infos;
 
     SetEnabled( FileInfos != nullptr );
@@ -85,12 +90,13 @@ void SGitHubToolsPRReviewList::ShowFileReviews( const FGithubToolsPullRequestFil
 
     if ( FileInfos != nullptr )
     {
-        ReviewThreads = FileInfos->Reviews.FilterByPredicate( []( const auto review ) {
-            return review->SubjectType == EGitHubToolsSubjectType::File;
-        } );
+        FileInfos->OnDataChanged.AddSP( this, &SGitHubToolsPRReviewList::OnFileInfosDataChanged );
+        OnFileInfosDataChanged();
     }
-
-    ReviewThreadsListView->RequestListRefresh();
+    else
+    {
+        ReviewThreadsListView->RequestListRefresh();   
+    }
 
     WidgetSwitcher->SetActiveWidgetIndex( 0 );
 
@@ -136,6 +142,15 @@ void SGitHubToolsPRReviewList::ShowAddCommentWindow( const FGithubToolsPullReque
 {
     AddCommentForm->Update( FileInfos, thread_infos );
     WidgetSwitcher->SetActiveWidgetIndex( 1 );
+}
+
+void SGitHubToolsPRReviewList::OnFileInfosDataChanged()
+{
+    ReviewThreads = FileInfos->Reviews.FilterByPredicate( []( const auto review ) {
+        return review->SubjectType == EGitHubToolsSubjectType::File;
+    } );
+
+    ReviewThreadsListView->RequestListRefresh();
 }
 
 #undef LOCTEXT_NAMESPACE

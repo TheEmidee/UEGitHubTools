@@ -174,9 +174,6 @@ void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
                                                                 .ToolTip( SNew( SToolTip )
                                                                         [ SNew( SBorder )
                                                                                 [ checks_tooltip.ToSharedRef() ] ] ) ] ] +
-                                    /*SHorizontalBox::Slot()
-                                        .FillWidth( 1.0f ) +*/
-
                                     SHorizontalBox::Slot()
                                         .FillWidth( 1.0f )
                                         .Padding( 5.0f )
@@ -253,7 +250,7 @@ FReply SGitHubToolsPRHeader::OnApprovePRClicked()
         .GetRequestManager()
         .SendRequest< FGitHubToolsHttpRequest_PR_Approve >( PRInfos->Id )
         .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_PR_Approve > & request_future ) {
-            PRInfos->bApprovedByMe = true;
+            PRInfos->ApproveReview();
             FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
         } );
 
@@ -317,7 +314,7 @@ EVisibility SGitHubToolsPRHeader::GetPendingReviewsVisibility() const
 
 int SGitHubToolsPRHeader::GetApprovalWidgetSwitchIndex() const
 {
-    return PRInfos->bApprovedByMe ? 0 : 1;
+    return PRInfos->IsApprovedByMe() ? 0 : 1;
 }
 
 #undef LOCTEXT_NAMESPACE

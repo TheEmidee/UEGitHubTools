@@ -297,6 +297,14 @@ void FGithubToolsPullRequestFileInfos::RefreshResolvedConversations()
     }
 }
 
+void FGithubToolsPullRequestFileInfos::RemovePendingReviews()
+{
+    Reviews.RemoveAll( []( const auto & review_infos ) {
+        return review_infos->bIsPending;
+    } );
+    RefreshResolvedConversations();
+}
+
 FGithubToolsPullRequestReviewThreadInfos::FGithubToolsPullRequestReviewThreadInfos( const TSharedRef< FJsonObject > & json_object ) :
     PRNumber( INDEX_NONE )
 {
@@ -325,6 +333,30 @@ FGithubToolsPullRequestReviewThreadInfos::FGithubToolsPullRequestReviewThreadInf
     ResolvedByUserName = get_resolved_by_user_name();
 }
 
+FGithubToolsPullRequestReviewInfos::FGithubToolsPullRequestReviewInfos( const TSharedRef< FJsonObject > & json )
+{
+    Id = json->GetStringField( TEXT( "id" ) );
+
+    const auto review_node_author_object = json->GetObjectField( TEXT( "author" ) );
+    Author = review_node_author_object->GetStringField( TEXT( "login" ) );
+
+    State = GitHubToolsUtils::GetPullRequestReviewState( json->GetStringField( TEXT( "state" ) ) );
+
+    const auto review_comments_object = json->GetObjectField( TEXT( "comments" ) );
+    const auto comments_edges_object = review_comments_object->GetArrayField( TEXT( "edges" ) );
+
+    Comments.Reserve( comments_edges_object.Num() );
+
+    for ( const auto comment_object : comments_edges_object )
+    {
+        const auto comment_node_object = comment_object->AsObject()->GetObjectField( TEXT( "node" ) );
+
+        auto comment = MakeShared< FGithubToolsPullRequestComment >( comment_node_object.ToSharedRef() );
+
+        Comments.Emplace( comment );
+    }
+}
+
 FGitHubToolsPullRequestCheckInfos::FGitHubToolsPullRequestCheckInfos( const TSharedRef< FJsonObject > & json )
 {
     Context = json->GetStringField( TEXT( "context" ) );
@@ -334,7 +366,6 @@ FGitHubToolsPullRequestCheckInfos::FGitHubToolsPullRequestCheckInfos( const TSha
 }
 
 FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( const TSharedRef< FJsonObject > & json ) :
-    bApprovedByMe( false ),
     bHasUnresolvedConversations( false )
 {
     const auto author_object = json->GetObjectField( TEXT( "author" ) );
@@ -401,58 +432,65 @@ bool FGithubToolsPullRequestInfos::CanApprovePullRequest() const
         return false;
     }
 
-    return !bApprovedByMe;
+    return !IsApprovedByMe();
+}
+
+bool FGithubToolsPullRequestInfos::IsApprovedByMe() const
+{
+    if ( PendingReview != nullptr )
+    {
+        return false;
+    }
+
+    for ( auto index = Reviews.Num() - 1; index >= 0; --index )
+    {
+        const auto review = Reviews[ index ];
+        if ( review->Author != ViewerLogin )
+        {
+            continue;
+        }
+        return review->State == EGitHubToolsPullRequestReviewState::Approved;
+    }
+
+    return false;
 }
 
 void FGithubToolsPullRequestInfos::DismissReview()
 {
     for ( const FGithubToolsPullRequestFileInfosPtr & file_infos : FileInfos )
     {
-        file_infos->ConversationStatus = EGitHubFileConversationStatus::NoConversations;
-        file_infos->Reviews.Empty();
+        file_infos->RemovePendingReviews();
     }
 
-    PendingReview->Comments.Empty();
-    PendingReview = nullptr;
-    
-    // :TODO:
-    /* Don't keep only the last pending review
-     * Because we can't know here if we approved the last review we made
-     * What we should do:
-     * in FGitHubToolsHttpRequest_PR_GetInfos::ParseResponseData, store all the reviews
-     * we're only interested in knowing if we approved or not
-     * store the last one as the pending review as it's done now
-     * remove bApprovedByMe and replace by a function that would check if the last review was approved
-     */
-    bApprovedByMe = true;
+    ClearPendingReview();
 }
 
 void FGithubToolsPullRequestInfos::RequestChanges()
 {
-    PendingReview->Comments.Empty();
-    PendingReview = nullptr;
+    for ( const FGithubToolsPullRequestFileInfosPtr & file_infos : FileInfos )
+    {
+        for ( const auto & review_infos : file_infos->Reviews )
+        {
+            review_infos->bIsPending = false;
+        }
+
+        file_infos->RefreshResolvedConversations();
+    }
+
+    ClearPendingReview();
 }
 
-void FGithubToolsPullRequestInfos::CreatePendingReview( FStringView id, const TSharedPtr< FJsonObject > & comments_json )
+void FGithubToolsPullRequestInfos::ApproveReview()
 {
-    PendingReview = MakeShared< FGithubToolsPullRequestPendingReviewInfos >( id );
-    bApprovedByMe = false;
+    RequestChanges();
+}
 
-    if ( comments_json != nullptr )
+void FGithubToolsPullRequestInfos::ClearPendingReview()
+{
+    if ( PendingReview )
     {
-        const auto review_comments_object = comments_json->GetObjectField( TEXT( "comments" ) );
-        const auto comments_edges_object = review_comments_object->GetArrayField( TEXT( "edges" ) );
-
-        PendingReview->Comments.Reserve( comments_edges_object.Num() );
-
-        for ( const auto comment_object : comments_edges_object )
-        {
-            const auto comment_node_object = comment_object->AsObject()->GetObjectField( TEXT( "node" ) );
-
-            auto comment = MakeShared< FGithubToolsPullRequestComment >( comment_node_object.ToSharedRef() );
-
-            PendingReview->Comments.Emplace( comment );
-        }
+        PendingReview->Comments.Empty();
+        PendingReview = nullptr;   
     }
 }
 
