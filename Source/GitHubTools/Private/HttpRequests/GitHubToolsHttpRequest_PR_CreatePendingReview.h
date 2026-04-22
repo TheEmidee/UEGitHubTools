@@ -1,7 +1,6 @@
 #pragma once
 
 #include "GitHubToolsHttpRequestsTypes.h"
-#include "GitHubToolsTypes.h"
 
 class FGitHubToolsHttpRequest_PR_CreatePendingReview final : public FGitHubToolsHttpRequestGraphQLMutation< FString >
 {

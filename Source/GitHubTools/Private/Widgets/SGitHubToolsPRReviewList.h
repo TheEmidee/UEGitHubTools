@@ -33,6 +33,7 @@ private:
     bool CanSubmitComment() const;
     FReply OnCreateNewThreadButtonClicked();
     void ShowAddCommentWindow( const FGithubToolsPullRequestReviewThreadInfosPtr & thread_infos );
+    void OnFileInfosDataChanged();
 
     TWeakPtr< SWindow > ParentFrame;
     FGithubToolsPullRequestInfosPtr PRInfos;

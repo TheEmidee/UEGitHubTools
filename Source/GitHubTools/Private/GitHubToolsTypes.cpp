@@ -297,6 +297,14 @@ void FGithubToolsPullRequestFileInfos::RefreshResolvedConversations()
     }
 }
 
+void FGithubToolsPullRequestFileInfos::RemovePendingReviews()
+{
+    Reviews.RemoveAll( []( const auto & review_infos ) {
+        return review_infos->bIsPending;
+    } );
+    RefreshResolvedConversations();
+}
+
 FGithubToolsPullRequestReviewThreadInfos::FGithubToolsPullRequestReviewThreadInfos( const TSharedRef< FJsonObject > & json_object ) :
     PRNumber( INDEX_NONE )
 {
@@ -325,6 +333,30 @@ FGithubToolsPullRequestReviewThreadInfos::FGithubToolsPullRequestReviewThreadInf
     ResolvedByUserName = get_resolved_by_user_name();
 }
 
+FGithubToolsPullRequestReviewInfos::FGithubToolsPullRequestReviewInfos( const TSharedRef< FJsonObject > & json )
+{
+    Id = json->GetStringField( TEXT( "id" ) );
+
+    const auto review_node_author_object = json->GetObjectField( TEXT( "author" ) );
+    Author = review_node_author_object->GetStringField( TEXT( "login" ) );
+
+    State = GitHubToolsUtils::GetPullRequestReviewState( json->GetStringField( TEXT( "state" ) ) );
+
+    const auto review_comments_object = json->GetObjectField( TEXT( "comments" ) );
+    const auto comments_edges_object = review_comments_object->GetArrayField( TEXT( "edges" ) );
+
+    Comments.Reserve( comments_edges_object.Num() );
+
+    for ( const auto comment_object : comments_edges_object )
+    {
+        const auto comment_node_object = comment_object->AsObject()->GetObjectField( TEXT( "node" ) );
+
+        auto comment = MakeShared< FGithubToolsPullRequestComment >( comment_node_object.ToSharedRef() );
+
+        Comments.Emplace( comment );
+    }
+}
+
 FGitHubToolsPullRequestCheckInfos::FGitHubToolsPullRequestCheckInfos( const TSharedRef< FJsonObject > & json )
 {
     Context = json->GetStringField( TEXT( "context" ) );
@@ -334,7 +366,6 @@ FGitHubToolsPullRequestCheckInfos::FGitHubToolsPullRequestCheckInfos( const TSha
 }
 
 FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( const TSharedRef< FJsonObject > & json ) :
-    bApprovedByMe( false ),
     bHasUnresolvedConversations( false )
 {
     const auto author_object = json->GetObjectField( TEXT( "author" ) );
@@ -352,6 +383,7 @@ FGithubToolsPullRequestInfos::FGithubToolsPullRequestInfos( const TSharedRef< FJ
     HeadRefName = json->GetStringField( TEXT( "headRefName" ) );
     bIsDraft = json->GetBoolField( TEXT( "isDraft" ) );
     bIsMergeable = json->GetBoolField( TEXT( "mergeable" ) );
+    bIsMerged = json->GetBoolField( TEXT( "merged" ) );
     URL = json->GetStringField( TEXT( "url" ) );
     State = GitHubToolsUtils::GetPullRequestState( json->GetStringField( TEXT( "state" ) ) );
 }
@@ -393,33 +425,73 @@ void FGithubToolsPullRequestInfos::SetFiles( const TArray< FGithubToolsPullReque
 
 bool FGithubToolsPullRequestInfos::CanApprovePullRequest() const
 {
-    // Approve only if there is no unresolved conversation
-    return FileInfos.FindByPredicate( []( const FGithubToolsPullRequestFileInfosPtr & file_infos ) {
-        return file_infos->ConversationStatus == EGitHubFileConversationStatus::UnResolvedConversations;
-    } ) == nullptr;
+    if ( FileInfos.FindByPredicate( []( const FGithubToolsPullRequestFileInfosPtr & file_infos ) {
+             return file_infos->ConversationStatus == EGitHubFileConversationStatus::UnResolvedConversations;
+         } ) != nullptr )
+    {
+        return false;
+    }
+
+    return !IsApprovedByMe();
 }
 
-bool FGithubToolsPullRequestInfos::HasChangeRequests() const
+bool FGithubToolsPullRequestInfos::IsApprovedByMe() const
 {
-    return PendingReview != nullptr;
+    if ( PendingReview != nullptr )
+    {
+        return false;
+    }
+
+    for ( auto index = Reviews.Num() - 1; index >= 0; --index )
+    {
+        const auto review = Reviews[ index ];
+        if ( review->Author != ViewerLogin )
+        {
+            continue;
+        }
+        return review->State == EGitHubToolsPullRequestReviewState::Approved;
+    }
+
+    return false;
 }
 
 void FGithubToolsPullRequestInfos::DismissReview()
 {
     for ( const FGithubToolsPullRequestFileInfosPtr & file_infos : FileInfos )
     {
-        file_infos->ConversationStatus = EGitHubFileConversationStatus::NoConversations;
-        file_infos->Reviews.Empty();
+        file_infos->RemovePendingReviews();
     }
 
-    PendingReview->Comments.Empty();
-    PendingReview = nullptr;
+    ClearPendingReview();
 }
 
 void FGithubToolsPullRequestInfos::RequestChanges()
 {
-    PendingReview->Comments.Empty();
-    PendingReview = nullptr;
+    for ( const FGithubToolsPullRequestFileInfosPtr & file_infos : FileInfos )
+    {
+        for ( const auto & review_infos : file_infos->Reviews )
+        {
+            review_infos->bIsPending = false;
+        }
+
+        file_infos->RefreshResolvedConversations();
+    }
+
+    ClearPendingReview();
+}
+
+void FGithubToolsPullRequestInfos::ApproveReview()
+{
+    RequestChanges();
+}
+
+void FGithubToolsPullRequestInfos::ClearPendingReview()
+{
+    if ( PendingReview )
+    {
+        PendingReview->Comments.Empty();
+        PendingReview = nullptr;   
+    }
 }
 
 FGitHubToolsOpenedPullRequestInfos::FGitHubToolsOpenedPullRequestInfos( const TSharedRef< FJsonObject > & json )

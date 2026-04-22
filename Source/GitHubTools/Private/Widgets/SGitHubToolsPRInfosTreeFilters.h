@@ -23,7 +23,7 @@ struct FGitHubToolsTreeViewFilters
     bool bShowOnlyModified = false;
     bool bShowOnlyUnViewed = false;
     bool bShowOnlyDismissed = false;
-    EGitHubToolsConversationFilterStatus ConversationFilterStatus;
+    EGitHubToolsConversationFilterStatus ConversationFilterStatus = EGitHubToolsConversationFilterStatus::NoFilter;
     FTextFilterExpressionEvaluator SearchTextEvaluator = { ETextFilterExpressionEvaluatorMode::BasicString };
 };
 
