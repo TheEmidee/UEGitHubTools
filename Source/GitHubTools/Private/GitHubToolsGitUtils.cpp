@@ -111,7 +111,18 @@ namespace GitHubToolsUtils
             return;
         }
 
-        const auto & branch_name = status_branch_names[ 0 ];
+        const auto & pr_base_ref_name = file_infos.PRInfos->BaseRefName;
+
+        // the base ref name is only the name of the parent branch, like develop. We need to reconstruct a branch name that contains
+        // the remote name, using what FGitSourceControlModule returned to us
+        auto branch_name = status_branch_names[ 0 ];
+        int char_pos;
+        if ( branch_name.FindChar( '/', char_pos ) )
+        {
+            branch_name.RemoveAt( char_pos + 1, 1024 );
+            branch_name += pr_base_ref_name;
+        }
+
         const auto & path_to_git_binary = git_source_control.AccessSettings().GetBinaryPath();
 
         auto asset_data = optional_asset_data.GetValue();
