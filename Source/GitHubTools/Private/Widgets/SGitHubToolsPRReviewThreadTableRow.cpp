@@ -59,7 +59,7 @@ void SGitHubToolsPRReviewThreadTableRow::Construct( const FArguments & arguments
                             [ SNew( SButton )
                                     .HAlign( EHorizontalAlignment::HAlign_Center )
                                     .ContentPadding( FMargin( 5.0f ) )
-                                    .IsEnabled( !ThreadInfos->bIsResolved )
+                                    .IsEnabled( this, &SGitHubToolsPRReviewThreadTableRow ::CanEnableButtons )
                                     .OnClicked( OnAddCommentButtonClicked )
                                     .Text( LOCTEXT( "ReviewThread_AddCommmentText", "Add Comment" ) ) ] +
                     SHorizontalBox::Slot()
@@ -69,7 +69,7 @@ void SGitHubToolsPRReviewThreadTableRow::Construct( const FArguments & arguments
                             [ SNew( SButton )
                                     .HAlign( EHorizontalAlignment::HAlign_Center )
                                     .ContentPadding( FMargin( 5.0f ) )
-                                    .IsEnabled( !ThreadInfos->bIsResolved )
+                                    .IsEnabled( this, &SGitHubToolsPRReviewThreadTableRow ::CanEnableButtons )
                                     .OnClicked( this, &SGitHubToolsPRReviewThreadTableRow::OnResolveConversationClicked )
                                     .Text( LOCTEXT( "ReviewThread_ResolveButtonText", "Resolve conversation" ) ) ] ];
     }
@@ -122,6 +122,12 @@ FReply SGitHubToolsPRReviewThreadTableRow::OnCollapsedButtonClicked()
 
     OwnerTable->RequestListRefresh();
     return FReply::Handled();
+}
+
+bool SGitHubToolsPRReviewThreadTableRow::CanEnableButtons() const
+{
+    return !ThreadInfos->ParentFileInfos->PRInfos->bIsMerged &&
+           !ThreadInfos->bIsResolved;
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -48,16 +48,16 @@ void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TS
                                             return TreeItem->FileInfos->ConversationStatus == EGitHubFileConversationStatus::UnResolvedConversations ? EVisibility::Visible : EVisibility::Collapsed;
                                         } ) )
                                         .ToolTipText( LOCTEXT( "UnresolvedComments", "This file has unresolved comments" ) ) ] +
-                         SHorizontalBox::Slot()
-                             .AutoWidth()
-                             .HAlign( HAlign_Center )
-                             .VAlign( VAlign_Center )
-                                 [ SAssignNew( ReviewImage, SImage )
-                                         .Image( FCoreStyle::Get().GetBrush( "Symbols.Check" ) )
-                                         .Visibility( TAttribute< EVisibility >::Create( [ & ]() {
-                                             return TreeItem->FileInfos->ConversationStatus == EGitHubFileConversationStatus::AllConversationsResolved ? EVisibility::Visible : EVisibility::Collapsed;
-                                         } ) )
-                                         .ToolTipText( LOCTEXT( "AllResolvedComments", "All the comments on this file are resolved" ) ) ] +
+                        SHorizontalBox::Slot()
+                            .AutoWidth()
+                            .HAlign( HAlign_Center )
+                            .VAlign( VAlign_Center )
+                                [ SAssignNew( ReviewImage, SImage )
+                                        .Image( FCoreStyle::Get().GetBrush( "Symbols.Check" ) )
+                                        .Visibility( TAttribute< EVisibility >::Create( [ & ]() {
+                                            return TreeItem->FileInfos->ConversationStatus == EGitHubFileConversationStatus::AllConversationsResolved ? EVisibility::Visible : EVisibility::Collapsed;
+                                        } ) )
+                                        .ToolTipText( LOCTEXT( "AllResolvedComments", "All the comments on this file are resolved" ) ) ] +
                         SHorizontalBox::Slot()
                             .FillWidth( 1.0f )
                                 [ SNew( STextBlock )
@@ -65,7 +65,6 @@ void SGitHubToolsFileInfosRow::Construct( const FArguments & arguments, const TS
                         SHorizontalBox::Slot()
                             .AutoWidth()
                                 [ SNew( SGitHubToolsAssetActions )
-                                        .AreAssetActionsEnabled( this, &SGitHubToolsFileInfosRow::GetButtonContainerEnable )
                                         .IsOpenButtonEnabled( this, &SGitHubToolsFileInfosRow::IsOpenButtonEnabled )
                                         .IsDiffButtonEnabled( this, &SGitHubToolsFileInfosRow::IsDiffButtonEnabled )
                                         .IsMarkedAsViewedButtonEnabled( this, &SGitHubToolsFileInfosRow::IsMarkedAsViewedButtonEnabled )
@@ -169,7 +168,8 @@ FReply SGitHubToolsFileInfosRow::OnDiffAssetButtonClicked()
 
 bool SGitHubToolsFileInfosRow::IsMarkedAsViewedButtonEnabled() const
 {
-    return TreeItem->FileInfos->ViewedState != EGitHubToolsFileViewedState::Viewed;
+    return !PRInfos->bIsMerged &&
+           TreeItem->FileInfos->ViewedState != EGitHubToolsFileViewedState::Viewed;
 }
 
 bool SGitHubToolsFileInfosRow::IsOpenButtonEnabled() const
@@ -180,11 +180,6 @@ bool SGitHubToolsFileInfosRow::IsOpenButtonEnabled() const
 bool SGitHubToolsFileInfosRow::IsDiffButtonEnabled() const
 {
     return TreeItem->FileInfos->ChangedState == EGitHubToolsFileChangedState::Modified;
-}
-
-bool SGitHubToolsFileInfosRow::GetButtonContainerEnable() const
-{
-    return true;
 }
 
 void SGitHubToolsFileInfosRow::OnFileInfosDataChanged()

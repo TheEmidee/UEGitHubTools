@@ -34,6 +34,7 @@ private:
     FReply OnCreateNewThreadButtonClicked();
     void ShowAddCommentWindow( const FGithubToolsPullRequestReviewThreadInfosPtr & thread_infos );
     void OnFileInfosDataChanged();
+    bool CanCreateNewThread() const;
 
     TWeakPtr< SWindow > ParentFrame;
     FGithubToolsPullRequestInfosPtr PRInfos;

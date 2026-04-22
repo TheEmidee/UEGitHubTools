@@ -26,6 +26,8 @@ private:
     FReply OnMergePRClicked();
     EVisibility GetPendingReviewsVisibility() const;
     int GetApprovalWidgetSwitchIndex() const;
+    EVisibility CanEnablePRButtons() const;
+    EVisibility GetMergedPRInfoVisibility() const;
 
     FGithubToolsPullRequestInfosPtr PRInfos;
     TSharedPtr< SButton > ApprovePRButton;

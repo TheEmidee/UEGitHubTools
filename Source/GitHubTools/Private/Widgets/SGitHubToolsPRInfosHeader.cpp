@@ -69,6 +69,18 @@ void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
                 .Padding( FMargin( 10 ) )
                     [ SNew( SVerticalBox ) +
                         SVerticalBox::Slot()
+                            .MinHeight( 50.0f )
+                            .VAlign( VAlign_Top )
+                                [ SNew( SBorder )
+                                        .Visibility( this, &SGitHubToolsPRHeader::GetMergedPRInfoVisibility )
+                                        .Padding( 10.0f )
+                                        .ColorAndOpacity( FLinearColor::Green )
+                                        .BorderBackgroundColor( FLinearColor::Green )
+                                            [ SNew( STextBlock )
+                                                    .Text( LOCTEXT( "AlreadyMerged", "This PR has been merged" ) )
+                                                    .Justification( ETextJustify::Type::Center )
+                                                    .Font( FAppStyle::GetFontStyle( "BoldFont" ) ) ] ] +
+                        SVerticalBox::Slot()
                             .AutoHeight()
                                 [ SNew( STextBlock )
                                         .Text( FText::FromString( FString::Printf( TEXT( "%s ( # %i )" ), *PRInfos->Title, PRInfos->Number ) ) )
@@ -178,6 +190,7 @@ void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
                                         .FillWidth( 1.0f )
                                         .Padding( 5.0f )
                                             [ SAssignNew( ApprovalWidgetSwitcher, SWidgetSwitcher )
+                                                    .Visibility( this, &SGitHubToolsPRHeader::CanEnablePRButtons )
                                                     .WidgetIndex( this, &SGitHubToolsPRHeader::GetApprovalWidgetSwitchIndex ) +
                                                 SWidgetSwitcher::Slot()
                                                     .HAlign( HAlign_Fill )
@@ -228,6 +241,7 @@ void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
                                         .Padding( 5.0f )
                                             [ SNew( SButton )
                                                     .VAlign( VAlign_Center )
+                                                    .Visibility( this, &SGitHubToolsPRHeader::CanEnablePRButtons )
                                                     .ButtonColorAndOpacity( FLinearColor( 1.0f, 0.0f, 0.0f, 1.0f ) )
                                                     .Text( LOCTEXT( "MergePR", "Merge the PR" ) )
                                                     .OnClicked( this, &SGitHubToolsPRHeader::OnMergePRClicked ) ] ]
@@ -298,6 +312,7 @@ FReply SGitHubToolsPRHeader::OnMergePRClicked()
             .GetRequestManager()
             .SendRequest< FGitHubToolsHttpRequest_PR_Merge >( PRInfos->Id )
             .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_PR_Merge > & /*request_future*/ ) {
+                PRInfos->bIsMerged = true;
                 FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
             } );
     }
@@ -315,6 +330,16 @@ EVisibility SGitHubToolsPRHeader::GetPendingReviewsVisibility() const
 int SGitHubToolsPRHeader::GetApprovalWidgetSwitchIndex() const
 {
     return PRInfos->IsApprovedByMe() ? 0 : 1;
+}
+
+EVisibility SGitHubToolsPRHeader::CanEnablePRButtons() const
+{
+    return PRInfos->bIsMerged ? EVisibility::Collapsed : EVisibility::Visible;
+}
+
+EVisibility SGitHubToolsPRHeader::GetMergedPRInfoVisibility() const
+{
+    return !PRInfos->bIsMerged ? EVisibility::Collapsed : EVisibility::Visible;
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -25,7 +25,6 @@ private:
     bool IsMarkedAsViewedButtonEnabled() const;
     bool IsOpenButtonEnabled() const;
     bool IsDiffButtonEnabled() const;
-    bool GetButtonContainerEnable() const;
     void OnFileInfosDataChanged();
 
     FGithubToolsPullRequestInfosPtr PRInfos;

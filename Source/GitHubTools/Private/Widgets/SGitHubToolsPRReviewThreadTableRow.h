@@ -23,6 +23,7 @@ private:
     FReply OnResolveConversationClicked();
     FText GetCollapsedButtonText() const;
     FReply OnCollapsedButtonClicked();
+    bool CanEnableButtons() const;
 
     FGithubToolsPullRequestReviewThreadInfosPtr ThreadInfos;
     TSharedPtr< SVerticalBox > CommentsPanel;

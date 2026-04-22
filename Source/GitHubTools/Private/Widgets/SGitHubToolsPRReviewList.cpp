@@ -45,7 +45,7 @@ void SGitHubToolsPRReviewList::Construct( const FArguments & arguments )
                                                             .HAlign( HAlign_Left )
                                                                 [ SNew( SButton )
                                                                         .Text( LOCTEXT( "CreateNewThread", "Create new thread" ) )
-                                                                        // .IsEnabled( PRInfos->CanCommentFiles() )
+                                                                        .IsEnabled( this, &SGitHubToolsPRReviewList::CanCreateNewThread )
                                                                         .OnClicked( this, &SGitHubToolsPRReviewList::OnCreateNewThreadButtonClicked ) ] +
                                                         SHorizontalBox::Slot()
                                                             .AutoWidth()
@@ -95,7 +95,7 @@ void SGitHubToolsPRReviewList::ShowFileReviews( const FGithubToolsPullRequestFil
     }
     else
     {
-        ReviewThreadsListView->RequestListRefresh();   
+        ReviewThreadsListView->RequestListRefresh();
     }
 
     WidgetSwitcher->SetActiveWidgetIndex( 0 );
@@ -151,6 +151,11 @@ void SGitHubToolsPRReviewList::OnFileInfosDataChanged()
     } );
 
     ReviewThreadsListView->RequestListRefresh();
+}
+
+bool SGitHubToolsPRReviewList::CanCreateNewThread() const
+{
+    return !PRInfos->bIsMerged;
 }
 
 #undef LOCTEXT_NAMESPACE
