@@ -69,6 +69,18 @@ void SGitHubToolsPRHeader::Construct( const FArguments & arguments )
                 .Padding( FMargin( 10 ) )
                     [ SNew( SVerticalBox ) +
                         SVerticalBox::Slot()
+                            .MinHeight( 50.0f )
+                            .VAlign( VAlign_Top )
+                                [ SNew( SBorder )
+                                        .Visibility( this, &SGitHubToolsPRHeader::GetMergedPRInfoVisibility )
+                                        .Padding( 10.0f )
+                                        .ColorAndOpacity( FLinearColor::Green )
+                                        .BorderBackgroundColor( FLinearColor::Green )
+                                            [ SNew( STextBlock )
+                                                    .Text( LOCTEXT( "AlreadyMerged", "This PR has been merged" ) )
+                                                    .Justification( ETextJustify::Type::Center )
+                                                    .Font( FAppStyle::GetFontStyle( "BoldFont" ) ) ] ] +
+                        SVerticalBox::Slot()
                             .AutoHeight()
                                 [ SNew( STextBlock )
                                         .Text( FText::FromString( FString::Printf( TEXT( "%s ( # %i )" ), *PRInfos->Title, PRInfos->Number ) ) )
@@ -323,6 +335,11 @@ int SGitHubToolsPRHeader::GetApprovalWidgetSwitchIndex() const
 EVisibility SGitHubToolsPRHeader::CanEnablePRButtons() const
 {
     return PRInfos->bIsMerged ? EVisibility::Collapsed : EVisibility::Visible;
+}
+
+EVisibility SGitHubToolsPRHeader::GetMergedPRInfoVisibility() const
+{
+    return !PRInfos->bIsMerged ? EVisibility::Collapsed : EVisibility::Visible;
 }
 
 #undef LOCTEXT_NAMESPACE
