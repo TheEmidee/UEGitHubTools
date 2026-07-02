@@ -311,8 +311,11 @@ FReply SGitHubToolsPRHeader::OnMergePRClicked()
         FGitHubToolsModule::Get()
             .GetRequestManager()
             .SendRequest< FGitHubToolsHttpRequest_PR_Merge >( PRInfos->Id )
-            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_PR_Merge > & /*request_future*/ ) {
-                PRInfos->bIsMerged = true;
+            .Then( [ & ]( const TFuture< FGitHubToolsHttpRequest_PR_Merge > & request_future ) {
+                if ( !request_future.Get().HasErrorMessage() )
+                {
+                    PRInfos->bIsMerged = true;
+                }
                 FGitHubToolsModule::Get().GetNotificationManager().RemoveModalNotification();
             } );
     }
